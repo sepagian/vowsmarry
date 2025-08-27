@@ -208,12 +208,12 @@
 		<h3 class="text-lg font-semibold mb-3">Add New Vendor</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Vendor Name</label>
-				<input type="text" placeholder="Enter vendor name..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="vendor-name" class="text-sm font-medium text-muted-foreground">Vendor Name</label>
+				<input id="vendor-name" type="text" placeholder="Enter vendor name..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Category</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="vendor-category" class="text-sm font-medium text-muted-foreground">Category</label>
+				<select id="vendor-category" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Venue</option>
 					<option>Catering</option>
 					<option>Photography</option>
@@ -224,20 +224,20 @@
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Contact Number</label>
-				<input type="tel" placeholder="+62 xxx xxxx xxxx" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="vendor-contact" class="text-sm font-medium text-muted-foreground">Contact Number</label>
+				<input id="vendor-contact" type="tel" placeholder="+62 xxx xxxx xxxx" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Email</label>
-				<input type="email" placeholder="vendor@example.com" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="vendor-email" class="text-sm font-medium text-muted-foreground">Email</label>
+				<input id="vendor-email" type="email" placeholder="vendor@example.com" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Estimated Price</label>
-				<input type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="vendor-price" class="text-sm font-medium text-muted-foreground">Estimated Price</label>
+				<input id="vendor-price" type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Status</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="vendor-status" class="text-sm font-medium text-muted-foreground">Status</label>
+				<select id="vendor-status" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>pending</option>
 					<option>contacted</option>
 					<option>negotiating</option>
@@ -246,8 +246,8 @@
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea placeholder="Add any notes about this vendor..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
+			<label for="vendor-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
+			<textarea id="vendor-notes" placeholder="Add any notes about this vendor..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Vendor
