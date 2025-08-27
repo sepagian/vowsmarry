@@ -274,12 +274,12 @@
 		<h3 class="text-lg font-semibold mb-3">Add New Souvenir</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Souvenir Name</label>
-				<input type="text" placeholder="e.g., Custom Keychains" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-name" class="text-sm font-medium text-muted-foreground">Souvenir Name</label>
+				<input id="souvenir-name" type="text" placeholder="e.g., Custom Keychains" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Type</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="souvenir-type" class="text-sm font-medium text-muted-foreground">Type</label>
+				<select id="souvenir-type" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Keychain</option>
 					<option>Plant</option>
 					<option>Stationery</option>
@@ -289,37 +289,37 @@
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Quantity</label>
-				<input type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-quantity" class="text-sm font-medium text-muted-foreground">Quantity</label>
+				<input id="souvenir-quantity" type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Unit Cost (IDR)</label>
-				<input type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-cost" class="text-sm font-medium text-muted-foreground">Unit Cost (IDR)</label>
+				<input id="souvenir-cost" type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Vendor</label>
-				<input type="text" placeholder="Vendor name" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-vendor" class="text-sm font-medium text-muted-foreground">Vendor</label>
+				<input id="souvenir-vendor" type="text" placeholder="Vendor name" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Status</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="souvenir-status" class="text-sm font-medium text-muted-foreground">Status</label>
+				<select id="souvenir-status" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>planning</option>
 					<option>ordered</option>
 					<option>delivered</option>
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Order Date</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-order-date" class="text-sm font-medium text-muted-foreground">Order Date</label>
+				<input id="souvenir-order-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Expected Delivery</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="souvenir-delivery-date" class="text-sm font-medium text-muted-foreground">Expected Delivery</label>
+				<input id="souvenir-delivery-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea placeholder="Description and special notes about this souvenir..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
+			<label for="souvenir-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
+			<textarea id="souvenir-notes" placeholder="Description and special notes about this souvenir..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Souvenir
