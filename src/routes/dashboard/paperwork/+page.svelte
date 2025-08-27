@@ -213,12 +213,12 @@
 		<h3 class="text-lg font-semibold mb-3">Upload New Document</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Document Title</label>
-				<input type="text" placeholder="Enter document title..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="document-title" class="text-sm font-medium text-muted-foreground">Document Title</label>
+				<input id="document-title" type="text" placeholder="Enter document title..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Document Type</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="document-type" class="text-sm font-medium text-muted-foreground">Document Type</label>
+				<select id="document-type" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>License</option>
 					<option>Contract</option>
 					<option>Release</option>
@@ -228,12 +228,12 @@
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Due Date</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="document-due-date" class="text-sm font-medium text-muted-foreground">Due Date</label>
+				<input id="document-due-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Status</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="document-status" class="text-sm font-medium text-muted-foreground">Status</label>
+				<select id="document-status" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>pending</option>
 					<option>submitted</option>
 					<option>approved</option>
@@ -243,12 +243,12 @@
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Upload File</label>
-			<input type="file" accept=".pdf,.doc,.docx,.jpg,.png" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+			<label for="document-file" class="text-sm font-medium text-muted-foreground">Upload File</label>
+			<input id="document-file" type="file" accept=".pdf,.doc,.docx,.jpg,.png" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea placeholder="Add any notes about this document..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
+			<label for="document-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
+			<textarea id="document-notes" placeholder="Add any notes about this document..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Upload Document
