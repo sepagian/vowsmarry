@@ -16,16 +16,20 @@
 		Image,
 		HandCoins,
 		BookOpen,
-		Command,
-		CirclePlus
+		House
 	} from 'lucide-svelte';
-	import { Button } from '$lib/components/ui/button/index';
 
 	const data = {
+		navDashboard: [
+			{
+				title: 'Dashboard',
+				url: '/dashboard',
+				icon: House
+			}
+		],
 		navMain: [
 			{
 				title: 'Planner',
-				url: '/dashboard',
 				icon: NotebookPen,
 				isActive: true,
 				items: [
@@ -36,17 +40,17 @@
 					},
 					{
 						title: 'Budgeting',
-						url: '/dashboard/budgeting',
+						url: '/dashboard/budget',
 						icon: Wallet
 					},
 					{
 						title: 'To-do List',
-						url: '/dashboard/todos',
+						url: '/dashboard/todo',
 						icon: SquareCheck
 					},
 					{
 						title: 'Vendors',
-						url: '/dashboard/vendors',
+						url: '/dashboard/vendor',
 						icon: Building2
 					},
 					{
@@ -61,7 +65,7 @@
 					},
 					{
 						title: 'Savings',
-						url: '/dashboard/savings',
+						url: '/dashboard/saving',
 						icon: PiggyBank
 					},
 					{
