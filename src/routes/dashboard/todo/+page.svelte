@@ -185,24 +185,24 @@
 		<h3 class="text-lg font-semibold mb-3">Quick Add Task</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Task Title</label>
-				<input type="text" placeholder="Enter task title..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="task-title" class="text-sm font-medium text-muted-foreground">Task Title</label>
+				<input id="task-title" type="text" placeholder="Enter task title..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Due Date</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="task-due-date" class="text-sm font-medium text-muted-foreground">Due Date</label>
+				<input id="task-due-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Assign To</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="task-assign-to" class="text-sm font-medium text-muted-foreground">Assign To</label>
+				<select id="task-assign-to" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Sarah</option>
 					<option>John</option>
 					<option>Both</option>
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Category</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="task-category" class="text-sm font-medium text-muted-foreground">Category</label>
+				<select id="task-category" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Venue</option>
 					<option>Catering</option>
 					<option>Photography</option>
