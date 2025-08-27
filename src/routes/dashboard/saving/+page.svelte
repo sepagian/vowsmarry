@@ -166,12 +166,12 @@ vings History -->
 		<h3 class="text-lg font-semibold mb-3">Add Savings Entry</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Amount</label>
-				<input type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="savings-amount" class="text-sm font-medium text-muted-foreground">Amount</label>
+				<input id="savings-amount" type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Source</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="savings-source" class="text-sm font-medium text-muted-foreground">Source</label>
+				<select id="savings-source" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Monthly Salary</option>
 					<option>Bonus</option>
 					<option>Side Job</option>
@@ -181,12 +181,12 @@ vings History -->
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Date</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="savings-date" class="text-sm font-medium text-muted-foreground">Date</label>
+				<input id="savings-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Account</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="savings-account" class="text-sm font-medium text-muted-foreground">Account</label>
+				<select id="savings-account" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Wedding Savings Account</option>
 					<option>Joint Account</option>
 					<option>Personal Savings</option>
@@ -194,8 +194,8 @@ vings History -->
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea placeholder="Optional notes about this deposit..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="2"></textarea>
+			<label for="savings-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
+			<textarea id="savings-notes" placeholder="Optional notes about this deposit..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="2"></textarea>
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Entry
