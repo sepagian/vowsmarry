@@ -16,7 +16,8 @@
 		Image,
 		HandCoins,
 		BookOpen,
-		House
+		House,
+		Users
 	} from 'lucide-svelte';
 
 	const data = {
@@ -95,6 +96,11 @@
 						title: 'Couple Details',
 						url: '/dashboard/invitations/couple',
 						icon: Heart
+					},
+					{
+						title: 'Guests',
+						url: '/dashboard/invitations/guests',
+						icon: Users
 					},
 					{
 						title: 'RSVP',
