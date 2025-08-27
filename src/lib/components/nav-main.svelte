@@ -1,26 +1,35 @@
 <script lang="ts">
 	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { ChevronRight, type Icon as IconType } from 'lucide-svelte';
+	import { House, ChevronRight, type Icon as IconType } from 'lucide-svelte';
 	let {
 		items
 	}: {
 		items: {
 			title: string;
-			url: string;
-
+			url?: string;
 			icon?: typeof IconType;
 			isActive?: boolean;
 			items?: {
 				title: string;
 				url: string;
+				icon?: typeof IconType;
 			}[];
 		}[];
 	} = $props();
 </script>
 
 <Sidebar.Group>
-	<Sidebar.GroupLabel>Platform</Sidebar.GroupLabel>
+	<Sidebar.Menu>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton tooltipContent="Dashboard">
+				<a href="/dashboard" class="flex flex-1 gap-2">
+					<House size="17" />
+					<span>Dashboard</span>
+				</a>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+	</Sidebar.Menu>
 	<Sidebar.Menu>
 		{#each items as item (item.title)}
 			<Collapsible.Root open={item.isActive} class="group/collapsible">
@@ -46,6 +55,10 @@
 										<Sidebar.MenuSubButton>
 											{#snippet child({ props })}
 												<a href={subItem.url} {...props}>
+													{#if subItem.icon}
+														<subItem.icon />
+													{/if}
+
 													<span>{subItem.title}</span>
 												</a>
 											{/snippet}
