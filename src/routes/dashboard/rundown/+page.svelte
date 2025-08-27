@@ -171,29 +171,29 @@
 		<h3 class="text-lg font-semibold mb-3">Add New Event</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Event Name</label>
-				<input type="text" placeholder="e.g., Cocktail Hour" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="event-name" class="text-sm font-medium text-muted-foreground">Event Name</label>
+				<input id="event-name" type="text" placeholder="e.g., Cocktail Hour" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Location</label>
-				<input type="text" placeholder="e.g., Garden Terrace" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="event-location" class="text-sm font-medium text-muted-foreground">Location</label>
+				<input id="event-location" type="text" placeholder="e.g., Garden Terrace" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Start Time</label>
-				<input type="time" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="event-start-time" class="text-sm font-medium text-muted-foreground">Start Time</label>
+				<input id="event-start-time" type="time" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">End Time</label>
-				<input type="time" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="event-end-time" class="text-sm font-medium text-muted-foreground">End Time</label>
+				<input id="event-end-time" type="time" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Description</label>
-			<input type="text" placeholder="Brief description of the event..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+			<label for="event-description" class="text-sm font-medium text-muted-foreground">Description</label>
+			<input id="event-description" type="text" placeholder="Brief description of the event..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Assigned To</label>
-			<input type="text" placeholder="Who is responsible for this event..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+			<label for="event-assigned-to" class="text-sm font-medium text-muted-foreground">Assigned To</label>
+			<input id="event-assigned-to" type="text" placeholder="Who is responsible for this event..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Event
