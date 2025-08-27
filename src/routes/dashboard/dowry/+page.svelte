@@ -232,12 +232,12 @@
 		<h3 class="text-lg font-semibold mb-3">Add New Dowry Item</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Description</label>
-				<input type="text" placeholder="e.g., Gold necklace set" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dowry-description" class="text-sm font-medium text-muted-foreground">Description</label>
+				<input id="dowry-description" type="text" placeholder="e.g., Gold necklace set" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Type</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="dowry-type" class="text-sm font-medium text-muted-foreground">Type</label>
+				<select id="dowry-type" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>Cash</option>
 					<option>Gold</option>
 					<option>Property</option>
@@ -247,29 +247,29 @@
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Value (IDR)</label>
-				<input type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dowry-value" class="text-sm font-medium text-muted-foreground">Value (IDR)</label>
+				<input id="dowry-value" type="number" placeholder="0" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Status</label>
-				<select class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
+				<label for="dowry-status" class="text-sm font-medium text-muted-foreground">Status</label>
+				<select id="dowry-status" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
 					<option>pending</option>
 					<option>promised</option>
 					<option>received</option>
 				</select>
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Received Date</label>
-				<input type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dowry-received-date" class="text-sm font-medium text-muted-foreground">Received Date</label>
+				<input id="dowry-received-date" type="date" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Upload Proof</label>
-				<input type="file" accept=".pdf,.jpg,.png,.jpeg" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dowry-proof" class="text-sm font-medium text-muted-foreground">Upload Proof</label>
+				<input id="dowry-proof" type="file" accept=".pdf,.jpg,.png,.jpeg" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea placeholder="Additional details about this dowry item..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
+			<label for="dowry-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
+			<textarea id="dowry-notes" placeholder="Additional details about this dowry item..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Dowry Item
