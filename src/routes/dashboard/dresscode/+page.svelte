@@ -224,25 +224,25 @@
 		<h3 class="text-lg font-semibold mb-3">Add New Dress Code</h3>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Event Name</label>
-				<input type="text" placeholder="e.g., Wedding Ceremony" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dresscode-event-name" class="text-sm font-medium text-muted-foreground">Event Name</label>
+				<input id="dresscode-event-name" type="text" placeholder="e.g., Wedding Ceremony" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 			<div>
-				<label class="text-sm font-medium text-muted-foreground">Color Theme</label>
-				<input type="text" placeholder="e.g., Navy Blue & Gold" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+				<label for="dresscode-color-theme" class="text-sm font-medium text-muted-foreground">Color Theme</label>
+				<input id="dresscode-color-theme" type="text" placeholder="e.g., Navy Blue & Gold" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 			</div>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Description</label>
-			<input type="text" placeholder="Brief description of the dress code..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+			<label for="dresscode-description" class="text-sm font-medium text-muted-foreground">Description</label>
+			<input id="dresscode-description" type="text" placeholder="Brief description of the dress code..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Guest Instructions</label>
-			<textarea placeholder="Detailed instructions for guests..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
+			<label for="dresscode-instructions" class="text-sm font-medium text-muted-foreground">Guest Instructions</label>
+			<textarea id="dresscode-instructions" placeholder="Detailed instructions for guests..." class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" rows="3"></textarea>
 		</div>
 		<div class="mt-3">
-			<label class="text-sm font-medium text-muted-foreground">Upload Inspiration Image</label>
-			<input type="file" accept=".jpg,.png,.jpeg" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
+			<label for="dresscode-image" class="text-sm font-medium text-muted-foreground">Upload Inspiration Image</label>
+			<input id="dresscode-image" type="file" accept=".jpg,.png,.jpeg" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background" />
 		</div>
 		<button class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors">
 			Add Dress Code
