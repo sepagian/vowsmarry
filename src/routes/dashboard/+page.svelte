@@ -33,6 +33,8 @@
 	const upcomingDeadlines = [
 		{ title: 'Wedding dress fitting', date: '2024-09-05', type: 'appointment' },
 		{ title: 'Venue final payment', date: '2024-09-15', type: 'payment' },
+		{ title: 'Send invitations', date: '2024-10-01', type: 'task' },
+		{ title: 'Send invitations', date: '2024-10-01', type: 'task' },
 		{ title: 'Send invitations', date: '2024-10-01', type: 'task' }
 	];
 
@@ -185,7 +187,7 @@
 		<!-- Upcoming Deadlines -->
 		<div class="rounded-lg border bg-card p-4">
 			<h2 class="text-lg font-semibold mb-4">Upcoming Deadlines</h2>
-			<div class="space-y-3">
+			<div class="space-y-3 max-h-80 overflow-y-scroll">
 				{#each upcomingDeadlines as deadline}
 					<div class="flex items-start gap-3 p-3 border rounded-lg">
 						<div class="w-2 h-2 rounded-full bg-muted-foreground mt-2"></div>
