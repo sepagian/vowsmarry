@@ -14,7 +14,9 @@
 			const pathname = page.url.pathname;
 
 			if (pathname.startsWith('/dashboard/')) {
-				const section = pathname.split('/dashboard/')[1]?.split('/')[0];
+				const pathParts = pathname.split('/dashboard/')[1]?.split('/');
+				const section = pathParts?.[0];
+				const subsection = pathParts?.[1];
 
 				const titleMap: Record<string, string> = {
 					budget: 'Budget - vowsmarry',
@@ -27,6 +29,20 @@
 					todo: 'To Do - vowsmarry',
 					vendor: 'Vendor - vowsmarry'
 				};
+
+				// Handle invitation subsections
+				if (section === 'invitation' && subsection) {
+					const invitationTitleMap: Record<string, string> = {
+						couple: 'Couple Info - vowsmarry',
+						gallery: 'Photo Gallery - vowsmarry',
+						gift: 'Gift Registry - vowsmarry',
+						guest: 'Guest List - vowsmarry',
+						'love-story': 'Love Story - vowsmarry',
+						rsvp: 'RSVP - vowsmarry',
+						templates: 'Templates - vowsmarry'
+					};
+					return invitationTitleMap[subsection] || 'Invitation - vowsmarry';
+				}
 
 				return section && titleMap[section] ? titleMap[section] : 'Dashboard - vowsmarry';
 			}
