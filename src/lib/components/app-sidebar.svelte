@@ -88,6 +88,11 @@
 				isActive: true,
 				items: [
 					{
+						title: 'Overview',
+						url: '/dashboard/invitation/',
+						icon: House
+					},
+					{
 						title: 'Templates',
 						url: '/dashboard/invitation/templates',
 						icon: Palette
