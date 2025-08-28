@@ -83,43 +83,43 @@
 			},
 			{
 				title: 'Invitation',
-				url: '/dashboard/invitations',
+				url: '/dashboard/invitation',
 				icon: Mail,
-				isActive: false,
+				isActive: true,
 				items: [
 					{
 						title: 'Templates',
-						url: '/dashboard/invitations/templates',
+						url: '/dashboard/invitation/templates',
 						icon: Palette
 					},
 					{
 						title: 'Couple Details',
-						url: '/dashboard/invitations/couple',
+						url: '/dashboard/invitation/couple',
 						icon: Heart
 					},
 					{
 						title: 'Guests',
-						url: '/dashboard/invitations/guests',
+						url: '/dashboard/invitation/guest',
 						icon: Users
 					},
 					{
 						title: 'RSVP',
-						url: '/dashboard/invitations/rsvp',
+						url: '/dashboard/invitation/rsvp',
 						icon: Mail
 					},
 					{
 						title: 'Gallery',
-						url: '/dashboard/invitations/gallery',
+						url: '/dashboard/invitation/gallery',
 						icon: Image
 					},
 					{
 						title: 'Gifts',
-						url: '/dashboard/invitations/gifts',
+						url: '/dashboard/invitation/gift',
 						icon: HandCoins
 					},
 					{
 						title: 'Love Story',
-						url: '/dashboard/invitations/love-story',
+						url: '/dashboard/invitation/love-story',
 						icon: BookOpen
 					}
 				]
