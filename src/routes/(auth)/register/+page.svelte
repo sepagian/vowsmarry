@@ -3,6 +3,7 @@
 	import * as Card from '$lib/components/ui/card/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Label } from '$lib/components/ui/label/index';
+	import { Checkbox } from '$lib/components/ui/checkbox/index';
 	const id = $props.id();
 </script>
 
@@ -34,6 +35,15 @@
 			<div class="grid gap-2">
 				<Label for="confirm-password-{id}">Confirm Password</Label>
 				<Input id="confirm-password-{id}" type="password" required />
+			</div>
+			<div class="flex items-start gap-3">
+				<Checkbox id="terms-2" />
+				<div class="grid gap-2">
+					<Label for="terms-2">Accept terms and conditions</Label>
+					<p class="text-muted-foreground text-xs">
+						By clicking this checkbox, you agree to the terms and conditions.
+					</p>
+				</div>
 			</div>
 			<Button type="submit" class="w-full">Create Account</Button>
 			<Button variant="outline" class="w-full">
