@@ -1,22 +1,21 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { createUser, getUserByEmail } from '$lib/server/auth';
-import type { Actions, PageServerLoad } from './$types';
+import { fail, redirect } from '@sveltejs/kit'
+import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ locals }) => {
-	if (locals.user) {
-		throw redirect(302, '/dashboard');
+export const load: PageServerLoad = async ({ locals: { session } }) => {
+	if (session) {
+		redirect(302, '/dashboard')
 	}
-	return {};
-};
+	return {}
+}
 
 export const actions: Actions = {
-	default: async ({ request }) => {
-		const formData = await request.formData();
-		const firstName = formData.get('firstName') as string;
-		const lastName = formData.get('lastName') as string;
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
-		const confirmPassword = formData.get('confirmPassword') as string;
+	default: async ({ request, locals: { supabase } }) => {
+		const formData = await request.formData()
+		const firstName = formData.get('firstName') as string
+		const lastName = formData.get('lastName') as string
+		const email = formData.get('email') as string
+		const password = formData.get('password') as string
+		const confirmPassword = formData.get('confirmPassword') as string
 
 		// Validation
 		if (!firstName || !lastName || !email || !password || !confirmPassword) {
@@ -25,7 +24,7 @@ export const actions: Actions = {
 				firstName,
 				lastName,
 				email
-			});
+			})
 		}
 
 		if (password !== confirmPassword) {
@@ -34,7 +33,7 @@ export const actions: Actions = {
 				firstName,
 				lastName,
 				email
-			});
+			})
 		}
 
 		if (password.length < 8) {
@@ -43,37 +42,31 @@ export const actions: Actions = {
 				firstName,
 				lastName,
 				email
-			});
+			})
 		}
 
-		// Check if user already exists
-		const existingUser = await getUserByEmail(email);
-		if (existingUser) {
+		const { error } = await supabase.auth.signUp({
+			email,
+			password,
+			options: {
+				data: {
+					first_name: firstName,
+					last_name: lastName
+				}
+			}
+		})
+
+		if (error) {
 			return fail(400, {
-				error: 'An account with this email already exists',
+				error: error.message,
 				firstName,
 				lastName,
 				email
-			});
+			})
 		}
 
-		try {
-			const { user, emailVerificationToken } = await createUser(email, password, firstName, lastName);
-			
-			// In a real app, you would send an email with the verification token
-			console.log('Email verification token:', emailVerificationToken);
-			
-			return {
-				success: 'Account created successfully! Please check your email to verify your account.'
-			};
-		} catch (error) {
-			console.error('Registration error:', error);
-			return fail(500, {
-				error: 'Failed to create account. Please try again.',
-				firstName,
-				lastName,
-				email
-			});
+		return {
+			success: 'Account created successfully! Please check your email to verify your account.'
 		}
 	}
-};
+}
