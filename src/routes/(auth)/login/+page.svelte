@@ -26,8 +26,13 @@
 		<CardContent>
 			<form method="POST" use:enhance={() => {
 				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
+				return async ({ result, update }) => {
+					if (result.type === 'redirect') {
+						// Handle successful login redirect
+						window.location.href = result.location;
+					} else {
+						await update();
+					}
 					isSubmitting = false;
 				};
 			}} class="space-y-4">
