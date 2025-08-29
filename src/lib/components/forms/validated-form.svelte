@@ -239,7 +239,7 @@
 			<Button
 				type="button"
 				variant="outline"
-				on:click={handleCancel}
+				onclick={handleCancel}
 				disabled={isFormDisabled}
 			>
 				{cancelLabel}
