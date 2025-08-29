@@ -20,6 +20,13 @@
 		Users
 	} from 'lucide-svelte';
 
+	type User = {
+		id: string;
+		firstName: string;
+		lastName: string;
+		email: string;
+	};
+
 	const data = {
 		navDashboard: [
 			{
@@ -135,15 +142,17 @@
 
 <script lang="ts">
 	import NavMain from './nav-main.svelte';
+	import NavUser from './nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 
 	import type { ComponentProps } from 'svelte';
 
 	let {
+		user,
 		ref = $bindable(null),
 		collapsible = 'icon',
 		...restProps
-	}: ComponentProps<typeof Sidebar.Root> = $props();
+	}: ComponentProps<typeof Sidebar.Root> & { user: User } = $props();
 </script>
 
 <Sidebar.Root class="top-12 h-[calc(100svh-var(--header-height))]!" {collapsible} {...restProps}>
@@ -151,5 +160,7 @@
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
-	<Sidebar.Footer></Sidebar.Footer>
+	<Sidebar.Footer>
+		<NavUser {user} />
+	</Sidebar.Footer>
 </Sidebar.Root>

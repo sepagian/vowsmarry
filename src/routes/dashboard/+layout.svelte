@@ -6,7 +6,7 @@
 	import { page } from '$app/state';
 	import 'uno.css';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	// Dynamic title based on dashboard routes
 	const title = $derived(
@@ -61,7 +61,7 @@
 	<Sidebar.Provider class="flex flex-col">
 		<SiteHeader />
 		<div class="flex flex-1">
-			<AppSidebar />
+			<AppSidebar user={data.user} />
 			<Sidebar.Inset>
 				<main>
 					{@render children()}
