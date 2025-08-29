@@ -3,22 +3,37 @@
 	import { Button } from '$lib/components/ui/button';
 	import FormField from './form-field.svelte';
 
-	export let label: string;
-	export let name: string;
-	export let files: FileList | null = null;
-	export let accept: string = '';
-	export let multiple: boolean = false;
-	export let maxSize: number = 10 * 1024 * 1024; // 10MB default
-	export let error: string | undefined = undefined;
-	export let required: boolean = false;
-	export let disabled: boolean = false;
-	export let description: string | undefined = undefined;
+	interface Props {
+		label: string;
+		name: string;
+		files?: FileList | null;
+		accept?: string;
+		multiple?: boolean;
+		maxSize?: number;
+		error?: string;
+		required?: boolean;
+		disabled?: boolean;
+		description?: string;
+	}
 
-	let dragOver = false;
+	let {
+		label,
+		name,
+		files = $bindable(null),
+		accept = '',
+		multiple = false,
+		maxSize = 10 * 1024 * 1024, // 10MB default
+		error,
+		required = false,
+		disabled = false,
+		description
+	}: Props = $props();
+
+	let dragOver = $state(false);
 	let fileInput: HTMLInputElement;
 
 	// Convert FileList to Array for easier manipulation
-	$: fileArray = files ? Array.from(files) : [];
+	const fileArray = $derived(files ? Array.from(files) : []);
 
 	// Format file size for display
 	function formatFileSize(bytes: number): string {
@@ -98,13 +113,8 @@
 </script>
 
 <FormField {label} {name} {error} {required} {description} {disabled}>
-	<div
-		slot="default"
-		let:fieldId
-		let:ariaDescribedBy
-		let:hasError
-		class="space-y-4"
-	>
+	{#snippet children(fieldId, ariaDescribedBy, hasError)}
+		<div class="space-y-4">
 		<!-- Hidden file input -->
 		<input
 			bind:this={fileInput}
@@ -117,7 +127,7 @@
 			aria-describedby={ariaDescribedBy}
 			aria-invalid={hasError}
 			class="sr-only"
-			on:change={handleFileSelect}
+			onchange={handleFileSelect}
 		/>
 
 		<!-- Drop zone -->
@@ -127,11 +137,11 @@
 				: hasError
 				? 'border-destructive'
 				: 'border-muted-foreground/25'} {disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'}"
-			on:dragover={handleDragOver}
-			on:dragleave={handleDragLeave}
-			on:drop={handleDrop}
-			on:click={openFilePicker}
-			on:keydown={(e) => {
+			ondragover={handleDragOver}
+			ondragleave={handleDragLeave}
+			ondrop={handleDrop}
+			onclick={openFilePicker}
+			onkeydown={(e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
 					openFilePicker();
@@ -174,7 +184,7 @@
 							<Button
 								variant="ghost"
 								size="sm"
-								on:click={(e) => {
+								onclick={(e) => {
 									e.stopPropagation();
 									removeFile(index);
 								}}
@@ -189,7 +199,7 @@
 				<Button
 					variant="outline"
 					size="sm"
-					on:click={(e) => {
+					onclick={(e) => {
 						e.stopPropagation();
 						clearFiles();
 					}}
@@ -199,5 +209,6 @@
 				</Button>
 			</div>
 		{/if}
-	</div>
+		</div>
+	{/snippet}
 </FormField>
