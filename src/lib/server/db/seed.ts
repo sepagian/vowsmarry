@@ -1,9 +1,20 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as table from './schema.js';
+import { readFileSync } from 'fs';
+
+// Load environment variables from .env file
+const envFile = readFileSync('.env', 'utf8');
+const envVars: Record<string, string> = {};
+envFile.split('\n').forEach(line => {
+	const [key, ...valueParts] = line.split('=');
+	if (key && valueParts.length > 0) {
+		envVars[key.trim()] = valueParts.join('=').replace(/"/g, '').trim();
+	}
+});
 
 // Direct database connection for seeding
-const client = postgres(process.env.DATABASE_URL!);
+const client = postgres(envVars.DATABASE_URL!);
 const db = drizzle(client, { schema: table });
 
 // Simple password hashing for seed data
