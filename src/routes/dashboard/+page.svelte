@@ -1,42 +1,29 @@
 <script lang="ts">
-	// Dummy data for the dashboard
-	const weddingDate = new Date('2024-12-15');
-	const daysUntilWedding = Math.ceil(
-		(weddingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-	);
+	let { data } = $props();
+
+	// Calculate days until wedding
+	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
+	const daysUntilWedding = weddingDate 
+		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+		: null;
 
 	const budgetData = {
-		total: 150000000,
-		spent: 85000000,
-		remaining: 65000000
+		total: data.stats.budget.total,
+		spent: data.stats.budget.spent,
+		remaining: data.stats.budget.remaining
 	};
 
 	const taskStats = {
-		completed: 24,
-		pending: 12,
-		overdue: 3
+		completed: data.stats.todos.done,
+		pending: data.stats.todos.todo + data.stats.todos.inProgress,
+		overdue: 0 // We could calculate this based on due dates
 	};
 
 	const vendorStats = {
-		booked: 8,
-		contacted: 5,
-		pending: 2
+		booked: data.stats.vendors.booked,
+		contacted: data.stats.vendors.contacted,
+		pending: data.stats.vendors.total - data.stats.vendors.booked - data.stats.vendors.contacted
 	};
-
-	const recentTasks = [
-		{ id: 1, title: 'Book wedding photographer', status: 'completed', dueDate: '2024-08-20' },
-		{ id: 2, title: 'Order wedding invitations', status: 'pending', dueDate: '2024-09-01' },
-		{ id: 3, title: 'Finalize catering menu', status: 'overdue', dueDate: '2024-08-25' },
-		{ id: 4, title: 'Book makeup artist', status: 'pending', dueDate: '2024-09-10' }
-	];
-
-	const upcomingDeadlines = [
-		{ title: 'Wedding dress fitting', date: '2024-09-05', type: 'appointment' },
-		{ title: 'Venue final payment', date: '2024-09-15', type: 'payment' },
-		{ title: 'Send invitations', date: '2024-10-01', type: 'task' },
-		{ title: 'Send invitations', date: '2024-10-01', type: 'task' },
-		{ title: 'Send invitations', date: '2024-10-01', type: 'task' }
-	];
 
 	function formatCurrency(amount: number) {
 		return new Intl.NumberFormat('id-ID', {
@@ -45,13 +32,44 @@
 			minimumFractionDigits: 0
 		}).format(amount);
 	}
+
+	function formatDate(dateString: string) {
+		return new Date(dateString).toLocaleDateString('id-ID');
+	}
+
+	function getStatusColor(status: string | null) {
+		if (!status) return 'bg-gray-100 text-gray-800';
+		
+		switch (status) {
+			case 'done':
+			case 'completed':
+			case 'approved':
+				return 'bg-green-100 text-green-800';
+			case 'in_progress':
+				return 'bg-blue-100 text-blue-800';
+			case 'todo':
+			case 'pending':
+				return 'bg-yellow-100 text-yellow-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
+		}
+	}
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4">
 	<!-- Header Section -->
 	<div class="flex flex-col gap-2">
-		<h1 class="text-2xl font-semibold">Wedding Dashboard</h1>
-		<p class="text-muted-foreground">Welcome back! Here's your wedding planning progress.</p>
+		<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
+		<p class="text-muted-foreground">
+			{#if data.wedding}
+				Planning your wedding with {data.wedding.partnerName || 'your partner'}
+				{#if weddingDate}
+					- {daysUntilWedding} days to go!
+				{/if}
+			{:else}
+				Let's start planning your perfect wedding!
+			{/if}
+		</p>
 	</div>
 
 	<!-- Key Stats -->
@@ -61,7 +79,13 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium text-muted-foreground">Days Until Wedding</p>
-					<p class="text-2xl font-bold">{daysUntilWedding}</p>
+					<p class="text-2xl font-bold">
+						{#if daysUntilWedding !== null}
+							{daysUntilWedding}
+						{:else}
+							<span class="text-muted-foreground text-base">Not set</span>
+						{/if}
+					</p>
 				</div>
 				<div class="text-muted-foreground">
 					<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -95,12 +119,12 @@
 				<div class="w-full bg-muted rounded-full h-2">
 					<div
 						class="bg-foreground h-2 rounded-full"
-						style="width: {(budgetData.spent / budgetData.total) * 100}%"
+						style="width: {budgetData.total > 0 ? (budgetData.spent / budgetData.total) * 100 : 0}%"
 					></div>
 				</div>
 				<div class="flex justify-between text-xs text-muted-foreground">
 					<span>Total: {formatCurrency(budgetData.total)}</span>
-					<span>{Math.round((budgetData.spent / budgetData.total) * 100)}%</span>
+					<span>{budgetData.total > 0 ? Math.round((budgetData.spent / budgetData.total) * 100) : 0}%</span>
 				</div>
 			</div>
 		</div>
@@ -165,22 +189,30 @@
 				<a href="/dashboard/todo" class="text-sm font-medium hover:underline">View all</a>
 			</div>
 			<div class="space-y-3">
-				{#each recentTasks as task}
-					<div
-						class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-					>
-						<div class="flex items-center gap-3">
-							<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
-							<div>
-								<p class="font-medium">{task.title}</p>
-								<p class="text-sm text-muted-foreground">Due: {task.dueDate}</p>
+				{#if data.recentTasks.length > 0}
+					{#each data.recentTasks as task}
+						<div
+							class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+						>
+							<div class="flex items-center gap-3">
+								<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
+								<div>
+									<p class="font-medium">{task.title}</p>
+									{#if task.dueDate}
+										<p class="text-sm text-muted-foreground">Due: {formatDate(task.dueDate)}</p>
+									{/if}
+								</div>
 							</div>
+							<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(task.status || 'todo')}">
+								{(task.status || 'todo').replace('_', ' ')}
+							</span>
 						</div>
-						<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
-							{task.status}
-						</span>
+					{/each}
+				{:else}
+					<div class="text-center py-8 text-muted-foreground">
+						<p>No tasks yet. Start by adding your first task!</p>
 					</div>
-				{/each}
+				{/if}
 			</div>
 		</div>
 
@@ -188,20 +220,31 @@
 		<div class="rounded-lg border bg-card p-4">
 			<h2 class="text-lg font-semibold mb-4">Upcoming Deadlines</h2>
 			<div class="space-y-3 max-h-80 overflow-y-scroll">
-				{#each upcomingDeadlines as deadline}
-					<div class="flex items-start gap-3 p-3 border rounded-lg">
-						<div class="w-2 h-2 rounded-full bg-muted-foreground mt-2"></div>
-						<div class="flex-1">
-							<p class="font-medium text-sm">{deadline.title}</p>
-							<p class="text-xs text-muted-foreground">{deadline.date}</p>
-							<span
-								class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded"
-							>
-								{deadline.type}
-							</span>
+				{#if data.upcomingDeadlines.length > 0}
+					{#each data.upcomingDeadlines as deadline}
+						<div class="flex items-start gap-3 p-3 border rounded-lg">
+							<div class="w-2 h-2 rounded-full bg-muted-foreground mt-2"></div>
+							<div class="flex-1">
+								<p class="font-medium text-sm">{deadline.title}</p>
+								<p class="text-xs text-muted-foreground">{formatDate(deadline.date)}</p>
+								<div class="flex gap-2 mt-1">
+									<span
+										class="inline-block px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded"
+									>
+										{deadline.type}
+									</span>
+									<span class="inline-block px-2 py-0.5 text-xs font-medium rounded {getStatusColor(deadline.status)}">
+										{(deadline.status || 'unknown').replace('_', ' ')}
+									</span>
+								</div>
+							</div>
 						</div>
+					{/each}
+				{:else}
+					<div class="text-center py-8 text-muted-foreground">
+						<p>No upcoming deadlines</p>
 					</div>
-				{/each}
+				{/if}
 			</div>
 		</div>
 	</div>
