@@ -34,7 +34,8 @@
     - Build notification system for alerts and reminders
     - _Requirements: 1.4, 1.5_
 
-- [-] 4. Implement file upload system foundation
+- [x] 4. Implement file upload system foundation
+
 
 
 
