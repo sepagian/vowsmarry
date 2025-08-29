@@ -26,13 +26,8 @@
 		<CardContent>
 			<form method="POST" use:enhance={() => {
 				isSubmitting = true;
-				return async ({ result, update }) => {
-					if (result.type === 'redirect') {
-						// Handle successful login redirect
-						window.location.href = result.location;
-					} else {
-						await update();
-					}
+				return async ({ update }) => {
+					await update();
 					isSubmitting = false;
 				};
 			}} class="space-y-4">
@@ -41,7 +36,7 @@
 					name="email"
 					type="email"
 					placeholder="Enter your email"
-					value=""
+					value={form?.email ?? ''}
 					required
 					disabled={isSubmitting}
 					autocomplete="email"
@@ -61,15 +56,17 @@
 				<Button type="submit" class="w-full" disabled={isSubmitting}>
 					{#if isSubmitting}
 						<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+						Signing in...
+					{:else}
+						Sign In
 					{/if}
-					Sign In
 				</Button>
+
+				<div class="text-center text-sm text-gray-600">
+					Don't have an account?
+					<a href="/register" class="text-blue-600 hover:underline">Sign up</a>
+				</div>
 			</form>
-			
-			<div class="mt-4 text-center text-sm">
-				Don't have an account?
-				<a href="/register" class="text-blue-600 hover:underline">Sign up</a>
-			</div>
 		</CardContent>
 	</Card>
 </div>

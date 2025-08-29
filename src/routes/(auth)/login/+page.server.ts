@@ -1,58 +1,35 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { getUserByEmail, verifyPassword, generateSessionToken, createSession, setSessionTokenCookie } from '$lib/server/auth';
-import { loginSchema } from '$lib/validation/schemas';
-import { FormValidator } from '$lib/validation/form-validator';
-import { InvalidCredentialsError, EmailNotVerifiedError, createFormError } from '$lib/errors';
-import type { Actions, PageServerLoad } from './$types';
+import { fail, redirect } from '@sveltejs/kit'
+import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ locals }) => {
-	if (locals.user) {
-		throw redirect(302, '/dashboard');
+export const load: PageServerLoad = async ({ locals: { user } }) => {
+	if (user) {
+		redirect(302, '/dashboard')
 	}
-	return {};
-};
+	return {}
+}
 
 export const actions: Actions = {
-	default: async ({ request, cookies }) => {
-		try {
-			const formData = await request.formData();
-			const rawData = FormValidator.formDataToObject(formData);
+	default: async ({ request, locals: { supabase } }) => {
+		const formData = await request.formData()
+		const email = formData.get('email') as string
+		const password = formData.get('password') as string
 
-			// Validate form data
-			const validation = FormValidator.validateForm(loginSchema, rawData);
-			if (!validation.success) {
-				return fail(400, createFormError(validation.error));
-			}
-
-			const { email, password } = validation.data;
-
-			// Check if user exists
-			const user = await getUserByEmail(email);
-			if (!user) {
-				throw new InvalidCredentialsError();
-			}
-
-			// Verify password
-			const validPassword = await verifyPassword(password, user.passwordHash);
-			if (!validPassword) {
-				throw new InvalidCredentialsError();
-			}
-
-			// Check email verification
-			if (!user.emailVerified) {
-				throw new EmailNotVerifiedError();
-			}
-
-			// Create session
-			const sessionToken = generateSessionToken();
-			const session = await createSession(sessionToken, user.id);
-			setSessionTokenCookie({ cookies } as any, sessionToken, session.expiresAt);
-
-			throw redirect(302, '/dashboard');
-
-		} catch (error) {
-			console.error('Login error:', error);
-			return fail(400, createFormError(error));
+		if (!email || !password) {
+			return fail(400, {
+				error: 'Email and password are required',
+				email
+			})
 		}
+
+		const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+		if (error) {
+			return fail(400, {
+				error: error.message,
+				email
+			})
+		}
+
+		redirect(302, '/dashboard')
 	}
-};
+}
