@@ -2,9 +2,16 @@
 
 ## Overview
 
-The VowsMarry Wedding Planner Dashboard is a comprehensive SaaS platform built with SvelteKit 5, providing couples with a centralized hub for managing all aspects of their wedding planning. The system follows a modular architecture where each wedding planning aspect (paperwork, budgeting, todos, vendors, etc.) is implemented as a separate module with shared components and data models.
+The VowsMarry Wedding Planner Dashboard is a comprehensive SaaS platform built with SvelteKit 5, providing couples with a centralized hub for managing all aspects of their wedding planning. The system follows a modular architecture where each wedding planning aspect (paperwork, budgeting, todos, vendors, dresscode, savings, dowry, souvenirs, rundown, invitations, gallery, love story, and gifts) is implemented as a separate module with shared components and data models.
 
-The platform uses a modern tech stack with SvelteKit 5 for the frontend, Drizzle ORM with PostgreSQL for data persistence, and a custom authentication system. The design emphasizes user experience, data security, and scalability to handle multiple concurrent users planning their weddings.
+The platform uses a modern tech stack with SvelteKit 5 for the frontend, Drizzle ORM with PostgreSQL for data persistence, Cloudflare R2 for secure file storage, and Lucia for authentication. The design emphasizes user experience, data security, responsive design across all devices, and scalability to handle multiple concurrent users planning their weddings.
+
+**Key Design Principles:**
+- **Modular Architecture**: Each wedding planning aspect is a self-contained module with clear interfaces
+- **Responsive Design**: Optimized for mobile, tablet, and desktop experiences (Requirement 7)
+- **Security First**: Secure authentication, file storage, and data protection (Requirement 15)
+- **Real-time Updates**: Live progress tracking and notifications across all modules
+- **Integration Focus**: Seamless data flow between modules (savings ↔ budget, vendors ↔ souvenirs, dresscode ↔ invitations)
 
 ## Architecture
 
@@ -54,13 +61,27 @@ graph TB
 
 ### Route Architecture
 
-The application follows SvelteKit's file-based routing with grouped routes:
+The application follows SvelteKit's file-based routing with grouped routes designed for optimal user experience and security:
 
-- `(auth)/` - Authentication pages (login, register, verify)
-- `(dashboard)/` - Protected wedding planner modules
-- `(invitation)/` - Invitation creation and management
-- `(public)/` - Public invitation pages for guests
-- `api/` - API endpoints for data operations
+- `(auth)/` - Authentication pages (login, register, verify, password reset) with email verification (Requirement 15.1, 15.5)
+- `(dashboard)/` - Protected wedding planner modules with session management (Requirement 15.2, 15.4)
+  - `/dashboard` - Main dashboard with progress overview (Requirement 1)
+  - `/dashboard/paperwork` - Document management (Requirement 2)
+  - `/dashboard/budget` - Budget planning and tracking (Requirement 3)
+  - `/dashboard/todos` - Task management (Requirement 4)
+  - `/dashboard/vendors` - Vendor relationship management (Requirement 5)
+  - `/dashboard/rundown` - Wedding day timeline (Requirement 6)
+  - `/dashboard/dresscode` - Dresscode planning (Requirement 8)
+  - `/dashboard/savings` - Savings tracking (Requirement 9)
+  - `/dashboard/dowry` - Dowry management (Requirement 10)
+  - `/dashboard/souvenirs` - Souvenir planning (Requirement 11)
+- `(invitation)/` - Invitation creation and management (Requirement 12)
+- `(public)/` - Public invitation pages for guests with RSVP functionality (Requirement 12.4, 13.3, 14.1)
+- `api/` - API endpoints for data operations with proper authentication and validation
+
+**Responsive Design Strategy**: All routes implement mobile-first responsive design with touch-optimized interfaces for mobile devices, adaptive layouts for tablets, and full-featured interfaces for desktop (Requirement 7.1, 7.2, 7.3).
+
+**Offline Support and Data Synchronization**: The application implements progressive web app (PWA) capabilities with service workers for offline functionality. Essential data is cached locally, and appropriate offline messaging is displayed when connectivity is unavailable. Data synchronization occurs automatically when connection is restored (Requirement 7.4, 7.5).
 
 ### Database Architecture
 
@@ -84,7 +105,64 @@ erDiagram
     invitations ||--o{ rsvp : receives
     invitations ||--o{ gallery : displays
     invitations ||--o{ gifts : manages
+    weddings ||--o{ notifications : generates
+    users ||--o{ notifications : receives
 ```
+
+### Notification and Alert System
+
+The platform implements a comprehensive notification system to keep users informed of important deadlines, updates, and actions across all modules:
+
+**Notification Types:**
+- **Deadline Alerts**: Document due dates, task deadlines, payment schedules (Requirements 2.3, 4.3)
+- **Progress Updates**: Module completion status, milestone achievements (Requirement 1.4, 1.5)
+- **Budget Warnings**: Overspending alerts, approaching limits (Requirement 3.4)
+- **System Notifications**: RSVP updates, guest interactions, vendor communications (Requirements 5.5, 12.5)
+- **Integration Alerts**: Dresscode updates to guests, savings goal adjustments (Requirements 8.5, 9.5)
+
+**Delivery Mechanisms:**
+- In-app notifications with real-time updates
+- Email notifications for critical deadlines
+- Dashboard highlights for urgent items (Requirement 1.5)
+- Mobile-optimized notification display (Requirement 7.1)
+
+### Module Integration Architecture
+
+The system implements seamless integration between modules to provide a cohesive wedding planning experience:
+
+**Cross-Module Data Flow:**
+- **Budget ↔ Vendors**: Vendor costs automatically update budget tracking (Requirement 5.2, 3.2)
+- **Budget ↔ Souvenirs**: Souvenir expenses integrate with budget categories (Requirement 11.4)
+- **Savings ↔ Budget**: Savings progress influences budget recommendations and affordability (Requirement 9.4)
+- **Dresscode ↔ Invitations**: Dresscode guidelines display on guest invitation pages (Requirement 8.4)
+- **Vendors ↔ Rundown**: Vendor assignments link to timeline events (Requirement 6.2)
+- **Guests ↔ Souvenirs**: Guest lists integrate with souvenir distribution tracking (Requirement 11.5)
+- **Tasks ↔ Dashboard**: Task completion updates overall progress indicators (Requirement 4.5)
+
+**Integration Benefits:**
+- Eliminates duplicate data entry across modules
+- Provides real-time updates when related data changes
+- Enables comprehensive reporting and analytics
+- Maintains data consistency across the platform
+
+### Export and Reporting System
+
+The platform provides comprehensive export functionality across multiple modules to support documentation and sharing needs:
+
+**Export Capabilities:**
+- **Budget Reports**: CSV and PDF export for financial tracking and vendor negotiations (Requirement 3.5)
+- **Rundown Schedules**: PDF export for timeline distribution to vendors and wedding party (Requirement 6.4)
+- **Dowry Documentation**: Legal and religious documentation export for official purposes (Requirement 10.5)
+- **Guest Lists**: CSV export for vendor coordination and communication (Requirement 12.3)
+- **RSVP Reports**: Real-time response tracking and analytics export (Requirement 12.5)
+- **Gift Tracking**: Contribution reports and thank-you management export (Requirement 14.4)
+
+**Export Features:**
+- Multiple format support (PDF, CSV, Excel)
+- Customizable report templates
+- Automated report generation for recurring needs
+- Secure download links with expiration
+- Mobile-optimized export interfaces
 
 ## Components and Interfaces
 
@@ -159,10 +237,11 @@ erDiagram
 - **DresscodeShare**: Share guidelines with guests via invitations
 
 #### Savings Module
-- **SavingsTracker**: Visual progress toward wedding savings goal
-- **SavingsForm**: Log deposits and withdrawals
-- **SavingsChart**: Historical savings progress visualization
-- **BudgetIntegration**: Link savings to budget affordability
+- **SavingsTracker**: Visual progress toward wedding savings goal with projections
+- **SavingsForm**: Log deposits and withdrawals with categorization
+- **SavingsChart**: Historical savings progress visualization with milestone tracking
+- **BudgetIntegration**: Real-time budget affordability updates based on savings progress (Requirement 9.4)
+- **GoalAdjustment**: Automatic budget and timeline recommendations when behind savings goals (Requirement 9.5)
 
 #### Dowry Module
 - **DowryList**: Table of all dowry items by type
@@ -177,9 +256,10 @@ erDiagram
 - **DistributionList**: Manage guest souvenir assignments
 
 #### Rundown Module
-- **TimelineEditor**: Create hour-by-hour wedding schedule
+- **TimelineEditor**: Create hour-by-hour wedding schedule with conflict detection
 - **EventForm**: Add events with time, location, and responsibilities
 - **ResponsibilityAssigner**: Assign tasks to wedding party members
+- **ConflictDetector**: Identify scheduling conflicts and overlapping events (Requirement 6.5)
 - **RundownExport**: Generate PDF schedules for distribution
 
 #### Invitation Module
@@ -196,7 +276,8 @@ erDiagram
 - **MediaUploader**: Upload photos and videos with optimization
 - **GalleryOrganizer**: Organize media by event or category
 - **MediaViewer**: Display photos and videos in gallery format
-- **GuestUpload**: Allow guests to contribute their own photos
+- **GuestUpload**: Allow guests to contribute their own photos with moderation (Requirement 13.5)
+- **MediaOptimizer**: Automatic image and video optimization for web viewing (Requirement 13.4)
 
 #### Love Story Module
 - **StoryTimeline**: Create chronological love story
@@ -1416,6 +1497,27 @@ interface AuditLog {
 
 ## Error Handling
 
+The platform implements comprehensive error handling and validation to ensure data integrity, security, and user experience:
+
+### Input Validation and Security
+- **Server-side Validation**: All user inputs validated using Zod schemas before database operations (Requirement 15.3)
+- **File Upload Security**: File type validation, size limits, and malware scanning for document and media uploads (Requirement 15.3)
+- **Authentication Security**: Secure session management with appropriate timeouts and CSRF protection (Requirement 15.2)
+- **Data Access Control**: User-specific data isolation ensuring users can only access their own wedding information (Requirement 15.4)
+
+### Error Recovery and User Experience
+- **Graceful Degradation**: System continues to function with reduced capabilities during partial failures
+- **Offline Error Handling**: Clear messaging when offline with automatic retry when connection restored (Requirement 7.5)
+- **Form Validation**: Real-time client-side validation with server-side verification
+- **File Upload Errors**: Progress tracking with retry mechanisms for failed uploads
+- **Network Error Recovery**: Automatic retry logic for transient network issues
+
+### Monitoring and Logging
+- **Error Tracking**: Comprehensive logging of system errors and user actions for debugging
+- **Performance Monitoring**: Real-time monitoring of response times and system health
+- **Security Auditing**: Logging of authentication attempts and data access patterns
+- **User Feedback**: Toast notifications and error messages with actionable guidance
+
 ### Client-Side Error Handling
 
 #### Form Validation
@@ -1888,39 +1990,73 @@ class RateLimiter {
 
 ## Testing Strategy
 
+The platform employs a comprehensive testing approach to ensure reliability, security, and user experience across all modules and devices:
+
 ### Unit Testing
-- **Components**: Test component rendering, props, events, and state changes
-- **Utilities**: Test helper functions, validation logic, and data transformations
-- **API Functions**: Test request/response handling, error scenarios
-- **Tools**: Vitest, Testing Library
+- **Component Testing**: Individual UI components tested for functionality and accessibility
+- **API Testing**: All server actions and endpoints tested with various input scenarios
+- **Validation Testing**: Zod schemas and form validation logic thoroughly tested
+- **Utility Function Testing**: Helper functions and data transformation logic verified
 
 ### Integration Testing
-- **API Endpoints**: Test complete request/response cycles
-- **Database Operations**: Test CRUD operations and data integrity
-- **Authentication Flow**: Test login, registration, and session management
-- **File Upload**: Test file handling and storage integration
+- **Module Integration**: Cross-module data flow and integration points tested (budget ↔ savings, vendors ↔ souvenirs)
+- **Authentication Flow**: Complete user registration, login, and session management workflows
+- **File Upload Integration**: End-to-end testing of file upload, storage, and retrieval with Cloudflare R2
+- **Database Operations**: CRUD operations tested with real database connections
 
 ### End-to-End Testing
-- **User Workflows**: Test complete user journeys through the application
-- **Cross-Browser**: Test compatibility across different browsers
-- **Mobile Responsiveness**: Test mobile user experience
-- **Performance**: Test loading times and responsiveness
-- **Tools**: Playwright
-
-### Testing Data Strategy
-- **Test Database**: Separate database for testing with seed data
-- **Mock Services**: Mock external services (email, file storage)
-- **Test Users**: Predefined test accounts with different permission levels
-- **Data Cleanup**: Automated cleanup after test runs
-
-### Performance Testing
-- **Load Testing**: Test application under expected user load
-- **Database Performance**: Test query performance with large datasets
-- **File Upload Performance**: Test large file upload scenarios
-- **Memory Usage**: Monitor memory leaks and optimization opportunities
+- **User Workflows**: Complete user journeys from registration to wedding planning completion
+- **Responsive Design**: Cross-device testing on mobile, tablet, and desktop (Requirement 7.1, 7.2, 7.3)
+- **Guest Interactions**: Public invitation pages, RSVP submission, and gift contribution flows
+- **Export Functionality**: PDF and CSV generation tested across all modules
 
 ### Security Testing
-- **Authentication**: Test session management and access controls
-- **Input Validation**: Test SQL injection and XSS prevention
-- **File Upload Security**: Test malicious file upload prevention
-- **Data Privacy**: Test data access restrictions and GDPR compliance
+- **Authentication Security**: Session management, password reset, and email verification flows (Requirement 15.1, 15.2, 15.5)
+- **Data Protection**: User data isolation and access control verification (Requirement 15.4)
+- **File Security**: Upload validation, storage security, and access control testing (Requirement 15.3)
+- **Input Validation**: SQL injection, XSS, and other security vulnerability testing
+
+### Performance Testing
+- **Load Testing**: System performance under concurrent user load
+- **Mobile Performance**: Touch interaction responsiveness and loading times on mobile devices
+- **File Upload Performance**: Large file upload handling and progress tracking
+- **Database Performance**: Query optimization and response time validation
+
+### Testing Tools and Infrastructure
+- **Unit Testing**: Vitest and Testing Library for component and function testing
+- **Integration Testing**: Custom test harnesses for API and database testing
+- **End-to-End Testing**: Playwright for cross-browser and user workflow testing
+- **Performance Testing**: Lighthouse and custom performance monitoring tools
+- **Security Testing**: OWASP ZAP and custom security validation tools
+
+### Testing Data Strategy
+- **Test Database**: Separate PostgreSQL instance with comprehensive seed data
+- **Mock Services**: Mocked external services (email, Cloudflare R2, payment gateways)
+- **Test Users**: Predefined test accounts with various permission levels and wedding planning stages
+- **Data Cleanup**: Automated cleanup procedures after test execution
+- **Continuous Integration**: Automated testing pipeline with quality gates
+
+## Deployment and Infrastructure
+
+### Production Environment
+- **Hosting**: Vercel for SvelteKit application deployment with edge functions
+- **Database**: PostgreSQL with connection pooling and automated backups
+- **File Storage**: Cloudflare R2 for secure, scalable file storage with CDN
+- **Email Service**: Integrated email service for notifications and verification
+- **Monitoring**: Real-time application monitoring and error tracking
+
+### Security Infrastructure
+- **SSL/TLS**: End-to-end encryption for all data transmission
+- **Authentication**: Lucia-based session management with secure token handling
+- **File Security**: Virus scanning and content validation for all uploads
+- **Data Backup**: Automated daily backups with point-in-time recovery
+- **Access Control**: Role-based access control with audit logging
+
+### Scalability Considerations
+- **Database Optimization**: Proper indexing and query optimization for performance
+- **CDN Integration**: Global content delivery for optimal loading times
+- **Caching Strategy**: Strategic caching of static content and API responses
+- **Load Balancing**: Automatic scaling based on traffic patterns
+- **Performance Monitoring**: Real-time performance metrics and alerting
+
+This design document provides a comprehensive foundation for implementing the VowsMarry Wedding Planner Dashboard, ensuring all requirements are addressed while maintaining security, performance, and user experience standards across all devices and use cases.
