@@ -1,64 +1,94 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index';
-	import * as Card from '$lib/components/ui/card/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Label } from '$lib/components/ui/label/index';
-	import { Checkbox } from '$lib/components/ui/checkbox/index';
-	const id = $props.id();
+	import { enhance } from '$app/forms';
+	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+
+	let { form } = $props();
 </script>
 
-<Card.Root class="mx-auto w-full max-w-sm">
-	<Card.Header>
-		<Card.Title class="text-2xl">Create Account</Card.Title>
-		<Card.Description>Enter your information below to create your account</Card.Description>
-	</Card.Header>
-	<Card.Content>
-		<div class="grid gap-4">
-			<div class="grid grid-cols-2 gap-4">
-				<div class="grid gap-2">
-					<Label for="first-name-{id}">First name</Label>
-					<Input id="first-name-{id}" placeholder="John" required />
+<div class="min-h-screen flex items-center justify-center bg-gray-50">
+	<Card class="w-full max-w-md">
+		<CardHeader>
+			<CardTitle>Create Account</CardTitle>
+			<CardDescription>Sign up to start planning your perfect wedding</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<form method="POST" use:enhance>
+				<div class="space-y-4">
+					<div class="grid grid-cols-2 gap-4">
+						<div class="space-y-2">
+							<Label for="firstName">First Name</Label>
+							<Input
+								id="firstName"
+								name="firstName"
+								type="text"
+								placeholder="John"
+								required
+								value={form?.firstName ?? ''}
+							/>
+						</div>
+						<div class="space-y-2">
+							<Label for="lastName">Last Name</Label>
+							<Input
+								id="lastName"
+								name="lastName"
+								type="text"
+								placeholder="Doe"
+								required
+								value={form?.lastName ?? ''}
+							/>
+						</div>
+					</div>
+					<div class="space-y-2">
+						<Label for="email">Email</Label>
+						<Input
+							id="email"
+							name="email"
+							type="email"
+							placeholder="john@example.com"
+							required
+							value={form?.email ?? ''}
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="password">Password</Label>
+						<Input
+							id="password"
+							name="password"
+							type="password"
+							placeholder="Create a strong password"
+							required
+						/>
+					</div>
+					<div class="space-y-2">
+						<Label for="confirmPassword">Confirm Password</Label>
+						<Input
+							id="confirmPassword"
+							name="confirmPassword"
+							type="password"
+							placeholder="Confirm your password"
+							required
+						/>
+					</div>
+					{#if form?.error}
+						<div class="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+							{form.error}
+						</div>
+					{/if}
+					{#if form?.success}
+						<div class="text-sm text-green-600 bg-green-50 p-3 rounded-md">
+							{form.success}
+						</div>
+					{/if}
+					<Button type="submit" class="w-full">Create Account</Button>
 				</div>
-				<div class="grid gap-2">
-					<Label for="last-name-{id}">Last name</Label>
-					<Input id="last-name-{id}" placeholder="Doe" required />
-				</div>
+			</form>
+			<div class="mt-4 text-center text-sm">
+				Already have an account?
+				<a href="/login" class="text-blue-600 hover:underline">Sign in</a>
 			</div>
-			<div class="grid gap-2">
-				<Label for="email-{id}">Email</Label>
-				<Input id="email-{id}" type="email" placeholder="m@example.com" required />
-			</div>
-			<div class="grid gap-2">
-				<Label for="password-{id}">Password</Label>
-				<Input id="password-{id}" type="password" required />
-			</div>
-			<div class="grid gap-2">
-				<Label for="confirm-password-{id}">Confirm Password</Label>
-				<Input id="confirm-password-{id}" type="password" required />
-			</div>
-			<div class="flex items-start gap-3">
-				<Checkbox id="terms-2" />
-				<div class="grid gap-2">
-					<Label for="terms-2">Accept terms and conditions</Label>
-					<p class="text-muted-foreground text-xs">
-						By clicking this checkbox, you agree to the terms and conditions.
-					</p>
-				</div>
-			</div>
-			<Button type="submit" class="w-full">Create Account</Button>
-			<Button variant="outline" class="w-full">
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 mr-2">
-					<path
-						d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-						fill="currentColor"
-					/>
-				</svg>
-				Sign up with Google
-			</Button>
-		</div>
-		<div class="mt-4 text-center text-sm">
-			Already have an account?
-			<a href="/login" class="underline"> Sign in </a>
-		</div>
-	</Card.Content>
-</Card.Root>
+		</CardContent>
+	</Card>
+</div>
