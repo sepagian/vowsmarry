@@ -1,5 +1,10 @@
 import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
 
-export function load() {
-	throw redirect(302, '/dashboard');
-}
+export const load: PageServerLoad = async ({ locals }) => {
+	if (locals.user) {
+		throw redirect(302, '/dashboard');
+	} else {
+		throw redirect(302, '/login');
+	}
+};
