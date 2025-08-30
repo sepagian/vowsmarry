@@ -1,64 +1,8 @@
 <script lang="ts">
-	// Dummy dowry data
-	const dowryItems = [
-		{
-			id: 1,
-			type: 'Cash',
-			description: 'Wedding gift money',
-			value: 50000000,
-			status: 'received',
-			receivedDate: '2024-08-15',
-			proofUrl: '/documents/cash-receipt.pdf',
-			notes: 'Received from groom\'s family during engagement ceremony'
-		},
-		{
-			id: 2,
-			type: 'Gold',
-			description: '24K gold jewelry set',
-			value: 75000000,
-			status: 'received',
-			receivedDate: '2024-08-20',
-			proofUrl: '/documents/gold-certificate.pdf',
-			notes: 'Traditional gold necklace, earrings, and bracelet set'
-		},
-		{
-			id: 3,
-			type: 'Property',
-			description: 'Apartment down payment',
-			value: 200000000,
-			status: 'promised',
-			receivedDate: null,
-			proofUrl: null,
-			notes: 'Down payment for 2-bedroom apartment, to be transferred after wedding'
-		},
-		{
-			id: 4,
-			type: 'Household Items',
-			description: 'Kitchen appliances and furniture',
-			value: 25000000,
-			status: 'received',
-			receivedDate: '2024-08-25',
-			proofUrl: '/documents/appliances-receipt.pdf',
-			notes: 'Refrigerator, washing machine, dining set, and kitchen utensils'
-		},
-		{
-			id: 5,
-			type: 'Investment',
-			description: 'Mutual fund investment',
-			value: 30000000,
-			status: 'pending',
-			receivedDate: null,
-			proofUrl: null,
-			notes: 'Investment portfolio to be set up in both names'
-		}
-	];
+	let { data } = $props();
 
-	const dowryStats = {
-		total: dowryItems.reduce((sum, item) => sum + item.value, 0),
-		received: dowryItems.filter(item => item.status === 'received').reduce((sum, item) => sum + item.value, 0),
-		promised: dowryItems.filter(item => item.status === 'promised').reduce((sum, item) => sum + item.value, 0),
-		pending: dowryItems.filter(item => item.status === 'pending').reduce((sum, item) => sum + item.value, 0)
-	};
+	const dowryItems = data.dowryItems;
+	const dowryStats = data.dowryStats;
 
 	function formatCurrency(amount: number) {
 		return new Intl.NumberFormat('id-ID', {
@@ -68,34 +12,60 @@
 		}).format(amount);
 	}
 
-	function getStatusIcon(status: string) {
+	function getStatusIcon(status: string | null) {
 		switch (status) {
 			case 'received':
 				return '✅';
 			case 'promised':
 				return '🤝';
-			case 'pending':
-				return '⏳';
+			case 'documented':
+				return '📄';
+			case 'verified':
+				return '✔️';
 			default:
 				return '❓';
 		}
 	}
 
-	function getTypeIcon(type: string) {
+	function getTypeIcon(type: string | null) {
 		switch (type) {
-			case 'Cash':
+			case 'cash':
 				return '💰';
-			case 'Gold':
+			case 'gold':
 				return '🥇';
-			case 'Property':
+			case 'property':
 				return '🏠';
-			case 'Household Items':
+			case 'jewelry':
+				return '💍';
+			case 'vehicle':
+				return '🚗';
+			case 'electronics':
+				return '📱';
+			case 'furniture':
 				return '🏡';
-			case 'Investment':
-				return '📈';
 			default:
 				return '💎';
 		}
+	}
+
+	function getStatusColor(status: string | null) {
+		if (!status) return 'bg-gray-100 text-gray-800';
+		switch (status) {
+			case 'received':
+			case 'verified':
+				return 'bg-green-100 text-green-800';
+			case 'documented':
+				return 'bg-blue-100 text-blue-800';
+			case 'promised':
+				return 'bg-yellow-100 text-yellow-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
+		}
+	}
+
+	function formatDate(dateString: string | null) {
+		if (!dateString) return 'Not received';
+		return new Date(dateString).toLocaleDateString('id-ID');
 	}
 </script>
 
@@ -115,7 +85,7 @@
 					<path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
 				</svg>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(dowryStats.total)}</p>
+			<p class="text-2xl font-bold">{formatCurrency(dowryStats.totalValue)}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -123,8 +93,8 @@
 				<p class="text-sm font-medium text-muted-foreground">Received</p>
 				<span class="text-lg">✅</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(dowryStats.received)}</p>
-			<p class="text-sm text-muted-foreground">{Math.round((dowryStats.received / dowryStats.total) * 100)}% of total</p>
+			<p class="text-2xl font-bold">{formatCurrency(dowryStats.received * (dowryStats.totalValue / dowryStats.total))}</p>
+			<p class="text-sm text-muted-foreground">{dowryStats.received} items received</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -132,15 +102,17 @@
 				<p class="text-sm font-medium text-muted-foreground">Promised</p>
 				<span class="text-lg">🤝</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(dowryStats.promised)}</p>
+			<p class="text-2xl font-bold">{formatCurrency(dowryStats.promised * (dowryStats.totalValue / dowryStats.total))}</p>
+			<p class="text-sm text-muted-foreground">{dowryStats.promised} items promised</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
 			<div class="flex items-center justify-between mb-2">
-				<p class="text-sm font-medium text-muted-foreground">Pending</p>
-				<span class="text-lg">⏳</span>
+				<p class="text-sm font-medium text-muted-foreground">Documented</p>
+				<span class="text-lg">📄</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(dowryStats.pending)}</p>
+			<p class="text-2xl font-bold">{dowryStats.documented}</p>
+			<p class="text-sm text-muted-foreground">items documented</p>
 		</div>
 	</div>	
     <!-- Dowry Items List -->
@@ -154,53 +126,67 @@
 		</div>
 
 		<div class="space-y-4">
-			{#each dowryItems as item}
-				<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex items-start justify-between mb-3">
-						<div class="flex items-start gap-3">
-							<div class="flex items-center justify-center w-8 h-8 rounded border">
-								<span class="text-sm">{getTypeIcon(item.type)}</span>
+			{#if dowryItems.length > 0}
+				{#each dowryItems as item}
+					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+						<div class="flex items-start justify-between mb-3">
+							<div class="flex items-start gap-3">
+								<div class="flex items-center justify-center w-8 h-8 rounded border">
+									<span class="text-sm">{getTypeIcon(item.type)}</span>
+								</div>
+								<div>
+									<h3 class="font-semibold">{item.description}</h3>
+									<p class="text-sm text-muted-foreground capitalize">{item.type}</p>
+									{#if item.giver && item.receiver}
+										<p class="text-xs text-muted-foreground mt-1">From: {item.giver} → To: {item.receiver}</p>
+									{/if}
+								</div>
 							</div>
-							<div>
-								<h3 class="font-semibold">{item.description}</h3>
-								<p class="text-sm text-muted-foreground">{item.type}</p>
+							<div class="text-right">
+								<div class="flex items-center gap-2 mb-1">
+									<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(item.status)}">
+										{(item.status || 'promised').replace('_', ' ')}
+									</span>
+									<span class="text-lg">{getStatusIcon(item.status)}</span>
+								</div>
+								<p class="text-lg font-bold">{formatCurrency(Number(item.value))}</p>
+								{#if item.currency !== 'IDR'}
+									<p class="text-xs text-muted-foreground">({item.currency})</p>
+								{/if}
 							</div>
 						</div>
-						<div class="text-right">
-							<div class="flex items-center gap-2 mb-1">
-								<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
-									{item.status}
-								</span>
-								<span class="text-lg">{getStatusIcon(item.status)}</span>
-							</div>
-							<p class="text-lg font-bold">{formatCurrency(item.value)}</p>
+
+						<div class="grid gap-2 md:grid-cols-2 text-sm text-muted-foreground mb-3">
+							{#if item.receivedDate}
+								<div class="flex items-center gap-2">
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+									</svg>
+									<span>Received: {formatDate(item.receivedDate)}</span>
+								</div>
+							{/if}
+							{#if item.proofUrl && item.proofUrl.length > 0}
+								<div class="flex items-center gap-2">
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+									</svg>
+									<a href={item.proofUrl[0]} class="hover:underline">View Proof ({item.proofUrl.length} files)</a>
+								</div>
+							{/if}
 						</div>
-					</div>
 
-					<div class="grid gap-2 md:grid-cols-2 text-sm text-muted-foreground mb-3">
-						{#if item.receivedDate}
-							<div class="flex items-center gap-2">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-								</svg>
-								<span>Received: {item.receivedDate}</span>
-							</div>
-						{/if}
-						{#if item.proofUrl}
-							<div class="flex items-center gap-2">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-								</svg>
-								<a href={item.proofUrl} class="hover:underline">View Proof</a>
+						{#if item.notes}
+							<div class="p-3 bg-muted rounded-lg">
+								<p class="text-sm"><strong>Notes:</strong> {item.notes}</p>
 							</div>
 						{/if}
 					</div>
-
-					<div class="p-3 bg-muted rounded-lg">
-						<p class="text-sm"><strong>Notes:</strong> {item.notes}</p>
-					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<p>No dowry items yet. Start by adding your first dowry item!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
@@ -210,7 +196,7 @@
 		<div class="grid gap-3 md:grid-cols-2">
 			{#each ['Cash', 'Gold', 'Property', 'Household Items', 'Investment'] as type}
 				{@const typeItems = dowryItems.filter(item => item.type === type)}
-				{@const typeTotal = typeItems.reduce((sum, item) => sum + item.value, 0)}
+				{@const typeTotal = typeItems.reduce((sum, item) => sum + Number(item.value), 0)}
 				{#if typeTotal > 0}
 					<div class="flex items-center justify-between p-3 border rounded-lg">
 						<div class="flex items-center gap-3">
