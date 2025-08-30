@@ -1,82 +1,14 @@
 <script lang="ts">
-	// Dummy paperwork data
-	const documents = [
-		{
-			id: 1,
-			title: 'Marriage License Application',
-			type: 'License',
-			status: 'approved',
-			dueDate: '2024-09-01',
-			submittedDate: '2024-08-15',
-			fileUrl: '/documents/marriage-license.pdf',
-			notes: 'Approved by civil registry office. Original document received.'
-		},
-		{
-			id: 2,
-			title: 'Venue Contract',
-			type: 'Contract',
-			status: 'signed',
-			dueDate: '2024-08-30',
-			submittedDate: '2024-08-20',
-			fileUrl: '/documents/venue-contract.pdf',
-			notes: 'Signed contract with Grand Ballroom Jakarta. Deposit paid.'
-		},
-		{
-			id: 3,
-			title: 'Catering Agreement',
-			type: 'Contract',
-			status: 'pending',
-			dueDate: '2024-09-05',
-			submittedDate: null,
-			fileUrl: null,
-			notes: 'Waiting for final menu confirmation before signing.'
-		},
-		{
-			id: 4,
-			title: 'Photography Release Forms',
-			type: 'Release',
-			status: 'signed',
-			dueDate: '2024-09-10',
-			submittedDate: '2024-08-22',
-			fileUrl: '/documents/photo-release.pdf',
-			notes: 'Model release forms signed by both parties.'
-		},
-		{
-			id: 5,
-			title: 'Insurance Certificate',
-			type: 'Insurance',
-			status: 'pending',
-			dueDate: '2024-09-15',
-			submittedDate: null,
-			fileUrl: null,
-			notes: 'Event insurance application in progress.'
-		},
-		{
-			id: 6,
-			title: 'Music License',
-			type: 'License',
-			status: 'rejected',
-			dueDate: '2024-08-25',
-			submittedDate: '2024-08-18',
-			fileUrl: '/documents/music-license-rejected.pdf',
-			notes: 'Application rejected. Need to resubmit with correct playlist.'
-		}
-	];
+	let { data } = $props();
 
-	const documentStats = {
-		total: documents.length,
-		approved: documents.filter((d) => d.status === 'approved').length,
-		signed: documents.filter((d) => d.status === 'signed').length,
-		pending: documents.filter((d) => d.status === 'pending').length,
-		rejected: documents.filter((d) => d.status === 'rejected').length
-	};
+	const documents = data.documents;
+	const documentStats = data.documentStats;
+	const upcomingDeadlines = data.upcomingDeadlines;
 
-	function getStatusIcon(status: string) {
+	function getStatusIcon(status: string | null) {
 		switch (status) {
 			case 'approved':
 				return '✅';
-			case 'signed':
-				return '✍️';
 			case 'rejected':
 				return '❌';
 			default:
@@ -84,19 +16,38 @@
 		}
 	}
 
-	function getTypeIcon(type: string) {
+	function getTypeIcon(type: string | null) {
 		switch (type) {
-			case 'License':
+			case 'license':
 				return '📄';
-			case 'Contract':
+			case 'contract':
 				return '📋';
-			case 'Release':
-				return '📝';
-			case 'Insurance':
-				return '🛡️';
+			case 'permit':
+				return '📄';
+			case 'other':
+				return '📄';
 			default:
 				return '📄';
 		}
+	}
+
+	function getStatusColor(status: string | null) {
+		if (!status) return 'bg-gray-100 text-gray-800';
+		switch (status) {
+			case 'approved':
+				return 'bg-green-100 text-green-800';
+			case 'rejected':
+				return 'bg-red-100 text-red-800';
+			case 'pending':
+				return 'bg-yellow-100 text-yellow-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
+		}
+	}
+
+	function formatDate(dateString: string | null) {
+		if (!dateString) return 'No date';
+		return new Date(dateString).toLocaleDateString('id-ID');
 	}
 </script>
 
@@ -135,10 +86,10 @@
 
 		<div class="rounded-lg border bg-card p-4">
 			<div class="flex items-center justify-between mb-2">
-				<p class="text-sm font-medium text-muted-foreground">Signed</p>
-				<span class="text-lg">✍️</span>
+				<p class="text-sm font-medium text-muted-foreground">Rejected</p>
+				<span class="text-lg">❌</span>
 			</div>
-			<p class="text-2xl font-bold">{documentStats.signed}</p>
+			<p class="text-2xl font-bold">{documentStats.rejected}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -161,68 +112,76 @@
 		</div>
 
 		<div class="space-y-4">
-			{#each documents as doc}
-				<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex items-start justify-between mb-3">
-						<div class="flex items-start gap-3">
-							<div class="flex items-center justify-center w-8 h-8 rounded border">
-								<span class="text-sm">{getTypeIcon(doc.type)}</span>
+			{#if documents.length > 0}
+				{#each documents as doc}
+					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+						<div class="flex items-start justify-between mb-3">
+							<div class="flex items-start gap-3">
+								<div class="flex items-center justify-center w-8 h-8 rounded border">
+									<span class="text-sm">{getTypeIcon(doc.type)}</span>
+								</div>
+								<div>
+									<h3 class="font-semibold">{doc.title}</h3>
+									<p class="text-sm text-muted-foreground capitalize">{doc.type}</p>
+								</div>
 							</div>
-							<div>
-								<h3 class="font-semibold">{doc.title}</h3>
-								<p class="text-sm text-muted-foreground">{doc.type}</p>
+							<div class="flex items-center gap-2">
+								<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(doc.status)}">
+									{(doc.status || 'pending').replace('_', ' ')}
+								</span>
+								<span class="text-lg">{getStatusIcon(doc.status)}</span>
 							</div>
 						</div>
-						<div class="flex items-center gap-2">
-							<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
-								{doc.status}
-							</span>
-							<span class="text-lg">{getStatusIcon(doc.status)}</span>
-						</div>
-					</div>
 
-					<div class="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground mb-3">
-						<div class="flex items-center gap-2">
-							<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-								<path
-									fill-rule="evenodd"
-									d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-							<span>Due: {doc.dueDate}</span>
-						</div>
-						{#if doc.submittedDate}
+						<div class="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground mb-3">
 							<div class="flex items-center gap-2">
 								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
 									<path
 										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+										d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
 										clip-rule="evenodd"
 									/>
 								</svg>
-								<span>Submitted: {doc.submittedDate}</span>
+								<span>Due: {formatDate(doc.dueDate)}</span>
 							</div>
-						{/if}
-						{#if doc.fileUrl}
-							<div class="flex items-center gap-2">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path
-										fill-rule="evenodd"
-										d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-								<a href={doc.fileUrl} class="hover:underline">Download File</a>
-							</div>
-						{/if}
-					</div>
+							{#if doc.createdAt}
+								<div class="flex items-center gap-2">
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+										<path
+											fill-rule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									<span>Created: {formatDate(doc.createdAt.toString())}</span>
+								</div>
+							{/if}
+							{#if doc.fileUrl}
+								<div class="flex items-center gap-2">
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+										<path
+											fill-rule="evenodd"
+											d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+											clip-rule="evenodd"
+										/>
+									</svg>
+									<a href={doc.fileUrl} class="hover:underline">Download File</a>
+								</div>
+							{/if}
+						</div>
 
-					<div class="p-3 bg-muted rounded-lg">
-						<p class="text-sm"><strong>Notes:</strong> {doc.notes}</p>
+						{#if doc.notes}
+							<div class="p-3 bg-muted rounded-lg">
+								<p class="text-sm"><strong>Notes:</strong> {doc.notes}</p>
+							</div>
+						{/if}
 					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<p>No documents yet. Start by adding your first document!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
