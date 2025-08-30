@@ -77,7 +77,7 @@
 						<Button
 							variant="outline"
 							size="sm"
-							on:click={handleAction}
+							onclick={handleAction}
 							class="text-xs"
 						>
 							{toastItem.action.label}
