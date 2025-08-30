@@ -19,31 +19,29 @@
 </script>
 
 <FormField {label} {name} {error} {required} {description} {disabled}>
-	<select
-		slot="default"
-		let:fieldId
-		let:ariaDescribedBy
-		let:hasError
-		id={fieldId}
-		{name}
-		{value}
-		{disabled}
-		aria-describedby={ariaDescribedBy}
-		aria-invalid={hasError}
-		class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {hasError ? 'border-destructive focus:ring-destructive' : ''}"
-		on:change={handleChange}
-		on:blur
-		on:focus
-	>
-		{#if placeholder}
-			<option value="" disabled selected={!value}>
-				{placeholder}
-			</option>
-		{/if}
-		{#each options as option}
-			<option value={option.value} disabled={option.disabled}>
-				{option.label}
-			</option>
-		{/each}
-	</select>
+	{#snippet children(fieldId: string, ariaDescribedBy: string | undefined, hasError: boolean)}
+		<select
+			id={fieldId}
+			{name}
+			{value}
+			{disabled}
+			aria-describedby={ariaDescribedBy}
+			aria-invalid={hasError}
+			class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {hasError ? 'border-destructive focus:ring-destructive' : ''}"
+			on:change={handleChange}
+			on:blur
+			on:focus
+		>
+			{#if placeholder}
+				<option value="" disabled selected={!value}>
+					{placeholder}
+				</option>
+			{/if}
+			{#each options as option}
+				<option value={option.value} disabled={option.disabled}>
+					{option.label}
+				</option>
+			{/each}
+		</select>
+	{/snippet}
 </FormField>

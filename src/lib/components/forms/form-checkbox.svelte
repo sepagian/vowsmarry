@@ -38,7 +38,7 @@
 			aria-describedby={ariaDescribedBy}
 			aria-invalid={!!error}
 			class={error ? 'border-destructive' : ''}
-			on:change={handleChange}
+			onchange={handleChange}
 		/>
 		<div class="grid gap-1.5 leading-none">
 			<Label
