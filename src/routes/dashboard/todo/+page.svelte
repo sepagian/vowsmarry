@@ -1,80 +1,44 @@
 <script lang="ts">
-	// Dummy todo data
-	const todos = [
-		{
-			id: 1,
-			title: 'Book wedding photographer',
-			description: 'Research and book a professional wedding photographer',
-			status: 'completed',
-			dueDate: '2024-08-20',
-			assignedTo: 'Sarah',
-			category: 'Photography'
-		},
-		{
-			id: 2,
-			title: 'Order wedding invitations',
-			description: 'Design and order wedding invitations for 200 guests',
-			status: 'in-progress',
-			dueDate: '2024-09-01',
-			assignedTo: 'John',
-			category: 'Invitations'
-		},
-		{
-			id: 3,
-			title: 'Finalize catering menu',
-			description: 'Choose final menu options and confirm guest count',
-			status: 'overdue',
-			dueDate: '2024-08-25',
-			assignedTo: 'Sarah',
-			category: 'Catering'
-		},
-		{
-			id: 4,
-			title: 'Book makeup artist',
-			description: 'Schedule trial and book makeup artist for wedding day',
-			status: 'pending',
-			dueDate: '2024-09-10',
-			assignedTo: 'Sarah',
-			category: 'Beauty'
-		},
-		{
-			id: 5,
-			title: 'Reserve transportation',
-			description: 'Book wedding car or limousine service',
-			status: 'pending',
-			dueDate: '2024-09-15',
-			assignedTo: 'John',
-			category: 'Transportation'
-		},
-		{
-			id: 6,
-			title: 'Order wedding cake',
-			description: 'Finalize cake design and place order',
-			status: 'in-progress',
-			dueDate: '2024-10-01',
-			assignedTo: 'Sarah',
-			category: 'Catering'
-		}
-	];
+	let { data } = $props();
 
-	const taskStats = {
-		total: todos.length,
-		completed: todos.filter(t => t.status === 'completed').length,
-		inProgress: todos.filter(t => t.status === 'in-progress').length,
-		pending: todos.filter(t => t.status === 'pending').length,
-		overdue: todos.filter(t => t.status === 'overdue').length
-	};
+	const todos = data.todos;
+	const taskStats = data.taskStats;
 
-	function getStatusIcon(status: string) {
+	function getStatusIcon(status: string | null) {
 		switch (status) {
-			case 'completed':
+			case 'done':
 				return '✓';
-			case 'in-progress':
+			case 'in_progress':
 				return '⏳';
-			case 'overdue':
-				return '⚠️';
+			case 'todo':
+				return '○';
 			default:
 				return '○';
+		}
+	}
+
+	function formatDate(dateString: string | null) {
+		if (!dateString) return 'No due date';
+		return new Date(dateString).toLocaleDateString('id-ID');
+	}
+
+	function isOverdue(dueDate: string | null, status: string | null) {
+		if (!dueDate || status === 'done') return false;
+		const today = new Date().toISOString().split('T')[0];
+		return dueDate < today;
+	}
+
+	function getStatusColor(status: string | null) {
+		if (!status) return 'bg-gray-100 text-gray-800';
+		switch (status) {
+			case 'done':
+				return 'bg-green-100 text-green-800';
+			case 'in_progress':
+				return 'bg-blue-100 text-blue-800';
+			case 'todo':
+				return 'bg-yellow-100 text-yellow-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
 		}
 	}
 </script>
@@ -135,48 +99,65 @@
 		</div>
 
 		<div class="space-y-3">
-			{#each todos as todo}
-				<div class="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex items-center justify-center w-6 h-6 rounded border">
-						<span class="text-sm">{getStatusIcon(todo.status)}</span>
-					</div>
-					
-					<div class="flex-1 min-w-0">
-						<div class="flex items-start justify-between mb-2">
-							<div>
-								<h3 class="font-medium">{todo.title}</h3>
-								<p class="text-sm text-muted-foreground mt-1">{todo.description}</p>
-							</div>
-							<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground ml-4">
-								{todo.status}
-							</span>
+			{#if todos.length > 0}
+				{#each todos as todo}
+					<div class="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+						<div class="flex items-center justify-center w-6 h-6 rounded border">
+							<span class="text-sm">{getStatusIcon(todo.status)}</span>
 						</div>
 						
-						<div class="flex items-center gap-4 text-sm text-muted-foreground">
-							<div class="flex items-center gap-1">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
-								</svg>
-								<span>Due: {todo.dueDate}</span>
+						<div class="flex-1 min-w-0">
+							<div class="flex items-start justify-between mb-2">
+								<div>
+									<h3 class="font-medium">{todo.title}</h3>
+									{#if todo.description}
+										<p class="text-sm text-muted-foreground mt-1">{todo.description}</p>
+									{/if}
+								</div>
+								<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(todo.status)} ml-4">
+									{(todo.status || 'todo').replace('_', ' ')}
+								</span>
 							</div>
 							
-							<div class="flex items-center gap-1">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-								</svg>
-								<span>Assigned to: {todo.assignedTo}</span>
-							</div>
-							
-							<div class="flex items-center gap-1">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-								</svg>
-								<span>{todo.category}</span>
+							<div class="flex items-center gap-4 text-sm text-muted-foreground">
+								<div class="flex items-center gap-1">
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+									</svg>
+									<span class="{isOverdue(todo.dueDate, todo.status) ? 'text-red-600 font-medium' : ''}">
+										Due: {formatDate(todo.dueDate)}
+										{#if isOverdue(todo.dueDate, todo.status)}
+											(Overdue)
+										{/if}
+									</span>
+								</div>
+								
+								{#if todo.assignedToName}
+									<div class="flex items-center gap-1">
+										<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+										</svg>
+										<span>Assigned to: {todo.assignedToName}</span>
+									</div>
+								{/if}
+								
+								{#if todo.priority}
+									<div class="flex items-center gap-1">
+										<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+										</svg>
+										<span class="capitalize">{todo.priority} priority</span>
+									</div>
+								{/if}
 							</div>
 						</div>
 					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<p>No tasks yet. Start by adding your first task!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
