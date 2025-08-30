@@ -3,7 +3,7 @@
 
 	// Calculate days until wedding
 	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
-	const daysUntilWedding = weddingDate 
+	const daysUntilWedding = weddingDate
 		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
 		: null;
 
@@ -39,7 +39,7 @@
 
 	function getStatusColor(status: string | null) {
 		if (!status) return 'bg-gray-100 text-gray-800';
-		
+
 		switch (status) {
 			case 'done':
 			case 'completed':
@@ -56,7 +56,7 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col gap-4 p-4">
+<div class="flex flex-1 flex-col gap-4 p-4 bg-white pt-14">
 	<!-- Header Section -->
 	<div class="flex flex-col gap-2">
 		<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
@@ -124,7 +124,11 @@
 				</div>
 				<div class="flex justify-between text-xs text-muted-foreground">
 					<span>Total: {formatCurrency(budgetData.total)}</span>
-					<span>{budgetData.total > 0 ? Math.round((budgetData.spent / budgetData.total) * 100) : 0}%</span>
+					<span
+						>{budgetData.total > 0
+							? Math.round((budgetData.spent / budgetData.total) * 100)
+							: 0}%</span
+					>
 				</div>
 			</div>
 		</div>
@@ -203,7 +207,11 @@
 									{/if}
 								</div>
 							</div>
-							<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(task.status || 'todo')}">
+							<span
+								class="px-2 py-1 text-xs font-medium rounded {getStatusColor(
+									task.status || 'todo'
+								)}"
+							>
 								{(task.status || 'todo').replace('_', ' ')}
 							</span>
 						</div>
@@ -233,7 +241,11 @@
 									>
 										{deadline.type}
 									</span>
-									<span class="inline-block px-2 py-0.5 text-xs font-medium rounded {getStatusColor(deadline.status)}">
+									<span
+										class="inline-block px-2 py-0.5 text-xs font-medium rounded {getStatusColor(
+											deadline.status
+										)}"
+									>
 										{(deadline.status || 'unknown').replace('_', ' ')}
 									</span>
 								</div>
