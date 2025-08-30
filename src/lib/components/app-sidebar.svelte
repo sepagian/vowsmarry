@@ -156,7 +156,6 @@
 </script>
 
 <Sidebar.Root class="top-12 h-[calc(100svh-var(--header-height))]!" {collapsible} {...restProps}>
-	<Sidebar.Header></Sidebar.Header>
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
