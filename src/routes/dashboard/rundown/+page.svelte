@@ -1,54 +1,61 @@
 <script lang="ts">
-	// Dummy rundown data
-	const timelineEvents = [
-		{
-			id: 1,
-			eventName: 'Bridal Preparation',
-			startTime: '08:00',
-			endTime: '11:00',
-			description: 'Hair, makeup, and getting dressed',
-			assignedTo: 'Makeup Artist, Photographer',
-			location: 'Bridal Suite',
-			notes: 'Light breakfast will be served'
-		},
-		{
-			id: 2,
-			eventName: 'Groom Preparation',
-			startTime: '09:00',
-			endTime: '11:30',
-			description: 'Getting ready with groomsmen',
-			assignedTo: 'Best Man, Photographer',
-			location: 'Groom Suite',
-			notes: 'Boutonniere pinning at 11:15'
-		},
-		{
-			id: 3,
-			eventName: 'First Look Photos',
-			startTime: '11:30',
-			endTime: '12:00',
-			description: 'Private first look session',
-			assignedTo: 'Photographer, Videographer',
-			location: 'Garden Area',
-			notes: 'Weather backup: Indoor lobby'
-		},
-		{
-			id: 4,
-			eventName: 'Wedding Ceremony',
-			startTime: '14:00',
-			endTime: '15:00',
-			description: 'Main wedding ceremony',
-			assignedTo: 'Officiant, Wedding Planner',
-			location: 'Main Hall',
-			notes: 'Processional music starts at 13:55'
-		}
-	];
+	let { data } = $props();
 
-	const vendors = [
-		{ name: 'Perfect Moments Photography', role: 'Photographer', contact: '+62 812 3456 7890' },
-		{ name: 'Elegant Flowers & Decor', role: 'Decorator', contact: '+62 813 4567 8901' },
-		{ name: 'Harmony Wedding Band', role: 'Music', contact: '+62 814 5678 9012' },
-		{ name: 'Delicious Catering Co.', role: 'Catering', contact: '+62 21 2345 6789' }
-	];
+	const rundownEvents = data.rundownEvents;
+	const rundownStats = data.rundownStats;
+
+	function formatTime(dateTime: string | Date | null) {
+		if (!dateTime) return '--:--';
+		return new Date(dateTime).toLocaleTimeString('id-ID', {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		});
+	}
+
+	function formatDate(dateTime: string | Date | null) {
+		if (!dateTime) return 'No date set';
+		return new Date(dateTime).toLocaleDateString('id-ID');
+	}
+
+	function getEventTypeIcon(type: string | null) {
+		switch (type) {
+			case 'ceremony':
+				return '💒';
+			case 'reception':
+				return '🎉';
+			case 'preparation':
+				return '✨';
+			case 'photography':
+				return '📸';
+			case 'transportation':
+				return '🚗';
+			default:
+				return '📅';
+		}
+	}
+
+	function getStatusColor(status: string | null) {
+		switch (status) {
+			case 'completed':
+				return 'bg-green-100 text-green-800';
+			case 'in_progress':
+				return 'bg-blue-100 text-blue-800';
+			case 'confirmed':
+				return 'bg-purple-100 text-purple-800';
+			case 'cancelled':
+				return 'bg-red-100 text-red-800';
+			default:
+				return 'bg-yellow-100 text-yellow-800';
+		}
+	}
+
+	function formatDuration(minutes: number | null) {
+		if (!minutes) return '--';
+		const hours = Math.floor(minutes / 60);
+		const mins = minutes % 60;
+		return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+	}
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4">
@@ -59,7 +66,7 @@
 	</div>
 
 	<!-- Timeline Overview -->
-	<div class="grid gap-4 md:grid-cols-3">
+	<div class="grid gap-4 md:grid-cols-4">
 		<div class="rounded-lg border bg-card p-4">
 			<div class="flex items-center justify-between mb-2">
 				<p class="text-sm font-medium text-muted-foreground">Total Events</p>
@@ -67,24 +74,33 @@
 					<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
 				</svg>
 			</div>
-			<p class="text-2xl font-bold">{timelineEvents.length}</p>
+			<p class="text-2xl font-bold">{rundownStats.total}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
 			<div class="flex items-center justify-between mb-2">
-				<p class="text-sm font-medium text-muted-foreground">Event Duration</p>
+				<p class="text-sm font-medium text-muted-foreground">Completed</p>
+				<span class="text-lg">✅</span>
+			</div>
+			<p class="text-2xl font-bold">{rundownStats.completed}</p>
+			<p class="text-sm text-muted-foreground">{rundownStats.inProgress} in progress</p>
+		</div>
+
+		<div class="rounded-lg border bg-card p-4">
+			<div class="flex items-center justify-between mb-2">
+				<p class="text-sm font-medium text-muted-foreground">Total Duration</p>
 				<span class="text-lg">⏰</span>
 			</div>
-			<p class="text-2xl font-bold">7 Hours</p>
-			<p class="text-sm text-muted-foreground">8:00 AM - 3:00 PM</p>
+			<p class="text-2xl font-bold">{formatDuration(rundownStats.duration)}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
 			<div class="flex items-center justify-between mb-2">
-				<p class="text-sm font-medium text-muted-foreground">Vendors Involved</p>
+				<p class="text-sm font-medium text-muted-foreground">Confirmed</p>
 				<span class="text-lg">👥</span>
 			</div>
-			<p class="text-2xl font-bold">{vendors.length}</p>
+			<p class="text-2xl font-bold">{rundownStats.confirmed}</p>
+			<p class="text-sm text-muted-foreground">{rundownStats.planned} planned</p>
 		</div>
 	</div>	
     <!-- Timeline Events -->
@@ -98,73 +114,82 @@
 		</div>
 		
 		<div class="space-y-4">
-			{#each timelineEvents as event}
-				<div class="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex flex-col items-center min-w-0">
-						<div class="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-							<span class="text-xs font-medium">{event.startTime}</span>
-						</div>
-						<div class="w-px h-8 bg-border mt-2"></div>
-						<div class="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-							<span class="text-xs font-medium">{event.endTime}</span>
-						</div>
-					</div>
-					
-					<div class="flex-1 min-w-0">
-						<div class="flex items-start justify-between mb-2">
-							<div>
-								<h3 class="font-semibold">{event.eventName}</h3>
-								<p class="text-sm text-muted-foreground">{event.description}</p>
+			{#if rundownEvents.length > 0}
+				{#each rundownEvents as event}
+					<div class="flex gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+						<div class="flex flex-col items-center min-w-0">
+							<div class="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+								<span class="text-xs font-medium">{formatTime(event.startTime)}</span>
 							</div>
-							<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground ml-4">
-								{event.startTime} - {event.endTime}
-							</span>
-						</div>
-						
-						<div class="grid gap-2 md:grid-cols-2 text-sm text-muted-foreground mb-3">
-							<div class="flex items-center gap-2">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-								</svg>
-								<span>Location: {event.location}</span>
-							</div>
-							<div class="flex items-center gap-2">
-								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-									<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-								</svg>
-								<span>Assigned: {event.assignedTo}</span>
+							<div class="w-px h-8 bg-border mt-2"></div>
+							<div class="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+								<span class="text-xs font-medium">{formatTime(event.endTime)}</span>
 							</div>
 						</div>
 						
-						{#if event.notes}
-							<div class="p-3 bg-muted rounded-lg">
-								<p class="text-sm"><strong>Notes:</strong> {event.notes}</p>
+						<div class="flex-1 min-w-0">
+							<div class="flex items-start justify-between mb-2">
+								<div>
+									<h3 class="font-semibold flex items-center gap-2">
+										<span>{getEventTypeIcon(event.eventType)}</span>
+										{event.eventName}
+									</h3>
+									{#if event.description}
+										<p class="text-sm text-muted-foreground">{event.description}</p>
+									{/if}
+								</div>
+								<div class="flex gap-2">
+									<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(event.status)}">
+										{(event.status || 'planned').replace('_', ' ')}
+									</span>
+									{#if event.duration}
+										<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
+											{formatDuration(event.duration)}
+										</span>
+									{/if}
+								</div>
 							</div>
-						{/if}
+							
+							<div class="grid gap-2 md:grid-cols-2 text-sm text-muted-foreground mb-3">
+								{#if event.location || event.venue}
+									<div class="flex items-center gap-2">
+										<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+										</svg>
+										<span>Location: {event.venue || event.location}</span>
+									</div>
+								{/if}
+								{#if event.assignedTo && event.assignedTo.length > 0}
+									<div class="flex items-center gap-2">
+										<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+										</svg>
+										<span>Assigned: {event.assignedTo.join(', ')}</span>
+									</div>
+								{/if}
+							</div>
+							
+							{#if event.notes}
+								<div class="p-3 bg-muted rounded-lg">
+									<p class="text-sm"><strong>Notes:</strong> {event.notes}</p>
+								</div>
+							{/if}
+						</div>
 					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<div class="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
+						<span class="text-2xl">📅</span>
+					</div>
+					<p class="font-medium mb-2">No events scheduled yet</p>
+					<p class="text-sm">Add your first event to get started!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
-	<!-- Vendor Contact List -->
-	<div class="rounded-lg border bg-card p-4">
-		<h2 class="text-lg font-semibold mb-4">Vendor Contact List</h2>
-		<div class="grid gap-3 md:grid-cols-2">
-			{#each vendors as vendor}
-				<div class="flex items-center justify-between p-3 border rounded-lg">
-					<div>
-						<p class="font-medium">{vendor.name}</p>
-						<p class="text-sm text-muted-foreground">{vendor.role}</p>
-					</div>
-					<div class="text-right">
-						<p class="text-sm font-medium">{vendor.contact}</p>
-						<button class="text-xs text-muted-foreground hover:underline">Call</button>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</div>
+
 
 	<!-- Add New Event -->
 	<div class="rounded-lg border bg-card p-4">
