@@ -1,46 +1,9 @@
 <script lang="ts">
-	// Dummy savings data
-	const savingsGoal = 150000000; // Total wedding budget
-	const currentSavings = 95000000;
-	const monthlyTarget = 10000000;
-	
-	const savingsHistory = [
-		{ month: 'January 2024', amount: 15000000, source: 'Monthly Salary' },
-		{ month: 'February 2024', amount: 12000000, source: 'Monthly Salary + Bonus' },
-		{ month: 'March 2024', amount: 10000000, source: 'Monthly Salary' },
-		{ month: 'April 2024', amount: 13000000, source: 'Monthly Salary + Side Job' },
-		{ month: 'May 2024', amount: 10000000, source: 'Monthly Salary' },
-		{ month: 'June 2024', amount: 15000000, source: 'Monthly Salary + Gift' },
-		{ month: 'July 2024', amount: 10000000, source: 'Monthly Salary' },
-		{ month: 'August 2024', amount: 10000000, source: 'Monthly Salary' }
-	];
+	let { data } = $props();
 
-	const savingsTips = [
-		{
-			title: 'Set up automatic transfers',
-			description: 'Automatically transfer a fixed amount to your wedding savings account each month.',
-			category: 'Automation'
-		},
-		{
-			title: 'Cut unnecessary subscriptions',
-			description: 'Review and cancel unused streaming services, gym memberships, or magazine subscriptions.',
-			category: 'Budgeting'
-		},
-		{
-			title: 'Create a wedding registry early',
-			description: 'Start your registry early so friends and family can contribute to your wedding expenses.',
-			category: 'Registry'
-		},
-		{
-			title: 'Consider a side hustle',
-			description: 'Take on freelance work or sell items you no longer need to boost your wedding fund.',
-			category: 'Income'
-		}
-	];
-
-	const remainingAmount = savingsGoal - currentSavings;
-	const progressPercentage = (currentSavings / savingsGoal) * 100;
-	const monthsRemaining = Math.ceil(remainingAmount / monthlyTarget);
+	const savingsSummary = data.savingsSummary;
+	const savingsEntries = data.savingsEntries;
+	const savingsStats = data.savingsStats;
 
 	function formatCurrency(amount: number) {
 		return new Intl.NumberFormat('id-ID', {
@@ -48,6 +11,41 @@
 			currency: 'IDR',
 			minimumFractionDigits: 0
 		}).format(amount);
+	}
+
+	function formatDate(dateString: string | Date | null) {
+		if (!dateString) return 'No date set';
+		return new Date(dateString).toLocaleDateString('id-ID');
+	}
+
+	function getEntryTypeIcon(type: string | null) {
+		switch (type) {
+			case 'deposit':
+				return '💰';
+			case 'withdrawal':
+				return '💸';
+			case 'interest':
+				return '📈';
+			case 'transfer':
+				return '🔄';
+			default:
+				return '💵';
+		}
+	}
+
+	function getEntryTypeColor(type: string | null) {
+		switch (type) {
+			case 'deposit':
+				return 'bg-green-100 text-green-800';
+			case 'withdrawal':
+				return 'bg-red-100 text-red-800';
+			case 'interest':
+				return 'bg-blue-100 text-blue-800';
+			case 'transfer':
+				return 'bg-purple-100 text-purple-800';
+			default:
+				return 'bg-gray-100 text-gray-800';
+		}
 	}
 </script>
 
@@ -67,7 +65,7 @@
 					<path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
 				</svg>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(savingsGoal)}</p>
+			<p class="text-2xl font-bold">{formatCurrency(savingsStats.goalAmount)}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -75,8 +73,8 @@
 				<p class="text-sm font-medium text-muted-foreground">Current Savings</p>
 				<span class="text-lg">💰</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(currentSavings)}</p>
-			<p class="text-sm text-muted-foreground">{Math.round(progressPercentage)}% of goal</p>
+			<p class="text-2xl font-bold">{formatCurrency(savingsStats.currentAmount)}</p>
+			<p class="text-sm text-muted-foreground">{Math.round(savingsStats.progressPercentage)}% of goal</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -84,8 +82,8 @@
 				<p class="text-sm font-medium text-muted-foreground">Remaining</p>
 				<span class="text-lg">🎯</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(remainingAmount)}</p>
-			<p class="text-sm text-muted-foreground">{monthsRemaining} months to go</p>
+			<p class="text-2xl font-bold">{formatCurrency(savingsStats.remainingAmount)}</p>
+			<p class="text-sm text-muted-foreground">{savingsStats.monthsRemaining} months to go</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -93,7 +91,7 @@
 				<p class="text-sm font-medium text-muted-foreground">Monthly Target</p>
 				<span class="text-lg">📅</span>
 			</div>
-			<p class="text-2xl font-bold">{formatCurrency(monthlyTarget)}</p>
+			<p class="text-2xl font-bold">{formatCurrency(savingsStats.monthlyTarget)}</p>
 		</div>
 	</div>
 
@@ -104,17 +102,17 @@
 			<div>
 				<div class="flex justify-between text-sm mb-2">
 					<span class="text-muted-foreground">Progress to Goal</span>
-					<span class="font-medium">{formatCurrency(currentSavings)} / {formatCurrency(savingsGoal)}</span>
+					<span class="font-medium">{formatCurrency(savingsStats.currentAmount)} / {formatCurrency(savingsStats.goalAmount)}</span>
 				</div>
 				<div class="w-full bg-muted rounded-full h-4">
 					<div
 						class="bg-foreground h-4 rounded-full transition-all duration-300"
-						style="width: {progressPercentage}%"
+						style="width: {savingsStats.progressPercentage}%"
 					></div>
 				</div>
 				<div class="flex justify-between text-xs text-muted-foreground mt-1">
 					<span>0%</span>
-					<span>{Math.round(progressPercentage)}%</span>
+					<span>{Math.round(savingsStats.progressPercentage)}%</span>
 					<span>100%</span>
 				</div>
 			</div>
@@ -128,38 +126,43 @@ vings History -->
 		</div>
 		
 		<div class="space-y-3">
-			{#each savingsHistory as entry}
-				<div class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex items-center gap-3">
-						<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
-						<div>
-							<p class="font-medium">{entry.month}</p>
-							<p class="text-sm text-muted-foreground">{entry.source}</p>
+			{#if savingsEntries.length > 0}
+				{#each savingsEntries as entry}
+					<div class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+						<div class="flex items-center gap-3">
+							<div class="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+								<span class="text-sm">{getEntryTypeIcon(entry.type)}</span>
+							</div>
+							<div>
+								<p class="font-medium">{formatDate(entry.date)}</p>
+								<p class="text-sm text-muted-foreground">{entry.source || entry.description || 'No description'}</p>
+							</div>
+						</div>
+						<div class="text-right">
+							<span class="font-bold text-lg {entry.type === 'withdrawal' ? 'text-red-600' : 'text-green-600'}">
+								{entry.type === 'withdrawal' ? '-' : '+'}{formatCurrency(Number(entry.amount || 0))}
+							</span>
+							<div class="mt-1">
+								<span class="px-2 py-1 text-xs font-medium rounded {getEntryTypeColor(entry.type)}">
+									{(entry.type || 'unknown').replace('_', ' ')}
+								</span>
+							</div>
 						</div>
 					</div>
-					<span class="font-bold text-lg">{formatCurrency(entry.amount)}</span>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<div class="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-3">
+						<span class="text-2xl">💰</span>
+					</div>
+					<p class="font-medium mb-2">No savings entries yet</p>
+					<p class="text-sm">Start saving for your wedding by adding your first deposit!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
-	<!-- Savings Tips -->
-	<div class="rounded-lg border bg-card p-4">
-		<h2 class="text-lg font-semibold mb-4">Savings Tips</h2>
-		<div class="grid gap-4 md:grid-cols-2">
-			{#each savingsTips as tip}
-				<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-					<div class="flex items-start justify-between mb-2">
-						<h3 class="font-semibold">{tip.title}</h3>
-						<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
-							{tip.category}
-						</span>
-					</div>
-					<p class="text-sm text-muted-foreground">{tip.description}</p>
-				</div>
-			{/each}
-		</div>
-	</div>
+
 
 	<!-- Add Savings Entry -->
 	<div class="rounded-lg border bg-card p-4">
@@ -214,7 +217,7 @@ vings History -->
 						<p class="text-sm text-muted-foreground">Reached in March 2024</p>
 					</div>
 				</div>
-				<span class="font-medium">{formatCurrency(savingsGoal * 0.25)}</span>
+				<span class="font-medium">{formatCurrency(savingsStats.goalAmount * 0.25)}</span>
 			</div>
 			
 			<div class="flex items-center justify-between p-3 border rounded-lg">
@@ -225,7 +228,7 @@ vings History -->
 						<p class="text-sm text-muted-foreground">Reached in June 2024</p>
 					</div>
 				</div>
-				<span class="font-medium">{formatCurrency(savingsGoal * 0.5)}</span>
+				<span class="font-medium">{formatCurrency(savingsStats.goalAmount * 0.5)}</span>
 			</div>
 			
 			<div class="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
@@ -236,7 +239,7 @@ vings History -->
 						<p class="text-sm text-muted-foreground">Expected: October 2024</p>
 					</div>
 				</div>
-				<span class="font-medium">{formatCurrency(savingsGoal * 0.75)}</span>
+				<span class="font-medium">{formatCurrency(savingsStats.goalAmount * 0.75)}</span>
 			</div>
 			
 			<div class="flex items-center justify-between p-3 border rounded-lg">
@@ -247,7 +250,7 @@ vings History -->
 						<p class="text-sm text-muted-foreground">Expected: December 2024</p>
 					</div>
 				</div>
-				<span class="font-medium">{formatCurrency(savingsGoal)}</span>
+				<span class="font-medium">{formatCurrency(savingsStats.goalAmount)}</span>
 			</div>
 		</div>
 	</div>
