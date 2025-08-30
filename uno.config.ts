@@ -9,7 +9,7 @@ import {
 	transformerVariantGroup,
 	transformerCompileClass
 } from 'unocss';
-import presetAnimations from 'unocss-preset-animations';
+import { presetAnimations } from 'unocss-preset-animations';
 import { builtinColors, presetShadcn } from 'unocss-preset-shadcn';
 
 export default defineConfig({
