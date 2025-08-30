@@ -1,19 +1,11 @@
 <script lang="ts">
-	// Dummy budget data
-	const totalBudget = 150000000;
-	const categories = [
-		{ name: 'Venue', planned: 50000000, actual: 45000000, percentage: 33 },
-		{ name: 'Catering', planned: 30000000, actual: 28000000, percentage: 20 },
-		{ name: 'Photography', planned: 15000000, actual: 15000000, percentage: 10 },
-		{ name: 'Decoration', planned: 20000000, actual: 18000000, percentage: 13 },
-		{ name: 'Wedding Dress', planned: 10000000, actual: 8000000, percentage: 7 },
-		{ name: 'Music & Entertainment', planned: 12000000, actual: 0, percentage: 8 },
-		{ name: 'Transportation', planned: 8000000, actual: 6000000, percentage: 5 },
-		{ name: 'Miscellaneous', planned: 5000000, actual: 2000000, percentage: 3 }
-	];
+	let { data } = $props();
 
-	const totalSpent = categories.reduce((sum, cat) => sum + cat.actual, 0);
-	const totalPlanned = categories.reduce((sum, cat) => sum + cat.planned, 0);
+	const budgetSummary = data.budgetSummary;
+	const categories = budgetSummary.categories;
+	const totalBudget = data.wedding?.budget ? Number(data.wedding.budget) : budgetSummary.totalPlanned;
+	const totalSpent = budgetSummary.totalActual;
+	const totalPlanned = budgetSummary.totalPlanned;
 
 	function formatCurrency(amount: number) {
 		return new Intl.NumberFormat('id-ID', {
@@ -74,28 +66,34 @@
 		</div>
 		
 		<div class="space-y-4">
-			{#each categories as category}
-				<div class="flex items-center justify-between p-3 border rounded-lg">
-					<div class="flex-1">
-						<div class="flex items-center justify-between mb-2">
-							<h3 class="font-medium">{category.name}</h3>
-							<div class="text-sm text-muted-foreground">
-								{formatCurrency(category.actual)} / {formatCurrency(category.planned)}
+			{#if categories.length > 0}
+				{#each categories as category}
+					<div class="flex items-center justify-between p-3 border rounded-lg">
+						<div class="flex-1">
+							<div class="flex items-center justify-between mb-2">
+								<h3 class="font-medium">{category.name}</h3>
+								<div class="text-sm text-muted-foreground">
+									{formatCurrency(category.actual)} / {formatCurrency(category.planned)}
+								</div>
+							</div>
+							<div class="w-full bg-muted rounded-full h-2">
+								<div
+									class="bg-foreground h-2 rounded-full"
+									style="width: {category.planned > 0 ? Math.min((category.actual / category.planned) * 100, 100) : 0}%"
+								></div>
+							</div>
+							<div class="flex justify-between text-xs text-muted-foreground mt-1">
+								<span>{category.planned > 0 ? Math.round((category.actual / category.planned) * 100) : 0}% used</span>
+								<span>{category.percentage}% of total budget ({category.itemCount} items)</span>
 							</div>
 						</div>
-						<div class="w-full bg-muted rounded-full h-2">
-							<div
-								class="bg-foreground h-2 rounded-full"
-								style="width: {Math.min((category.actual / category.planned) * 100, 100)}%"
-							></div>
-						</div>
-						<div class="flex justify-between text-xs text-muted-foreground mt-1">
-							<span>{Math.round((category.actual / category.planned) * 100)}% used</span>
-							<span>{category.percentage}% of total budget</span>
-						</div>
 					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<p>No budget categories yet. Start by adding your first budget item!</p>
 				</div>
-			{/each}
+			{/if}
 		</div>
 	</div>
 
@@ -107,38 +105,26 @@
 		</div>
 		
 		<div class="space-y-3">
-			<div class="flex items-center justify-between p-3 border rounded-lg">
-				<div class="flex items-center gap-3">
-					<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
-					<div>
-						<p class="font-medium">Venue Deposit</p>
-						<p class="text-sm text-muted-foreground">Aug 20, 2024 • Venue</p>
+			{#if data.recentExpenses.length > 0}
+				{#each data.recentExpenses as expense}
+					<div class="flex items-center justify-between p-3 border rounded-lg">
+						<div class="flex items-center gap-3">
+							<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
+							<div>
+								<p class="font-medium">{expense.description}</p>
+								<p class="text-sm text-muted-foreground">
+									{expense.updatedAt ? new Date(expense.updatedAt).toLocaleDateString('id-ID') : ''} • {expense.category}
+								</p>
+							</div>
+						</div>
+						<span class="font-medium">{formatCurrency(Number(expense.actualAmount || 0))}</span>
 					</div>
+				{/each}
+			{:else}
+				<div class="text-center py-8 text-muted-foreground">
+					<p>No expenses recorded yet.</p>
 				</div>
-				<span class="font-medium">{formatCurrency(25000000)}</span>
-			</div>
-			
-			<div class="flex items-center justify-between p-3 border rounded-lg">
-				<div class="flex items-center gap-3">
-					<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
-					<div>
-						<p class="font-medium">Wedding Dress</p>
-						<p class="text-sm text-muted-foreground">Aug 18, 2024 • Wedding Dress</p>
-					</div>
-				</div>
-				<span class="font-medium">{formatCurrency(8000000)}</span>
-			</div>
-			
-			<div class="flex items-center justify-between p-3 border rounded-lg">
-				<div class="flex items-center gap-3">
-					<div class="w-2 h-2 rounded-full bg-muted-foreground"></div>
-					<div>
-						<p class="font-medium">Photography Package</p>
-						<p class="text-sm text-muted-foreground">Aug 15, 2024 • Photography</p>
-					</div>
-				</div>
-				<span class="font-medium">{formatCurrency(15000000)}</span>
-			</div>
+			{/if}
 		</div>
 	</div>
 </div>
