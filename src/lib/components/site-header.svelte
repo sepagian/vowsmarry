@@ -7,6 +7,7 @@
 	import { PanelRight } from 'lucide-svelte';
 	import AppearanceSwitcher from './appearance-switcher.svelte';
 	const sidebar = Sidebar.useSidebar();
+	import 'uno.css';
 
 	const breadcrumbs = $derived(
 		page.url.pathname
@@ -21,7 +22,7 @@
 	);
 </script>
 
-<header class="bg-background sticky top-0 z-50 flex w-full items-center border-b">
+<header class="bg-base-100 sticky top-0 z-50 flex w-full items-center border-b">
 	<div class="h-12 flex w-full items-center gap-2 px-4">
 		<Button class="size-8" variant="ghost" size="icon" onclick={sidebar.toggle}>
 			<PanelRight />
