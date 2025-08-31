@@ -23,9 +23,7 @@
 
 	// Create display name and initials
 	const displayName = $derived(`${user.firstName} ${user.lastName}`);
-	const initials = $derived(
-		`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
-	);
+	const initials = $derived(`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase());
 </script>
 
 <Sidebar.Menu>
@@ -50,7 +48,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg bg-base-100"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="end"
 				sideOffset={4}
@@ -79,11 +77,13 @@
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<form method="POST" action="/logout" use:enhance>
-					<DropdownMenu.Item onclick={(e) => {
-						e.preventDefault();
-						const form = e.currentTarget.closest('form');
-						if (form) form.submit();
-					}}>
+					<DropdownMenu.Item
+						onclick={(e) => {
+							e.preventDefault();
+							const form = e.currentTarget.closest('form');
+							if (form) form.submit();
+						}}
+					>
 						<LogOut />
 						Log out
 					</DropdownMenu.Item>

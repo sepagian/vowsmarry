@@ -144,6 +144,7 @@
 	import NavMain from './nav-main.svelte';
 	import NavUser from './nav-user.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
+	import 'uno.css';
 
 	import type { ComponentProps } from 'svelte';
 
@@ -156,10 +157,10 @@
 </script>
 
 <Sidebar.Root class="top-12 h-[calc(100svh-var(--header-height))]!" {collapsible} {...restProps}>
-	<Sidebar.Content>
+	<Sidebar.Content class="bg-base-100">
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
-	<Sidebar.Footer>
+	<Sidebar.Footer class="bg-base-100">
 		<NavUser {user} />
 	</Sidebar.Footer>
 </Sidebar.Root>
