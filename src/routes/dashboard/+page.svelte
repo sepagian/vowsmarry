@@ -194,7 +194,7 @@
 			</div>
 			<div class="space-y-3">
 				{#if data.recentTasks.length > 0}
-					{#each data.recentTasks as task}
+					{#each data.recentTasks as task (task.id)}
 						<div
 							class="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
 						>
@@ -203,7 +203,9 @@
 								<div>
 									<p class="font-medium">{task.title}</p>
 									{#if task.dueDate}
-										<p class="text-sm text-muted-foreground">Due: {formatDate(task.dueDate.toISOString())}</p>
+										<p class="text-sm text-muted-foreground">
+											Due: {formatDate(task.dueDate.toISOString())}
+										</p>
 									{/if}
 								</div>
 							</div>
@@ -229,12 +231,14 @@
 			<h2 class="text-lg font-semibold mb-4">Upcoming Deadlines</h2>
 			<div class="space-y-3 max-h-80 overflow-y-scroll">
 				{#if data.upcomingDeadlines.length > 0}
-					{#each data.upcomingDeadlines as deadline}
+					{#each data.upcomingDeadlines as deadline (deadline.id)}
 						<div class="flex items-start gap-3 p-3 border rounded-lg">
 							<div class="w-2 h-2 rounded-full bg-muted-foreground mt-2"></div>
 							<div class="flex-1">
 								<p class="font-medium text-sm">{deadline.title}</p>
-								<p class="text-xs text-muted-foreground">{formatDate(deadline.date.toISOString())}</p>
+								<p class="text-xs text-muted-foreground">
+									{formatDate(deadline.date.toISOString())}
+								</p>
 								<div class="flex gap-2 mt-1">
 									<span
 										class="inline-block px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded"
