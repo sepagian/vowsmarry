@@ -6,7 +6,7 @@
 	const id = $props.id();
 </script>
 
-<Card.Root class="mx-auto w-full max-w-sm">
+<Card.Root class="mx-auto w-full max-w-sm bg-base-100">
 	<Card.Header>
 		<Card.Title class="text-2xl">Reset Password</Card.Title>
 		<Card.Description>Enter your new password</Card.Description>

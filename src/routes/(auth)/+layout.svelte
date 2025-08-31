@@ -1,5 +1,6 @@
 <script lang="ts">
 	import 'uno.css';
+	import { ModeWatcher } from 'mode-watcher';
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
 	let { children } = $props();
@@ -16,7 +17,7 @@
 			const matchedRoute = routeTitles.find((item) => route?.includes(item.path));
 			return matchedRoute?.title || 'vowsmarry';
 		})()
-	); 
+	);
 </script>
 
 <svelte:head>
@@ -24,6 +25,7 @@
 	<title>{title}</title>
 </svelte:head>
 
-<div class="flex h-screen w-full items-center justify-center px-4">
+<ModeWatcher />
+<div class="flex h-screen items-center justify-center bg-base-200">
 	{@render children()}
 </div>

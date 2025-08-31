@@ -3,13 +3,19 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
 
 	let { form } = $props();
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50">
-	<Card class="w-full max-w-md">
+<div class=" flex items-center justify-center p-4">
+	<Card class="bg-base-100">
 		<CardHeader>
 			<CardTitle>Create Account</CardTitle>
 			<CardDescription>Sign up to start planning your perfect wedding</CardDescription>
@@ -82,7 +88,7 @@
 							{form.success}
 						</div>
 					{/if}
-					<Button type="submit" class="w-full">Create Account</Button>
+					<Button type="submit" class="w-full text-primary-content">Create Account</Button>
 				</div>
 			</form>
 			<div class="mt-4 text-center text-sm">

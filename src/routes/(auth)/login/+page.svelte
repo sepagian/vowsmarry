@@ -1,10 +1,17 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle
+	} from '$lib/components/ui/card';
 	import { FormInput } from '$lib/components/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { LoaderCircle } from 'lucide-svelte';
 	import { toast } from '$lib/stores/toast';
+	import 'uno.css';
 
 	let { form } = $props();
 	let isSubmitting = $state(false);
@@ -17,20 +24,24 @@
 	});
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50">
-	<Card class="w-full max-w-md">
+<div class="min-h-screen flex items-center justify-center bg-base-200 p-4">
+	<Card class="w-full max-w-md bg-base-100">
 		<CardHeader>
 			<CardTitle>Sign In</CardTitle>
 			<CardDescription>Enter your credentials to access your wedding dashboard</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<form method="POST" use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
-					isSubmitting = false;
-				};
-			}} class="space-y-4">
+			<form
+				method="POST"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update }) => {
+						await update();
+						isSubmitting = false;
+					};
+				}}
+				class="space-y-4"
+			>
 				<FormInput
 					label="Email"
 					name="email"
@@ -52,8 +63,15 @@
 					disabled={isSubmitting}
 					autocomplete="current-password"
 				/>
+				<a href="/forgot-password" class="ml-auto inline-block text-sm underline">
+					Forgot your password?
+				</a>
 
-				<Button type="submit" class="w-full" disabled={isSubmitting}>
+				<Button
+					type="submit"
+					class="w-full bg-primary text-primary-content"
+					disabled={isSubmitting}
+				>
 					{#if isSubmitting}
 						<LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
 						Signing in...
