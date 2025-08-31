@@ -1,19 +1,22 @@
 <script lang="ts">
-	import { invalidate } from '$app/navigation'
-	import { onMount } from 'svelte'
-	import 'uno.css'
+	import { invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import 'uno.css';
+	import '../app.css';
+	import { ModeWatcher } from 'mode-watcher';
 
-	let { data, children } = $props()
-	let { session, supabase } = $derived(data)
+	let { data, children } = $props();
+	let { supabase } = $derived(data);
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange(() => {
 			// Invalidate on any auth state change since session is always null in this setup
-			invalidate('supabase:auth')
-		})
+			invalidate('supabase:auth');
+		});
 
-		return () => data.subscription.unsubscribe()
-	})
+		return () => data.subscription.unsubscribe();
+	});
 </script>
 
+<ModeWatcher />
 {@render children()}

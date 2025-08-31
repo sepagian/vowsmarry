@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import { PanelRight } from 'lucide-svelte';
+	import AppearanceSwitcher from './appearance-switcher.svelte';
 	const sidebar = Sidebar.useSidebar();
 
 	const breadcrumbs = $derived(
@@ -20,7 +21,7 @@
 	);
 </script>
 
-<header class="bg-background sticky bg-white top-0 z-50 flex w-full items-center border-b">
+<header class="bg-background sticky top-0 z-50 flex w-full items-center border-b">
 	<div class="h-12 flex w-full items-center gap-2 px-4">
 		<Button class="size-8" variant="ghost" size="icon" onclick={sidebar.toggle}>
 			<PanelRight />
@@ -42,5 +43,8 @@
 				{/each}
 			</Breadcrumb.List>
 		</Breadcrumb.Root>
+	</div>
+	<div class="flex gap-2 px-4">
+		<AppearanceSwitcher />
 	</div>
 </header>

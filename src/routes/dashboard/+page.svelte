@@ -56,7 +56,7 @@
 	}
 </script>
 
-<div class="flex flex-1 flex-col gap-4 p-4 bg-white min-h-[calc(100vh-3rem)]">
+<div class="flex flex-1 flex-col gap-4 p-4 min-h-[calc(100vh-3rem)]">
 	<!-- Header Section -->
 	<div class="flex flex-col gap-2">
 		<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
