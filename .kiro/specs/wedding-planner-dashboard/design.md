@@ -4,7 +4,7 @@
 
 The VowsMarry Wedding Planner Dashboard is a comprehensive SaaS platform built with SvelteKit 5, providing couples with a centralized hub for managing all aspects of their wedding planning. The system follows a modular architecture where each wedding planning aspect (paperwork, budgeting, todos, vendors, dresscode, savings, dowry, souvenirs, rundown, invitations, gallery, love story, and gifts) is implemented as a separate module with shared components and data models.
 
-The platform uses a modern tech stack with SvelteKit 5 for the frontend, Drizzle ORM with PostgreSQL for data persistence, Cloudflare R2 for secure file storage, and Lucia for authentication. The design emphasizes user experience, data security, responsive design across all devices, and scalability to handle multiple concurrent users planning their weddings.
+The platform uses a modern tech stack with SvelteKit 5 and TypeScript for the frontend, Drizzle ORM with PostgreSQL for data persistence, Cloudflare R2 for secure file storage, and Supabase Auth (@supabase/ssr) with email confirmation for authentication. The system uses Bun as the runtime, UnoCSS with Tailwind-compatible utilities for styling, and Bits-UI for component library foundation. The design emphasizes user experience, data security, responsive design across all devices, and scalability to handle multiple concurrent users planning their weddings.
 
 **Key Design Principles:**
 - **Modular Architecture**: Each wedding planning aspect is a self-contained module with clear interfaces
@@ -12,8 +12,38 @@ The platform uses a modern tech stack with SvelteKit 5 for the frontend, Drizzle
 - **Security First**: Secure authentication, file storage, and data protection (Requirement 15)
 - **Real-time Updates**: Live progress tracking and notifications across all modules
 - **Integration Focus**: Seamless data flow between modules (savings ↔ budget, vendors ↔ souvenirs, dresscode ↔ invitations)
+- **Type Safety**: Full TypeScript implementation with Zod validation for runtime type checking
+- **Performance First**: Optimized with Bun runtime, efficient database queries, and modern build tools
 
 ## Architecture
+
+### Technology Stack
+
+The VowsMarry platform leverages modern web technologies optimized for performance, developer experience, and scalability:
+
+**Frontend & Runtime:**
+- **SvelteKit 5**: Full-stack framework with TypeScript for type safety
+- **Bun**: High-performance JavaScript runtime for faster development and builds
+- **UnoCSS**: Atomic CSS framework with Tailwind-compatible utilities
+- **Bits-UI**: Accessible component library foundation
+
+**Forms & Validation:**
+- **Formsnap + Sveltekit Superforms**: Type-safe form handling with server-side validation
+- **Zod**: Runtime type validation and schema definition
+
+**Database & Storage:**
+- **PostgreSQL**: Primary database with ACID compliance and advanced features
+- **Drizzle ORM**: Type-safe database queries with excellent TypeScript integration
+- **Cloudflare R2**: Secure file storage with global CDN and presigned URLs for direct uploads
+
+**Authentication & Security:**
+- **Supabase Auth (@supabase/ssr)**: Server-side rendering compatible authentication with email confirmation
+- **Row Level Security (RLS)**: Database-level access control for multi-tenant data isolation
+
+**Development Tools:**
+- **Vite**: Fast build tool with hot module replacement
+- **Prettier + ESLint**: Code formatting and linting with TypeScript rules
+- **Drizzle Studio**: Database management and visualization
 
 ### System Architecture
 
@@ -42,7 +72,7 @@ graph TB
     
     subgraph "External Services"
         M[Email Service]
-        N[Cloudflare Images]
+        N[Image Processing]
         O[Payment Gateways]
     end
     
@@ -81,7 +111,7 @@ The application follows SvelteKit's file-based routing with grouped routes desig
 
 **Responsive Design Strategy**: All routes implement mobile-first responsive design with touch-optimized interfaces for mobile devices, adaptive layouts for tablets, and full-featured interfaces for desktop (Requirement 7.1, 7.2, 7.3).
 
-**Offline Support and Data Synchronization**: The application implements progressive web app (PWA) capabilities with service workers for offline functionality. Essential data is cached locally, and appropriate offline messaging is displayed when connectivity is unavailable. Data synchronization occurs automatically when connection is restored (Requirement 7.4, 7.5).
+**Offline Support and Data Synchronization**: The application implements progressive web app (PWA) capabilities with service workers for offline functionality. Essential data is cached locally using browser storage APIs, and appropriate offline messaging is displayed when connectivity is unavailable. Data synchronization occurs automatically when connection is restored, with conflict resolution for concurrent edits. Critical features like viewing existing data, drafting content, and basic navigation remain functional offline (Requirement 7.4, 7.5).
 
 ### Database Architecture
 
@@ -187,16 +217,22 @@ The platform provides comprehensive export functionality across multiple modules
 - **State**: Sort order, filters, selected items
 
 #### 4. Form Components
-- **Purpose**: Consistent form handling across all modules
-- **Features**: Validation, file upload, auto-save, error handling
-- **Props**: Schema, initial values, submit handler
-- **State**: Form data, validation errors, submission status
+- **Purpose**: Type-safe form handling across all modules using Formsnap + Superforms
+- **Features**: Zod validation, file upload, auto-save, error handling, server-side validation
+- **Props**: Zod schema, initial values, submit handler, validation rules
+- **State**: Form data, validation errors, submission status, server-side errors
 
 #### 5. File Upload Component
-- **Purpose**: Handle document and media uploads
-- **Features**: Drag & drop, progress tracking, preview, validation
-- **Props**: Accept types, max size, multiple files
-- **State**: Upload progress, file list, errors
+- **Purpose**: Handle document and media uploads with Cloudflare R2 integration
+- **Features**: Drag & drop, progress tracking, preview, validation, presigned URL uploads
+- **Props**: Accept types, max size, multiple files, R2 bucket configuration
+- **State**: Upload progress, file list, errors, presigned URLs
+
+#### 6. UI Foundation Components
+- **Purpose**: Consistent design system built on Bits-UI foundation
+- **Features**: Accessible components, theme support, responsive design
+- **Styling**: UnoCSS with Tailwind-compatible utilities and custom design tokens
+- **Components**: Button, Input, Select, Modal, Tooltip, Dropdown, Card variants
 
 ### Module-Specific Components
 
@@ -2041,7 +2077,7 @@ The platform employs a comprehensive testing approach to ensure reliability, sec
 ### Production Environment
 - **Hosting**: Vercel for SvelteKit application deployment with edge functions
 - **Database**: PostgreSQL with connection pooling and automated backups
-- **File Storage**: Cloudflare R2 for secure, scalable file storage with CDN
+- **File Storage**: Cloudflare R2 for secure, scalable file storage with global CDN
 - **Email Service**: Integrated email service for notifications and verification
 - **Monitoring**: Real-time application monitoring and error tracking
 
