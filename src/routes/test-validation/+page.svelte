@@ -38,7 +38,7 @@
 
 		try {
 			const result = FormValidator.validateForm(documentSchema, formData);
-			
+
 			if (!result.success) {
 				errors = result.errors || {};
 				toast.error('Validation Error', 'Please fix the errors below and try again.');
@@ -47,7 +47,7 @@
 
 			console.log('Form submitted with data:', result.data);
 			toast.success('Document Created', 'Your document has been successfully created.');
-			
+
 			// Reset form
 			formData = { title: '', type: '', dueDate: '', notes: '' };
 			errors = {};
@@ -99,7 +99,9 @@
 							name="type"
 							bind:value={formData.type}
 							disabled={isSubmitting}
-							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {errors.type ? 'border-destructive focus:ring-destructive' : ''}"
+							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {errors.type
+								? 'border-destructive focus:ring-destructive'
+								: ''}"
 						>
 							<option value="">Select document type</option>
 							{#each documentTypeOptions as option}
@@ -111,7 +113,9 @@
 								<span>{errors.type}</span>
 							</div>
 						{/if}
-						<p class="text-sm text-muted-foreground">Choose the type of document you're uploading</p>
+						<p class="text-sm text-muted-foreground">
+							Choose the type of document you're uploading
+						</p>
 					</div>
 
 					<FormInput
@@ -133,28 +137,27 @@
 							placeholder="Add any additional notes about this document"
 							disabled={isSubmitting}
 							rows={4}
-							class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {errors.notes ? 'border-destructive focus-visible:ring-destructive' : ''}"
+							class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 {errors.notes
+								? 'border-destructive focus-visible:ring-destructive'
+								: ''}"
 						></textarea>
 						{#if errors.notes}
 							<div class="flex items-center gap-2 text-sm text-destructive" role="alert">
 								<span>{errors.notes}</span>
 							</div>
 						{/if}
-						<p class="text-sm text-muted-foreground">Optional notes or comments about the document</p>
+						<p class="text-sm text-muted-foreground">
+							Optional notes or comments about the document
+						</p>
 					</div>
 				</div>
 
 				<!-- Form actions -->
 				<div class="flex items-center justify-end space-x-4">
-					<Button
-						type="button"
-						variant="outline"
-						onclick={handleCancel}
-						disabled={isSubmitting}
-					>
+					<Button type="button" variant="outline" onclick={handleCancel} disabled={isSubmitting}>
 						Cancel
 					</Button>
-					
+
 					<Button type="submit" disabled={isSubmitting}>
 						{#if isSubmitting}
 							Loading...
@@ -210,3 +213,4 @@
 		</Card>
 	</div>
 </div>
+
