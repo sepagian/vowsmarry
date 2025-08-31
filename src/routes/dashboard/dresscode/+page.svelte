@@ -95,7 +95,7 @@
 									<p class="text-sm text-muted-foreground">{dresscode.description}</p>
 								</div>
 								<span class="px-2 py-1 text-xs font-medium rounded bg-muted text-muted-foreground">
-									{getColorDisplay(dresscode.colorScheme)}
+									{getColorDisplay(dresscode.colorScheme as string[] | null)}
 								</span>
 							</div>
 							

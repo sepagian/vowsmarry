@@ -142,7 +142,7 @@
 										clip-rule="evenodd"
 									/>
 								</svg>
-								<span>Due: {formatDate(doc.dueDate)}</span>
+								<span>Due: {formatDate(doc.dueDate?.toISOString() || null)}</span>
 							</div>
 							{#if doc.createdAt}
 								<div class="flex items-center gap-2">

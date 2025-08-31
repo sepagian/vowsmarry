@@ -34,14 +34,17 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	// Get all budget items for this wedding
 	const allBudgetItems = await db.query.budgetItems.findMany({
 		where: eq(budgetItems.weddingId, userWedding.id),
-		orderBy: [desc(budgetItems.updatedAt)]
+		orderBy: [desc(budgetItems.updatedAt)],
+		with: {
+			category: true
+		}
 	})
 
 	// Calculate budget summary by category
 	const categoryMap = new Map<string, { planned: number, actual: number, items: typeof allBudgetItems }>()
 	
 	for (const item of allBudgetItems) {
-		const category = item.category
+		const category = item.category?.name || 'Uncategorized'
 		if (!categoryMap.has(category)) {
 			categoryMap.set(category, { planned: 0, actual: 0, items: [] })
 		}

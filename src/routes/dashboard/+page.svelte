@@ -203,7 +203,7 @@
 								<div>
 									<p class="font-medium">{task.title}</p>
 									{#if task.dueDate}
-										<p class="text-sm text-muted-foreground">Due: {formatDate(task.dueDate)}</p>
+										<p class="text-sm text-muted-foreground">Due: {formatDate(task.dueDate.toISOString())}</p>
 									{/if}
 								</div>
 							</div>
@@ -234,7 +234,7 @@
 							<div class="w-2 h-2 rounded-full bg-muted-foreground mt-2"></div>
 							<div class="flex-1">
 								<p class="font-medium text-sm">{deadline.title}</p>
-								<p class="text-xs text-muted-foreground">{formatDate(deadline.date)}</p>
+								<p class="text-xs text-muted-foreground">{formatDate(deadline.date.toISOString())}</p>
 								<div class="flex gap-2 mt-1">
 									<span
 										class="inline-block px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded"

@@ -52,8 +52,8 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const upcomingDeadlines = allDocuments.filter(doc => 
 		doc.dueDate && 
 		doc.status !== 'approved' && 
-		doc.dueDate >= today && 
-		doc.dueDate <= thirtyDaysFromNow
+		new Date(doc.dueDate).toISOString().split('T')[0] >= today && 
+		new Date(doc.dueDate).toISOString().split('T')[0] <= thirtyDaysFromNow
 	).sort((a, b) => (a.dueDate! < b.dueDate!) ? -1 : 1)
 
 	return {

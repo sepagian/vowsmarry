@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 		inProgress: allTodos.filter(t => t.status === 'in_progress').length,
 		pending: allTodos.filter(t => t.status === 'todo').length,
 		overdue: allTodos.filter(t => {
-			return t.dueDate && t.status !== 'done' && t.dueDate < today
+			return t.dueDate && t.status !== 'done' && new Date(t.dueDate).toISOString().split('T')[0] < today
 		}).length
 	}
 

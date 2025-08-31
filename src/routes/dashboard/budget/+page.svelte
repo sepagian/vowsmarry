@@ -113,7 +113,7 @@
 							<div>
 								<p class="font-medium">{expense.description}</p>
 								<p class="text-sm text-muted-foreground">
-									{expense.updatedAt ? new Date(expense.updatedAt).toLocaleDateString('id-ID') : ''} • {expense.category}
+									{expense.updatedAt ? new Date(expense.updatedAt).toLocaleDateString('id-ID') : ''} • {expense.category?.name || 'Uncategorized'}
 								</p>
 							</div>
 						</div>

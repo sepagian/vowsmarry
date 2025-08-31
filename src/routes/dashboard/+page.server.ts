@@ -124,8 +124,8 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const upcomingTasks = await db.query.todos.findMany({
 		where: and(
 			eq(todos.weddingId, userWedding.id),
-			gte(todos.dueDate, today.toISOString().split('T')[0]),
-			lte(todos.dueDate, thirtyDaysFromNow.toISOString().split('T')[0])
+			gte(todos.dueDate, today),
+			lte(todos.dueDate, thirtyDaysFromNow)
 		),
 		orderBy: [asc(todos.dueDate)],
 		limit: 10
@@ -134,8 +134,8 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const upcomingDocuments = await db.query.documents.findMany({
 		where: and(
 			eq(documents.weddingId, userWedding.id),
-			gte(documents.dueDate, today.toISOString().split('T')[0]),
-			lte(documents.dueDate, thirtyDaysFromNow.toISOString().split('T')[0])
+			gte(documents.dueDate, today),
+			lte(documents.dueDate, thirtyDaysFromNow)
 		),
 		orderBy: [asc(documents.dueDate)],
 		limit: 5
