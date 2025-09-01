@@ -19,7 +19,23 @@
 	// Show error toast if there's a form error
 	$effect(() => {
 		if (form?.error) {
-			toast.handleFormError(form.error);
+			// Handle different types of authentication errors with specific messages
+			if (form.error.includes('invalid_password') || form.error.includes('Invalid password')) {
+				toast.error('Invalid Password', 'The password you entered is incorrect. Please check your password and try again.');
+			} else if (form.error.includes('invalid_email') || form.error.includes('Invalid email')) {
+				toast.error('Invalid Email', 'The email address you entered was not found. Please check your email and try again.');
+			} else if (form.error.includes('user_not_found') || form.error.includes('User not found')) {
+				toast.error('Account Not Found', 'No account found with this email address. Please check your email or sign up for a new account.');
+			} else if (form.error.includes('invalid_credentials') || form.error.includes('Invalid credentials')) {
+				toast.error('Invalid Credentials', 'The email or password you entered is incorrect. Please check your credentials and try again.');
+			} else if (form.error.includes('email_not_confirmed') || form.error.includes('Email not verified')) {
+				toast.warning('Email Not Verified', 'Please check your email and click the verification link before signing in.');
+			} else if (form.error.includes('rate_limit') || form.error.includes('Too many attempts')) {
+				toast.warning('Too Many Attempts', 'Too many login attempts. Please wait a moment before trying again.');
+			} else {
+				// Fallback to generic error handling
+				toast.handleFormError(form.error);
+			}
 		}
 	});
 </script>
