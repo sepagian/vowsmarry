@@ -4,6 +4,7 @@
 	import 'uno.css';
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
+	import { ToastContainer } from '$lib/components/ui/toast';
 
 	let { data, children } = $props();
 	let { session, supabase } = $derived(data);
@@ -20,3 +21,4 @@
 
 <ModeWatcher />
 {@render children()}
+<ToastContainer />
