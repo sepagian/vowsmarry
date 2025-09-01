@@ -178,6 +178,9 @@ export const toastHelpers = {
 	// Authentication messages
 	loginSuccess: () => toast.success('Welcome back!', 'You have been successfully logged in.'),
 	loginError: () => toast.error('Login Failed', 'Please check your email and password.'),
+	invalidCredentials: () => toast.error('Invalid Credentials', 'The email or password you entered is incorrect. Please check your credentials and try again.'),
+	emailNotConfirmed: () => toast.warning('Email Not Verified', 'Please check your email and click the verification link before signing in.'),
+	tooManyAttempts: () => toast.warning('Too Many Attempts', 'Too many login attempts. Please wait a moment before trying again.'),
 	logoutSuccess: () => toast.success('Logged Out', 'You have been successfully logged out.'),
 	registerSuccess: () => toast.success('Account Created', 'Please check your email to verify your account.'),
 	emailVerified: () => toast.success('Email Verified', 'Your email has been successfully verified.'),
