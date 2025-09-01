@@ -6,7 +6,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 
 	let { data, children } = $props();
-	let { supabase } = $derived(data);
+	let { session, supabase } = $derived(data);
 
 	onMount(() => {
 		const { data } = supabase.auth.onAuthStateChange(() => {
