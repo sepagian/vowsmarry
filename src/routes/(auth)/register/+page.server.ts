@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ locals: { session } }) => {
-	if (session) {
+export const load: PageServerLoad = async ({ locals: { user } }) => {
+	if (user) {
 		redirect(302, '/dashboard')
 	}
 	return {}

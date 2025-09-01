@@ -21,15 +21,17 @@ export const actions: Actions = {
 			})
 		}
 
-		const { error } = await supabase.auth.signInWithPassword({ email, password })
+		const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
 		if (error) {
+			console.error('Login error:', error)
 			return fail(400, {
 				error: error.message,
 				email
 			})
 		}
 
+		console.log('Login successful:', data.user?.email)
 		redirect(302, '/dashboard')
 	}
 }
