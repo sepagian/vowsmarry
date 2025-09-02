@@ -2,11 +2,25 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import SiteHeader from '$lib/components/site-header.svelte';
+	import WeddingDataAlert from '$lib/components/wedding-data-alert.svelte';
+	import WeddingDataModal from '$lib/components/wedding-data-modal.svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
+	import { invalidateAll } from '$app/navigation';
 	import 'uno.css';
 
 	let { children, data } = $props();
+
+	let showModal = $state(false);
+
+	function handleAddDataClick() {
+		showModal = true;
+	}
+
+	function handleModalSuccess() {
+		// Reload the page data to reflect the new wedding data
+		invalidateAll();
+	}
 
 	// Dynamic title based on dashboard routes
 	const title = $derived(
@@ -64,9 +78,17 @@
 			<AppSidebar user={data.user} />
 			<Sidebar.Inset>
 				<main>
+					{#if !data.hasWeddingData}
+						<div class="p-6">
+							<WeddingDataAlert onAddDataClick={handleAddDataClick} />
+						</div>
+					{/if}
 					{@render children()}
 				</main>
 			</Sidebar.Inset>
 		</div>
 	</Sidebar.Provider>
+
+	<!-- Wedding Data Modal -->
+	<WeddingDataModal bind:open={showModal} onSuccess={handleModalSuccess} />
 </div>
