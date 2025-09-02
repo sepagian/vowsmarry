@@ -58,7 +58,7 @@
 </svelte:head>
 
 <div class="[--header-height:calc(--spacing(14))]">
-	<Sidebar.Provider class="flex flex-col">
+	<Sidebar.Provider class="flex flex-col bg-base-100">
 		<SiteHeader />
 		<div class="flex flex-1">
 			<AppSidebar user={data.user} />
