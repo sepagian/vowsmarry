@@ -16,6 +16,16 @@
 	let editingDocument = $state<any>(null);
 	let deletingDocument = $state<any>(null);
 	let isSubmitting = $state(false);
+	let showFilters = $state(false);
+	let previewDocument = $state<any>(null);
+
+	// Filter states
+	let filters = $state({
+		status: 'all',
+		type: 'all',
+		search: '',
+		dueDateFilter: 'all'
+	});
 
 	// Form data
 	let createFormData = $state({
@@ -133,6 +143,130 @@
 		if (!dateString) return 'No date';
 		return new Date(dateString).toLocaleDateString('id-ID');
 	}
+
+	// Filter documents based on current filters
+	const filteredDocuments = $derived(documents.filter(doc => {
+		// Status filter
+		if (filters.status !== 'all' && doc.status !== filters.status) {
+			return false;
+		}
+
+		// Type filter
+		if (filters.type !== 'all' && doc.type !== filters.type) {
+			return false;
+		}
+
+		// Search filter
+		if (filters.search && !doc.title.toLowerCase().includes(filters.search.toLowerCase())) {
+			return false;
+		}
+
+		// Due date filter
+		if (filters.dueDateFilter !== 'all') {
+			const now = new Date();
+			const docDueDate = doc.dueDate ? new Date(doc.dueDate) : null;
+			
+			switch (filters.dueDateFilter) {
+				case 'overdue':
+					if (!docDueDate || docDueDate >= now || doc.status === 'approved') return false;
+					break;
+				case 'upcoming':
+					if (!docDueDate || docDueDate < now || doc.status === 'approved') return false;
+					const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+					if (docDueDate > thirtyDaysFromNow) return false;
+					break;
+				case 'no_date':
+					if (docDueDate) return false;
+					break;
+			}
+		}
+
+		return true;
+	}));
+
+	// Reset filters
+	function resetFilters() {
+		filters = {
+			status: 'all',
+			type: 'all',
+			search: '',
+			dueDateFilter: 'all'
+		};
+		showFilters = false;
+	}
+
+	// Check if document is overdue
+	function isOverdue(doc: any) {
+		if (!doc.dueDate || doc.status === 'approved') return false;
+		return new Date(doc.dueDate) < new Date();
+	}
+
+	// Check if document is due soon (within 7 days)
+	function isDueSoon(doc: any) {
+		if (!doc.dueDate || doc.status === 'approved') return false;
+		const now = new Date();
+		const dueDate = new Date(doc.dueDate);
+		const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+		return dueDate >= now && dueDate <= sevenDaysFromNow;
+	}
+
+	// Get file extension for preview
+	function getFileExtension(fileName: string | null) {
+		if (!fileName) return '';
+		return fileName.split('.').pop()?.toLowerCase() || '';
+	}
+
+	// Check if file can be previewed
+	function canPreview(doc: any) {
+		if (!doc.fileUrl || !doc.fileName) return false;
+		const ext = getFileExtension(doc.fileName);
+		return ['pdf', 'jpg', 'jpeg', 'png', 'webp'].includes(ext);
+	}
+
+	// Open document preview
+	function openPreview(doc: any) {
+		if (canPreview(doc)) {
+			previewDocument = doc;
+		}
+	}
+
+	// Close preview
+	function closePreview() {
+		previewDocument = null;
+	}
+
+	// Quick status update
+	async function quickStatusUpdate(doc: any, newStatus: string) {
+		isSubmitting = true;
+		
+		const formData = new FormData();
+		formData.append('documentId', doc.id);
+		formData.append('status', newStatus);
+
+		try {
+			const response = await fetch('?/updateStatus', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+			
+			if (result.type === 'success') {
+				toast.success('Document status updated successfully');
+				// Update the document in the list
+				const index = documents.findIndex(d => d.id === doc.id);
+				if (index !== -1) {
+					documents[index] = { ...documents[index], status: newStatus };
+				}
+			} else {
+				toast.error(result.data?.error || 'Failed to update status');
+			}
+		} catch (error) {
+			toast.error('Failed to update status');
+		} finally {
+			isSubmitting = false;
+		}
+	}
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4">
@@ -143,6 +277,33 @@
 			Track permits, licenses, contracts and important wedding documents.
 		</p>
 	</div>
+
+	<!-- Upcoming Deadlines Alert -->
+	{#if upcomingDeadlines.length > 0}
+		<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+			<div class="flex items-start gap-3">
+				<div class="flex-shrink-0">
+					<span class="text-2xl">⚠️</span>
+				</div>
+				<div class="flex-1">
+					<h3 class="font-semibold text-yellow-800 mb-2">Upcoming Deadlines</h3>
+					<div class="space-y-2">
+						{#each upcomingDeadlines.slice(0, 3) as deadline}
+							<div class="flex items-center justify-between text-sm">
+								<span class="font-medium">{deadline.title}</span>
+								<span class="text-yellow-700">Due: {formatDate(deadline.dueDate?.toISOString() || null)}</span>
+							</div>
+						{/each}
+						{#if upcomingDeadlines.length > 3}
+							<p class="text-sm text-yellow-700">
+								And {upcomingDeadlines.length - 3} more upcoming deadlines...
+							</p>
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Document Statistics -->
 	<div class="grid gap-4 md:grid-cols-4">
@@ -188,9 +349,15 @@
 	<!-- Document List -->
 	<div class="rounded-lg border bg-card p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-lg font-semibold">All Documents</h2>
+			<h2 class="text-lg font-semibold">All Documents ({filteredDocuments.length})</h2>
 			<div class="flex gap-2">
-				<button class="text-sm font-medium hover:underline">Filter</button>
+				<Button 
+					variant="outline"
+					size="sm"
+					onclick={() => showFilters = !showFilters}
+				>
+					{showFilters ? 'Hide Filters' : 'Filter'}
+				</Button>
 				<Button 
 					onclick={() => showCreateForm = !showCreateForm}
 					variant="default"
@@ -201,10 +368,95 @@
 			</div>
 		</div>
 
+		<!-- Filter Panel -->
+		{#if showFilters}
+			<div class="mb-4 p-4 border rounded-lg bg-muted/50">
+				<div class="grid gap-3 md:grid-cols-4">
+					<div>
+						<label for="filter-search" class="text-sm font-medium text-muted-foreground">Search</label>
+						<input
+							id="filter-search"
+							type="text"
+							bind:value={filters.search}
+							placeholder="Search documents..."
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background text-sm"
+						/>
+					</div>
+					<div>
+						<label for="filter-status" class="text-sm font-medium text-muted-foreground">Status</label>
+						<select 
+							id="filter-status"
+							bind:value={filters.status}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background text-sm"
+						>
+							<option value="all">All Status</option>
+							<option value="pending">Pending</option>
+							<option value="approved">Approved</option>
+							<option value="rejected">Rejected</option>
+						</select>
+					</div>
+					<div>
+						<label for="filter-type" class="text-sm font-medium text-muted-foreground">Type</label>
+						<select 
+							id="filter-type"
+							bind:value={filters.type}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background text-sm"
+						>
+							<option value="all">All Types</option>
+							<option value="permit">Permit</option>
+							<option value="license">License</option>
+							<option value="contract">Contract</option>
+							<option value="other">Other</option>
+						</select>
+					</div>
+					<div>
+						<label for="filter-due-date" class="text-sm font-medium text-muted-foreground">Due Date</label>
+						<select 
+							id="filter-due-date"
+							bind:value={filters.dueDateFilter}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background text-sm"
+						>
+							<option value="all">All Dates</option>
+							<option value="overdue">Overdue</option>
+							<option value="upcoming">Due Soon (30 days)</option>
+							<option value="no_date">No Due Date</option>
+						</select>
+					</div>
+				</div>
+				<div class="flex gap-2 mt-3">
+					<Button
+						variant="outline"
+						size="sm"
+						onclick={resetFilters}
+					>
+						Clear Filters
+					</Button>
+					<span class="text-sm text-muted-foreground self-center">
+						Showing {filteredDocuments.length} of {documents.length} documents
+					</span>
+				</div>
+			</div>
+		{/if}
+
 		<div class="space-y-4">
-			{#if documents.length > 0}
-				{#each documents as doc}
-					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+			{#if filteredDocuments.length > 0}
+				{#each filteredDocuments as doc}
+					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors {isOverdue(doc) ? 'border-red-200 bg-red-50/50' : isDueSoon(doc) ? 'border-yellow-200 bg-yellow-50/50' : ''}">
+						<!-- Alert badges for overdue/due soon -->
+						{#if isOverdue(doc)}
+							<div class="mb-2">
+								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+									⚠️ Overdue
+								</span>
+							</div>
+						{:else if isDueSoon(doc)}
+							<div class="mb-2">
+								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+									⏰ Due Soon
+								</span>
+							</div>
+						{/if}
+
 						<div class="flex items-start justify-between mb-3">
 							<div class="flex items-start gap-3">
 								<div class="flex items-center justify-center w-8 h-8 rounded border">
@@ -216,11 +468,42 @@
 								</div>
 							</div>
 							<div class="flex items-center gap-2">
-								<span class="px-2 py-1 text-xs font-medium rounded {getStatusColor(doc.status)}">
-									{(doc.status || 'pending').replace('_', ' ')}
-								</span>
+								<!-- Quick status update dropdown -->
+								<div class="relative">
+									<select 
+										value={doc.status}
+										onchange={(e) => {
+								const target = e.target as HTMLSelectElement;
+								quickStatusUpdate(doc, target.value);
+							}}
+										class="px-2 py-1 text-xs font-medium rounded border bg-background {getStatusColor(doc.status)}"
+										disabled={isSubmitting}
+									>
+										<option value="pending">Pending</option>
+										<option value="approved">Approved</option>
+										<option value="rejected">Rejected</option>
+									</select>
+								</div>
 								<span class="text-lg">{getStatusIcon(doc.status)}</span>
 								<div class="flex gap-1 ml-2">
+									{#if doc.fileUrl}
+										{#if canPreview(doc)}
+											<Button
+												variant="ghost"
+												size="sm"
+												onclick={() => openPreview(doc)}
+											>
+												Preview
+											</Button>
+										{/if}
+										<Button
+											variant="ghost"
+											size="sm"
+											onclick={() => doc.fileUrl && window.open(doc.fileUrl, '_blank')}
+										>
+											Download
+										</Button>
+									{/if}
 									<Button
 										variant="ghost"
 										size="sm"
@@ -271,7 +554,7 @@
 											clip-rule="evenodd"
 										/>
 									</svg>
-									<a href={doc.fileUrl} class="hover:underline">Download File</a>
+									<span class="text-sm">{doc.fileName || 'File'} ({doc.fileSize ? Math.round(doc.fileSize / 1024) + ' KB' : 'Unknown size'})</span>
 								</div>
 							{/if}
 						</div>
@@ -285,7 +568,19 @@
 				{/each}
 			{:else}
 				<div class="text-center py-8 text-muted-foreground">
-					<p>No documents yet. Start by adding your first document!</p>
+					{#if documents.length === 0}
+						<p>No documents yet. Start by adding your first document!</p>
+					{:else}
+						<p>No documents match your current filters.</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={resetFilters}
+							class="mt-2"
+						>
+							Clear Filters
+						</Button>
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -590,6 +885,53 @@
 							{isSubmitting ? 'Deleting...' : 'Delete'}
 						</Button>
 					</form>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Document Preview Modal -->
+	{#if previewDocument}
+		<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+			<div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+				<div class="flex items-center justify-between p-4 border-b">
+					<div>
+						<h3 class="text-lg font-semibold">{previewDocument.title}</h3>
+						<p class="text-sm text-muted-foreground">{previewDocument.fileName}</p>
+					</div>
+					<div class="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={() => window.open(previewDocument.fileUrl, '_blank')}
+						>
+							Open in New Tab
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
+							onclick={closePreview}
+						>
+							✕
+						</Button>
+					</div>
+				</div>
+				<div class="flex-1 overflow-hidden">
+					{#if getFileExtension(previewDocument.fileName) === 'pdf'}
+						<iframe
+							src={previewDocument.fileUrl}
+							class="w-full h-full"
+							title="Document Preview"
+						></iframe>
+					{:else}
+						<div class="p-4 h-full flex items-center justify-center">
+							<img
+								src={previewDocument.fileUrl}
+								alt={previewDocument.title}
+								class="max-w-full max-h-full object-contain"
+							/>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>

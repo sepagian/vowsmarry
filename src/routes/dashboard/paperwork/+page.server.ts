@@ -1,8 +1,8 @@
 import { redirect, fail } from '@sveltejs/kit'
 import type { PageServerLoad, Actions } from './$types'
 import { db } from '$lib/server/db'
-import { weddings, documents, documentReminders } from '$lib/server/db/schema'
-import { eq, desc, and } from 'drizzle-orm'
+import { weddings, documents, documentReminders, notifications } from '$lib/server/db/schema'
+import { eq, desc, and, lte, gte } from 'drizzle-orm'
 import { documentSchema, documentUpdateSchema } from '$lib/validation/schemas'
 import { FormValidator } from '$lib/validation/form-validator'
 import { uploadFile, deleteFile } from '$lib/server/storage/file-utils'
@@ -51,21 +51,32 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	}
 
 	// Get upcoming deadlines (next 30 days)
-	const today = new Date().toISOString().split('T')[0]
-	const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+	const today = new Date()
+	const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 	
 	const upcomingDeadlines = allDocuments.filter(doc => 
 		doc.dueDate && 
 		doc.status !== 'approved' && 
-		new Date(doc.dueDate).toISOString().split('T')[0] >= today && 
-		new Date(doc.dueDate).toISOString().split('T')[0] <= thirtyDaysFromNow
+		new Date(doc.dueDate) >= today && 
+		new Date(doc.dueDate) <= thirtyDaysFromNow
 	).sort((a, b) => (a.dueDate! < b.dueDate!) ? -1 : 1)
+
+	// Get user notifications related to documents
+	const userNotifications = await db.query.notifications.findMany({
+		where: and(
+			eq(notifications.userId, user.id),
+			eq(notifications.type, 'deadline_alert')
+		),
+		orderBy: [desc(notifications.createdAt)],
+		limit: 10
+	})
 
 	return {
 		wedding: userWedding,
 		documents: allDocuments,
 		documentStats,
-		upcomingDeadlines
+		upcomingDeadlines,
+		notifications: userNotifications
 	}
 }
 
