@@ -27,7 +27,6 @@
     - _Requirements: 15.1, 15.3_
 
   - [x] 2.2 Migrate schema to Supabase database
-
     - Execute schema migration to create all tables in Supabase
     - Verify table creation and relationships are properly established
     - Test database connectivity and basic CRUD operations
@@ -36,8 +35,6 @@
     - _Requirements: 15.1, 15.3_
 
   - [x] 2.3 Apply Row Level Security (RLS) policies
-
-
     - Enable RLS on all tables that contain user-specific data
     - Create RLS policies for user data isolation across all tables
     - Implement policies for wedding data access (owner and partner access)
@@ -83,7 +80,7 @@
     - Build reusable file upload component for forms across all modules
     - _Requirements: 2.5, 13.4, 15.3_
 
-- [-] 6. Implement paperwork management module
+- [x] 6. Implement paperwork management module
   - [x] 6.1 Create document data loading (read-only)
     - Build +page.server.ts with load function for document listing and filtering
     - Implement document status tracking and filtering functionality
@@ -91,11 +88,6 @@
     - _Requirements: 2.1, 2.2_
 
   - [x] 6.2 Add document CRUD server actions
-
-
-
-
-
     - Create server actions for document creation, update, and deletion with proper validation
     - Implement file upload integration with document creation using Cloudflare R2
     - Add document status management and reminder functionality
@@ -103,6 +95,10 @@
     - _Requirements: 2.1, 2.2, 2.5_
 
   - [ ] 6.3 Connect paperwork frontend to backend
+
+
+
+
     - Replace static forms with working server actions
     - Implement document forms with proper validation, file upload, and error handling
     - Add document status management and filtering UI with real-time updates
@@ -110,21 +106,15 @@
     - Add document reminder notifications and deadline tracking
     - _Requirements: 2.3, 2.4_
 
-- [-] 7. Implement budgeting module
-  - [x] 7.1 Create budget data loading (read-only)
-    - Build +page.server.ts with load function for budget data, calculations, and category summaries
-    - Implement budget category summaries, spending analytics, and variance calculations
-    - Add budget statistics and progress tracking
-    - _Requirements: 3.1, 3.2_
-
-  - [ ] 7.2 Add budget CRUD server actions
+- [ ] 7. Implement budgeting module server actions and frontend integration
+  - [ ] 7.1 Add budget CRUD server actions
     - Create server actions for budget item creation, update, and deletion with validation
     - Implement budget category management with proper validation
     - Add expense tracking with receipt upload functionality using file upload system
     - Build budget alerts system for overspending and approaching limits
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 7.3 Connect budget frontend to backend and add export features
+  - [ ] 7.2 Connect budget frontend to backend and add export features
     - Replace static forms with working server actions
     - Implement budget forms with server actions, validation, and receipt upload
     - Build CSV and PDF export functionality for budget reports and summaries
@@ -132,21 +122,15 @@
     - Integrate budget data with vendor management for cost tracking
     - _Requirements: 3.4, 3.5_
 
-- [-] 8. Implement task management module
-  - [x] 8.1 Create todo data loading (read-only)
-    - Build +page.server.ts with load function for task listing, filtering, and sorting
-    - Implement task statistics and progress tracking
-    - Add task filtering and categorization
-    - _Requirements: 4.1, 4.2_
-
-  - [ ] 8.2 Add todo CRUD server actions
+- [ ] 8. Implement task management module server actions and frontend integration
+  - [ ] 8.1 Add todo CRUD server actions
     - Create server actions for task creation, update, deletion, and status changes with validation
     - Implement task assignment system, priority management, and dependency tracking
     - Add task validation, due date management, and automated reminder system
     - Build task search functionality and category-based filtering
     - _Requirements: 4.1, 4.2, 4.4_
 
-  - [ ] 8.3 Connect todo frontend to backend
+  - [ ] 8.2 Connect todo frontend to backend
     - Replace static forms with working server actions
     - Implement task forms with proper validation, assignment features, and file attachments
     - Build task status update functionality, progress tracking, and completion workflows
@@ -154,21 +138,15 @@
     - Integrate task deadlines with dashboard notifications and alerts
     - _Requirements: 4.3, 4.5_
 
-- [-] 9. Implement vendor management module
-  - [x] 9.1 Create vendor data loading (read-only)
-    - Build +page.server.ts with load function for vendor listing, categorization, and filtering
-    - Implement vendor statistics and status tracking
-    - Add vendor search and filtering capabilities
-    - _Requirements: 5.1, 5.2_
-
-  - [ ] 9.2 Add vendor CRUD server actions
+- [ ] 9. Implement vendor management module server actions and frontend integration
+  - [ ] 9.1 Add vendor CRUD server actions
     - Create server actions for vendor creation, update, and deletion with validation
     - Implement vendor status tracking, contact management, and communication history
     - Add contract upload functionality with file storage integration and document management
     - Build vendor search, filtering by category, and status-based organization
     - _Requirements: 5.1, 5.2, 5.5_
 
-  - [ ] 9.3 Connect vendor frontend to backend
+  - [ ] 9.2 Connect vendor frontend to backend
     - Replace static forms with working server actions
     - Implement vendor forms with proper validation, file upload, and contact management
     - Build vendor rating and review functionality with persistent storage
@@ -176,21 +154,15 @@
     - Integrate vendor costs with budget module for expense tracking
     - _Requirements: 5.3, 5.4_
 
-- [-] 10. Implement savings tracking module
-  - [x] 10.1 Create savings data loading (read-only)
-    - Build +page.server.ts with load function for savings summary, entries, and analytics
-    - Implement savings calculations and progress tracking
-    - Add savings history and goal tracking
-    - _Requirements: 9.1, 9.2_
-
-  - [ ] 10.2 Add savings CRUD server actions
+- [ ] 10. Implement savings tracking module server actions and frontend integration
+  - [ ] 10.1 Add savings CRUD server actions
     - Create server actions for savings goal setting, entry logging, and milestone tracking
     - Implement savings calculations, progress tracking, and projection algorithms
     - Add savings analytics with charts, projections, and milestone notifications
     - Build savings history tracking and automated goal progress updates
     - _Requirements: 9.1, 9.2, 9.3_
 
-  - [ ] 10.3 Connect savings frontend to backend
+  - [ ] 10.2 Connect savings frontend to backend
     - Replace static forms with working server actions
     - Implement savings forms with proper validation, calculations, and goal management
     - Build savings progress monitoring, visual charts, and budget integration
@@ -198,21 +170,15 @@
     - Integrate savings data with budget module for affordability calculations
     - _Requirements: 9.4, 9.5_
 
-- [-] 11. Implement dowry management module
-  - [x] 11.1 Create dowry data loading (read-only)
-    - Build +page.server.ts with load function for dowry items, calculations, and categorization
-    - Implement dowry value calculations and status tracking
-    - Add dowry categorization and summary reporting
-    - _Requirements: 10.1, 10.2_
-
-  - [ ] 11.2 Add dowry CRUD server actions
+- [ ] 11. Implement dowry management module server actions and frontend integration
+  - [ ] 11.1 Add dowry CRUD server actions
     - Create server actions for dowry item creation, update, and deletion with validation
     - Implement dowry value calculations, status tracking, and currency conversion
     - Add proof upload functionality with secure file storage and document management
     - Build dowry categorization, witness management, and verification workflows
     - _Requirements: 10.1, 10.2, 10.4_
 
-  - [ ] 11.3 Connect dowry frontend to backend and add reporting
+  - [ ] 11.2 Connect dowry frontend to backend and add reporting
     - Replace static forms with working server actions
     - Implement dowry forms with proper validation, file upload, and witness management
     - Build dowry documentation export for legal purposes with PDF generation
@@ -220,21 +186,15 @@
     - Create dowry summary reports and value calculations for documentation
     - _Requirements: 10.3, 10.5_
 
-- [-] 12. Implement souvenir planning module
-  - [x] 12.1 Create souvenir data loading (read-only)
-    - Build +page.server.ts with load function for souvenir listing, calculations, and inventory
-    - Implement souvenir status tracking and cost calculations
-    - Add souvenir categorization and vendor integration
-    - _Requirements: 11.1, 11.2_
-
-  - [ ] 12.2 Add souvenir CRUD server actions
+- [ ] 12. Implement souvenir planning module server actions and frontend integration
+  - [ ] 12.1 Add souvenir CRUD server actions
     - Create server actions for souvenir creation, update, and deletion with validation
     - Implement souvenir status tracking, vendor integration, and order management
     - Add inventory management with quantity tracking, cost calculations, and distribution planning
     - Build souvenir customization options and packaging management
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [ ] 12.3 Connect souvenir frontend to backend
+  - [ ] 12.2 Connect souvenir frontend to backend
     - Replace static forms with working server actions
     - Implement souvenir forms with proper validation, vendor integration, and customization options
     - Build distribution tracking, guest list integration, and delivery management
@@ -242,21 +202,15 @@
     - Integrate souvenir costs with budget module for expense tracking
     - _Requirements: 11.4, 11.5_
 
-- [-] 13. Implement dresscode management module
-  - [x] 13.1 Create dresscode data loading (read-only)
-    - Build +page.server.ts with load function for dresscode listing by event and categorization
-    - Implement dresscode organization and event-based filtering
-    - Add dresscode templates and cultural requirements
-    - _Requirements: 8.1, 8.2_
-
-  - [ ] 13.2 Add dresscode CRUD server actions
+- [ ] 13. Implement dresscode management module server actions and frontend integration
+  - [ ] 13.1 Add dresscode CRUD server actions
     - Create server actions for dresscode creation, update, and deletion with validation
     - Implement inspiration photo upload, organization, and gallery management
     - Add dresscode categorization by event type, validation, and attire specifications
     - Build dresscode templates and cultural requirement management
     - _Requirements: 8.1, 8.2, 8.3_
 
-  - [ ] 13.3 Connect dresscode frontend to backend
+  - [ ] 13.2 Connect dresscode frontend to backend
     - Replace static forms with working server actions
     - Implement dresscode forms with proper validation, media upload, and attire specifications
     - Build dresscode sharing integration with invitation system and guest notifications
@@ -264,21 +218,15 @@
     - Create dresscode guidelines export and sharing functionality
     - _Requirements: 8.4, 8.5_
 
-- [-] 14. Implement rundown and timeline module
-  - [x] 14.1 Create rundown data loading (read-only)
-    - Build +page.server.ts with load function for chronological event listing and timeline management
-    - Implement timeline organization and event scheduling
-    - Add rundown templates and event dependencies
-    - _Requirements: 6.1, 6.2_
-
-  - [ ] 14.2 Add rundown CRUD server actions
+- [ ] 14. Implement rundown and timeline module server actions and frontend integration
+  - [ ] 14.1 Add rundown CRUD server actions
     - Create server actions for rundown event creation, update, and deletion with validation
     - Implement timeline management, conflict detection logic, and scheduling algorithms
     - Add responsibility assignment, role management, and vendor coordination functionality
     - Build rundown templates, event dependencies, and buffer time management
     - _Requirements: 6.1, 6.2, 6.4_
 
-  - [ ] 14.3 Connect rundown frontend to backend and add export
+  - [ ] 14.2 Connect rundown frontend to backend and add export
     - Replace static forms with working server actions
     - Implement rundown forms with proper validation, scheduling, and conflict detection
     - Build PDF export functionality for timeline sharing and distribution
