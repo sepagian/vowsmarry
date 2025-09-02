@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Upload, X, File, AlertCircle } from 'lucide-svelte';
+	import { Upload, X, File, CircleAlert } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import FormField from './form-field.svelte';
 

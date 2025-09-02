@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { Label } from '$lib/components/ui/label';
-	import { AlertCircle } from 'lucide-svelte';
+	import { CircleAlert } from 'lucide-svelte';
 
 	export let label: string;
 	export let name: string;
@@ -61,7 +61,7 @@
 	<!-- Error message -->
 	{#if error}
 		<div id={errorId} class="flex items-center gap-2 text-sm text-destructive" role="alert">
-			<AlertCircle class="h-4 w-4 flex-shrink-0" />
+			<CircleAlert class="h-4 w-4 flex-shrink-0" />
 			<span>{error}</span>
 		</div>
 	{/if}

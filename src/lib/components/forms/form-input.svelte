@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { AlertCircle } from 'lucide-svelte';
+	import { CircleAlert } from 'lucide-svelte';
 
 	interface Props {
 		label: string;
@@ -94,7 +94,7 @@
 	<!-- Error message -->
 	{#if error}
 		<div id={errorId} class="flex items-center gap-2 text-sm text-destructive" role="alert">
-			<AlertCircle class="h-4 w-4 flex-shrink-0" />
+			<CircleAlert class="h-4 w-4 flex-shrink-0" />
 			<span>{error}</span>
 		</div>
 	{/if}

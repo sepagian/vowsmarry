@@ -4,7 +4,7 @@
 	import { FormValidator, type ValidationResult } from '$lib/validation/form-validator';
 	import { toast } from '$lib/stores/toast';
 	import { Button } from '$lib/components/ui/button';
-	import { Loader2 } from 'lucide-svelte';
+	import { Loader } from 'lucide-svelte';
 
 	// Generic type for the schema
 	type T = Record<string, any>;
@@ -251,7 +251,7 @@
 			disabled={isFormDisabled || (!isValid && Object.keys(touched).length > 0)}
 		>
 			{#if isSubmitting}
-				<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+				<Loader class="mr-2 h-4 w-4 animate-spin" />
 			{/if}
 			{submitLabel}
 		</Button>
