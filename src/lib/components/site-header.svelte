@@ -6,6 +6,7 @@
 	import { Separator } from '$lib/components/ui/separator/index';
 	import { PanelRight } from 'lucide-svelte';
 	import AppearanceSwitcher from './appearance-switcher.svelte';
+	import NotificationBell from './notifications/notification-bell.svelte';
 	const sidebar = Sidebar.useSidebar();
 	import 'uno.css';
 
@@ -46,6 +47,7 @@
 		</Breadcrumb.Root>
 	</div>
 	<div class="flex gap-2 px-4">
+		<NotificationBell />
 		<AppearanceSwitcher />
 	</div>
 </header>
