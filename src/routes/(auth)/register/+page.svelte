@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { FormPasswordInput } from '$lib/components/forms';
 	import {
 		Card,
 		CardContent,
@@ -59,21 +60,17 @@
 						/>
 					</div>
 					<div class="space-y-2">
-						<Label for="password">Password</Label>
-						<Input
-							id="password"
+						<FormPasswordInput
+							label="Password"
 							name="password"
-							type="password"
 							placeholder="Create a strong password"
 							required
 						/>
 					</div>
 					<div class="space-y-2">
-						<Label for="confirmPassword">Confirm Password</Label>
-						<Input
-							id="confirmPassword"
+						<FormPasswordInput
+							label="Confirm Password"
 							name="confirmPassword"
-							type="password"
 							placeholder="Confirm your password"
 							required
 						/>
