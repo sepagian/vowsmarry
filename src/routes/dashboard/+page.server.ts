@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit'
-import type { PageServerLoad } from './$types'
+import type { PageServerLoad, Actions } from './$types'
+import { fail } from '@sveltejs/kit'
 import { db } from '$lib/server/db'
 import { 
 	weddings, 
@@ -193,5 +194,57 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 		},
 		recentTasks,
 		upcomingDeadlines
+	}
+}
+
+export const actions: Actions = {
+	createWedding: async ({ request, locals: { supabase } }) => {
+		const { data: { user }, error: authError } = await supabase.auth.getUser()
+		
+		if (authError || !user) {
+			return fail(401, { message: 'Unauthorized' })
+		}
+
+		const formData = await request.formData()
+		const partnerName = formData.get('partnerName') as string
+		const weddingDate = formData.get('weddingDate') as string
+		const venue = formData.get('venue') as string
+		const budget = formData.get('budget') as string
+
+		// Validate required fields
+		if (!partnerName || !weddingDate) {
+			return fail(400, { 
+				message: 'Partner name and wedding date are required',
+				partnerName,
+				venue,
+				budget
+			})
+		}
+
+		try {
+			// Check if user already has wedding data
+			const existingWedding = await db.query.weddings.findFirst({
+				where: eq(weddings.userId, user.id)
+			})
+
+			if (existingWedding) {
+				return fail(400, { message: 'Wedding data already exists' })
+			}
+
+			// Create new wedding record
+			await db.insert(weddings).values({
+				userId: user.id,
+				partnerName,
+				weddingDate: new Date(weddingDate),
+				venue: venue || null,
+				budget: budget ? budget : null,
+				status: 'planning'
+			})
+
+			return { success: true, message: 'Wedding data created successfully!' }
+		} catch (error) {
+			console.error('Error creating wedding:', error)
+			return fail(500, { message: 'Failed to create wedding data' })
+		}
 	}
 }
