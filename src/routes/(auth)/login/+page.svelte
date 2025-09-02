@@ -7,7 +7,7 @@
 		CardHeader,
 		CardTitle
 	} from '$lib/components/ui/card';
-	import { FormInput } from '$lib/components/forms';
+	import { FormInput, FormPasswordInput } from '$lib/components/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { LoaderCircle } from 'lucide-svelte';
 	import { toast } from '$lib/stores/toast';
@@ -69,10 +69,9 @@
 					autocomplete="email"
 				/>
 
-				<FormInput
+				<FormPasswordInput
 					label="Password"
 					name="password"
-					type="password"
 					placeholder="Enter your password"
 					value=""
 					required
