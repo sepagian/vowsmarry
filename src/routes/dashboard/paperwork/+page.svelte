@@ -5,11 +5,101 @@
 	import FormFileUpload from '$lib/components/forms/form-file-upload.svelte';
 	import { toast } from '$lib/stores/toast';
 
+	// Extended document type for optimistic updates
+	type ExtendedDocument = {
+		id: string;
+		createdAt: Date;
+		type: string;
+		title: string;
+		status: string;
+		updatedAt: Date;
+		weddingId: string;
+		dueDate: Date | null;
+		fileUrl: string | null;
+		fileName: string | null;
+		fileSize: number | null;
+		mimeType: string | null;
+		notes: string | null;
+		reminderSent: boolean;
+		_isOptimistic?: boolean;
+		_isUploading?: boolean;
+	};
+
 	let { data, form } = $props();
 
-	const documents = data.documents;
-	const documentStats = data.documentStats;
+	// Create optimistic documents state that updates immediately
+	let optimisticDocuments = $state([...data.documents] as ExtendedDocument[]);
+	
+	// Create optimistic document stats
+	let optimisticDocumentStats = $state({ ...data.documentStats });
 	const upcomingDeadlines = data.upcomingDeadlines;
+
+	// Update optimistic documents when server data changes
+	$effect(() => {
+		optimisticDocuments = [...data.documents] as ExtendedDocument[];
+		optimisticDocumentStats = { ...data.documentStats };
+	});
+
+	// Calculate optimistic stats based on current optimistic documents
+	const optimisticStats = $derived(() => {
+		const stats = {
+			total: optimisticDocuments.length,
+			approved: optimisticDocuments.filter(doc => doc.status === 'approved').length,
+			rejected: optimisticDocuments.filter(doc => doc.status === 'rejected').length,
+			pending: optimisticDocuments.filter(doc => doc.status === 'pending').length
+		};
+		return stats;
+	});
+
+	// Add optimistic document (for immediate UI feedback)
+	function addOptimisticDocument(formData: any) {
+		const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const fileName = formData.file && formData.file.length > 0 ? formData.file[0].name : null;
+		const fileSize = formData.file && formData.file.length > 0 ? formData.file[0].size : null;
+		
+		const optimisticDoc: ExtendedDocument = {
+			id: tempId,
+			title: formData.title,
+			type: formData.type,
+			status: formData.status,
+			dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+			notes: formData.notes || null,
+			fileName,
+			fileSize,
+			fileUrl: null, // Will be set after server response
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			weddingId: data.documents[0]?.weddingId || '', // Use existing weddingId
+			mimeType: null,
+			reminderSent: false,
+			_isOptimistic: true, // Flag to identify optimistic updates
+			_isUploading: true // Flag to show uploading state
+		};
+		
+		optimisticDocuments = [optimisticDoc, ...optimisticDocuments];
+		return tempId;
+	}
+
+	// Update optimistic document (for edit operations)
+	function updateOptimisticDocument(docId: string, updates: any) {
+		optimisticDocuments = optimisticDocuments.map(doc => 
+			doc.id === docId ? { ...doc, ...updates } : doc
+		);
+	}
+
+	// Remove optimistic document (on error or rollback)
+	function removeOptimisticDocument(tempId: string) {
+		optimisticDocuments = optimisticDocuments.filter(doc => doc.id !== tempId);
+	}
+
+	// Replace optimistic document with real one (on success)
+	function replaceOptimisticDocument(tempId: string, realDoc: any) {
+		optimisticDocuments = optimisticDocuments.map(doc => 
+			doc.id === tempId ? { ...realDoc, _isOptimistic: false, _isUploading: false } : doc
+		);
+	}
+
+
 
 	// Form states
 	let showCreateForm = $state(false);
@@ -85,18 +175,18 @@
 		};
 	}
 
-	// Handle form responses
+	// Handle remaining form responses for actions not using optimistic updates
 	$effect(() => {
-		if (form?.success) {
-			toast.success(form.success);
-			resetCreateForm();
-			cancelEdit();
-			deletingDocument = null;
-			invalidateAll();
+		if (form?.success && !isSubmitting) {
+			// Only handle success for delete operations or other non-optimistic actions
+			if (form.success.includes('deleted')) {
+				toast.success(form.success);
+				deletingDocument = null;
+				invalidateAll();
+			}
 		} else if (form?.error) {
 			toast.error(form.error);
 		}
-		isSubmitting = false;
 	});
 
 	function getStatusIcon(status: string | null) {
@@ -145,7 +235,7 @@
 	}
 
 	// Filter documents based on current filters
-	const filteredDocuments = $derived(documents.filter(doc => {
+	const filteredDocuments = $derived(optimisticDocuments.filter(doc => {
 		// Status filter
 		if (filters.status !== 'all' && doc.status !== filters.status) {
 			return false;
@@ -235,38 +325,43 @@
 		previewDocument = null;
 	}
 
-	// Quick status update
-	async function quickStatusUpdate(doc: any, newStatus: string) {
-		isSubmitting = true;
-		
-		const formData = new FormData();
-		formData.append('documentId', doc.id);
-		formData.append('status', newStatus);
-
-		try {
-			const response = await fetch('?/updateStatus', {
-				method: 'POST',
-				body: formData
-			});
-
-			const result = await response.json();
+		// Quick status update
+		async function quickStatusUpdate(doc: any, newStatus: string) {
+			isSubmitting = true;
 			
-			if (result.type === 'success') {
-				toast.success('Document status updated successfully');
-				// Update the document in the list
-				const index = documents.findIndex(d => d.id === doc.id);
-				if (index !== -1) {
-					documents[index] = { ...documents[index], status: newStatus };
+			// Optimistic update
+			const originalStatus = doc.status;
+			updateOptimisticDocument(doc.id, { status: newStatus });
+			
+			const formData = new FormData();
+			formData.append('documentId', doc.id);
+			formData.append('status', newStatus);
+
+			try {
+				const response = await fetch('?/updateStatus', {
+					method: 'POST',
+					body: formData
+				});
+
+				const result = await response.json();
+				
+				if (result.type === 'success') {
+					toast.success('Document status updated successfully');
+					// Keep the optimistic update since it was successful
+					updateOptimisticDocument(doc.id, { status: newStatus, _isOptimistic: false, _isUploading: false });
+				} else {
+					// Revert optimistic update on error
+					updateOptimisticDocument(doc.id, { status: originalStatus, _isOptimistic: false, _isUploading: false });
+					toast.error(result.data?.error || 'Failed to update status');
 				}
-			} else {
-				toast.error(result.data?.error || 'Failed to update status');
+			} catch (error) {
+				// Revert optimistic update on error
+				updateOptimisticDocument(doc.id, { status: originalStatus, _isOptimistic: false, _isUploading: false });
+				toast.error('Failed to update status');
+			} finally {
+				isSubmitting = false;
 			}
-		} catch (error) {
-			toast.error('Failed to update status');
-		} finally {
-			isSubmitting = false;
 		}
-	}
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4">
@@ -318,7 +413,7 @@
 					/>
 				</svg>
 			</div>
-			<p class="text-2xl font-bold">{documentStats.total}</p>
+			<p class="text-2xl font-bold">{optimisticStats().total}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -326,7 +421,7 @@
 				<p class="text-sm font-medium text-muted-foreground">Approved</p>
 				<span class="text-lg">✅</span>
 			</div>
-			<p class="text-2xl font-bold">{documentStats.approved}</p>
+			<p class="text-2xl font-bold">{optimisticStats().approved}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -334,7 +429,7 @@
 				<p class="text-sm font-medium text-muted-foreground">Rejected</p>
 				<span class="text-lg">❌</span>
 			</div>
-			<p class="text-2xl font-bold">{documentStats.rejected}</p>
+			<p class="text-2xl font-bold">{optimisticStats().rejected}</p>
 		</div>
 
 		<div class="rounded-lg border bg-card p-4">
@@ -342,14 +437,14 @@
 				<p class="text-sm font-medium text-muted-foreground">Pending</p>
 				<span class="text-lg">⏳</span>
 			</div>
-			<p class="text-2xl font-bold">{documentStats.pending}</p>
+			<p class="text-2xl font-bold">{optimisticStats().pending}</p>
 		</div>
 	</div>
 
 	<!-- Document List -->
 	<div class="rounded-lg border bg-card p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-lg font-semibold">All Documents ({filteredDocuments.length})</h2>
+			<h2 class="text-lg font-semibold">All Documents</h2>
 			<div class="flex gap-2">
 				<Button 
 					variant="outline"
@@ -432,7 +527,7 @@
 						Clear Filters
 					</Button>
 					<span class="text-sm text-muted-foreground self-center">
-						Showing {filteredDocuments.length} of {documents.length} documents
+						Showing {filteredDocuments.length} of {optimisticDocuments.length} documents
 					</span>
 				</div>
 			</div>
@@ -441,15 +536,34 @@
 		<div class="space-y-4">
 			{#if filteredDocuments.length > 0}
 				{#each filteredDocuments as doc}
-					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors {isOverdue(doc) ? 'border-red-200 bg-red-50/50' : isDueSoon(doc) ? 'border-yellow-200 bg-yellow-50/50' : ''}">
+					<div class="p-4 border rounded-lg hover:bg-muted/50 transition-colors {doc._isOptimistic ? 'border-blue-200 bg-blue-50/50' : isOverdue(doc) ? 'border-red-200 bg-red-50/50' : isDueSoon(doc) ? 'border-yellow-200 bg-yellow-50/50' : ''}">
+						<!-- Optimistic/Uploading indicator -->
+						{#if doc._isUploading}
+							<div class="mb-2">
+								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+									<svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+										<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+										<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+									</svg>
+									{doc._isOptimistic ? 'Uploading...' : 'Updating...'}
+								</span>
+							</div>
+						{:else if doc._isOptimistic}
+							<div class="mb-2">
+								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+									✅ Recently Added
+								</span>
+							</div>
+						{/if}
+									
 						<!-- Alert badges for overdue/due soon -->
-						{#if isOverdue(doc)}
+						{#if !doc._isOptimistic && isOverdue(doc)}
 							<div class="mb-2">
 								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
 									⚠️ Overdue
 								</span>
 							</div>
-						{:else if isDueSoon(doc)}
+						{:else if !doc._isOptimistic && isDueSoon(doc)}
 							<div class="mb-2">
 								<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
 									⏰ Due Soon
@@ -477,7 +591,7 @@
 								quickStatusUpdate(doc, target.value);
 							}}
 										class="px-2 py-1 text-xs font-medium rounded border bg-background {getStatusColor(doc.status)}"
-										disabled={isSubmitting}
+										disabled={isSubmitting || doc._isUploading}
 									>
 										<option value="pending">Pending</option>
 										<option value="approved">Approved</option>
@@ -486,7 +600,7 @@
 								</div>
 								<span class="text-lg">{getStatusIcon(doc.status)}</span>
 								<div class="flex gap-1 ml-2">
-									{#if doc.fileUrl}
+									{#if doc.fileUrl && !doc._isUploading}
 										{#if canPreview(doc)}
 											<Button
 												variant="ghost"
@@ -504,20 +618,24 @@
 											Download
 										</Button>
 									{/if}
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => startEdit(doc)}
-									>
-										Edit
-									</Button>
-									<Button
-										variant="ghost"
-										size="sm"
-										onclick={() => deletingDocument = doc}
-									>
-										Delete
-									</Button>
+									{#if !doc._isUploading}
+										<Button
+											variant="ghost"
+											size="sm"
+											onclick={() => startEdit(doc)}
+											disabled={doc._isOptimistic}
+										>
+											Edit
+										</Button>
+										<Button
+											variant="ghost"
+											size="sm"
+											onclick={() => deletingDocument = doc}
+											disabled={doc._isOptimistic}
+										>
+											Delete
+										</Button>
+									{/if}
 								</div>
 							</div>
 						</div>
@@ -545,7 +663,7 @@
 									<span>Created: {formatDate(doc.createdAt.toString())}</span>
 								</div>
 							{/if}
-							{#if doc.fileUrl}
+							{#if doc.fileUrl || doc._isOptimistic}
 								<div class="flex items-center gap-2">
 									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
 										<path
@@ -554,7 +672,10 @@
 											clip-rule="evenodd"
 										/>
 									</svg>
-									<span class="text-sm">{doc.fileName || 'File'} ({doc.fileSize ? Math.round(doc.fileSize / 1024) + ' KB' : 'Unknown size'})</span>
+									<span class="text-sm">
+									{doc.fileName || (doc._isOptimistic ? 'Uploading...' : 'File')} 
+									({doc.fileSize ? Math.round(doc.fileSize / 1024) + ' KB' : (doc._isOptimistic ? 'Processing...' : 'Unknown size')})
+								</span>
 								</div>
 							{/if}
 						</div>
@@ -568,7 +689,7 @@
 				{/each}
 			{:else}
 				<div class="text-center py-8 text-muted-foreground">
-					{#if documents.length === 0}
+					{#if optimisticDocuments.length === 0}
 						<p>No documents yet. Start by adding your first document!</p>
 					{:else}
 						<p>No documents match your current filters.</p>
@@ -596,8 +717,27 @@
 				enctype="multipart/form-data"
 				use:enhance={() => {
 					isSubmitting = true;
-					return async ({ update }) => {
-						await update();
+					
+					// Add optimistic document immediately
+					const tempId = addOptimisticDocument(createFormData);
+					
+					return async ({ result, update }) => {
+						if (result.type === 'success' && result.data?.document) {
+							// Replace optimistic document with real one
+							replaceOptimisticDocument(tempId, result.data.document);
+							toast.success('Document uploaded successfully!');
+							resetCreateForm();
+						} else if (result.type === 'failure') {
+							// Remove optimistic document on failure
+							removeOptimisticDocument(tempId);
+							toast.error('Failed to upload document');
+						} else {
+							// Remove optimistic document on other errors
+							removeOptimisticDocument(tempId);
+						}
+						
+						isSubmitting = false;
+						await update({ reset: false }); // Don't reset form, we handle it manually
 					};
 				}}
 			>
@@ -728,8 +868,41 @@
 				enctype="multipart/form-data"
 				use:enhance={() => {
 					isSubmitting = true;
-					return async ({ update }) => {
-						await update();
+					
+					// Update optimistic document immediately
+					updateOptimisticDocument(editingDocument.id, {
+						title: editFormData.title,
+						type: editFormData.type,
+						status: editFormData.status,
+						dueDate: editFormData.dueDate ? new Date(editFormData.dueDate) : null,
+						notes: editFormData.notes
+					});
+					
+					return async ({ result, update }) => {
+						if (result.type === 'success' && result.data?.document) {
+							// Replace with updated document from server
+							updateOptimisticDocument(editingDocument.id, {
+								...result.data.document,
+								_isOptimistic: false,
+								_isUploading: false
+							});
+							toast.success('Document updated successfully!');
+							cancelEdit();
+						} else if (result.type === 'failure') {
+							// Revert to original data on failure
+							const originalDoc = data.documents.find(d => d.id === editingDocument.id);
+							if (originalDoc) {
+								updateOptimisticDocument(editingDocument.id, {
+									...originalDoc,
+									_isOptimistic: false,
+									_isUploading: false
+								});
+							}
+							toast.error('Failed to update document');
+						}
+						
+						isSubmitting = false;
+						await update({ reset: false });
 					};
 				}}
 			>
@@ -873,6 +1046,7 @@
 							isSubmitting = true;
 							return async ({ update }) => {
 								await update();
+								isSubmitting = false;
 							};
 						}}
 					>
