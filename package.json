@@ -53,6 +53,7 @@
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.879.0",
 		"@aws-sdk/s3-request-presigner": "^3.879.0",
+		"@friendofsvelte/progress": "^0.0.8",
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.56.0",
 		"@unocss/reset": "^66.4.2",

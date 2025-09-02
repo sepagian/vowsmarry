@@ -6,6 +6,7 @@
       "dependencies": {
         "@aws-sdk/client-s3": "^3.879.0",
         "@aws-sdk/s3-request-presigner": "^3.879.0",
+        "@friendofsvelte/progress": "^0.0.8",
         "@supabase/ssr": "^0.7.0",
         "@supabase/supabase-js": "^2.56.0",
         "@unocss/reset": "^66.4.2",
@@ -250,6 +251,8 @@
     "@floating-ui/dom": ["@floating-ui/dom@1.7.4", "", { "dependencies": { "@floating-ui/core": "^1.7.3", "@floating-ui/utils": "^0.2.10" } }, "sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA=="],
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.10", "", {}, "sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ=="],
+
+    "@friendofsvelte/progress": ["@friendofsvelte/progress@0.0.8", "", { "peerDependencies": { "svelte": "^5.0.0", "tailwind-merge": "^3.0.1", "tailwind-variants": "^0.3.1", "tailwindcss": "^4.0.0" } }, "sha512-2iP9NVUnhOEitYWcMiKciPqo5i6aZb1OdwUARVzXg7CV2j/fwI/fkQMKa/uYk/tasBhi7sB05yWGcYgwHBmLXA=="],
 
     "@gcornut/valibot-json-schema": ["@gcornut/valibot-json-schema@0.42.0", "", { "dependencies": { "valibot": "~0.42.0" }, "optionalDependencies": { "@types/json-schema": ">= 7.0.14", "esbuild-runner": ">= 2.2.2" }, "bin": { "valibot-json-schema": "bin/index.js" } }, "sha512-4Et4AN6wmqeA0PfU5Clkv/IS27wiefsWf6TemAZrb75uzkClYEFavim7SboeKwbll9Nbsn2Iv0LT/HS5H7orZg=="],
 
