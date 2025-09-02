@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index';
 	import * as Card from '$lib/components/ui/card/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Label } from '$lib/components/ui/label/index';
+	import { FormPasswordInput } from '$lib/components/forms';
 	const id = $props.id();
 </script>
 
@@ -14,14 +13,18 @@
 	<Card.Content>
 		<div class="grid gap-4">
 			<div class="grid gap-2">
-				<div class="grid gap-2">
-					<Label for="password-{id}">Password</Label>
-					<Input id="password-{id}" type="password" required />
-				</div>
-				<div class="grid gap-2">
-					<Label for="confirm-password-{id}">Confirm Password</Label>
-					<Input id="confirm-password-{id}" type="password" required />
-				</div>
+				<FormPasswordInput
+					label="Password"
+					name="password"
+					placeholder="Enter your new password"
+					required
+				/>
+				<FormPasswordInput
+					label="Confirm Password"
+					name="confirmPassword"
+					placeholder="Confirm your new password"
+					required
+				/>
 			</div>
 			<Button type="submit" class="w-full">Reset Password</Button>
 		</div>
