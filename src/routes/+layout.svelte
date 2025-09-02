@@ -5,6 +5,7 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { ToastContainer } from '$lib/components/ui/toast';
+	import { Progress } from '@friendofsvelte/progress';
 
 	let { data, children } = $props();
 	let { session, supabase } = $derived(data);
@@ -20,5 +21,6 @@
 </script>
 
 <ModeWatcher />
+<Progress size="md" color="blue" />
 {@render children()}
 <ToastContainer />
