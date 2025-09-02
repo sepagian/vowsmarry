@@ -1,9 +1,93 @@
 <script lang="ts">
-	let { data } = $props();
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import { Button } from '$lib/components/ui/button';
+	import FormFileUpload from '$lib/components/forms/form-file-upload.svelte';
+	import { toast } from '$lib/stores/toast';
+
+	let { data, form } = $props();
 
 	const documents = data.documents;
 	const documentStats = data.documentStats;
 	const upcomingDeadlines = data.upcomingDeadlines;
+
+	// Form states
+	let showCreateForm = $state(false);
+	let editingDocument = $state<any>(null);
+	let deletingDocument = $state<any>(null);
+	let isSubmitting = $state(false);
+
+	// Form data
+	let createFormData = $state({
+		title: '',
+		type: 'permit',
+		status: 'pending',
+		dueDate: '',
+		notes: '',
+		file: null as FileList | null
+	});
+
+	let editFormData = $state({
+		title: '',
+		type: 'permit',
+		status: 'pending',
+		dueDate: '',
+		notes: '',
+		file: null as FileList | null
+	});
+
+	// Reset create form
+	function resetCreateForm() {
+		createFormData = {
+			title: '',
+			type: 'permit',
+			status: 'pending',
+			dueDate: '',
+			notes: '',
+			file: null
+		};
+		showCreateForm = false;
+	}
+
+	// Start editing document
+	function startEdit(doc: any) {
+		editFormData = {
+			title: doc.title || '',
+			type: doc.type || 'permit',
+			status: doc.status || 'pending',
+			dueDate: doc.dueDate ? new Date(doc.dueDate).toISOString().split('T')[0] : '',
+			notes: doc.notes || '',
+			file: null
+		};
+		editingDocument = doc;
+	}
+
+	// Cancel editing
+	function cancelEdit() {
+		editingDocument = null;
+		editFormData = {
+			title: '',
+			type: 'permit',
+			status: 'pending',
+			dueDate: '',
+			notes: '',
+			file: null
+		};
+	}
+
+	// Handle form responses
+	$effect(() => {
+		if (form?.success) {
+			toast.success(form.success);
+			resetCreateForm();
+			cancelEdit();
+			deletingDocument = null;
+			invalidateAll();
+		} else if (form?.error) {
+			toast.error(form.error);
+		}
+		isSubmitting = false;
+	});
 
 	function getStatusIcon(status: string | null) {
 		switch (status) {
@@ -107,7 +191,13 @@
 			<h2 class="text-lg font-semibold">All Documents</h2>
 			<div class="flex gap-2">
 				<button class="text-sm font-medium hover:underline">Filter</button>
-				<button class="text-sm font-medium hover:underline">Upload Document</button>
+				<Button 
+					onclick={() => showCreateForm = !showCreateForm}
+					variant="default"
+					size="sm"
+				>
+					{showCreateForm ? 'Cancel' : 'Upload Document'}
+				</Button>
 			</div>
 		</div>
 
@@ -130,6 +220,22 @@
 									{(doc.status || 'pending').replace('_', ' ')}
 								</span>
 								<span class="text-lg">{getStatusIcon(doc.status)}</span>
+								<div class="flex gap-1 ml-2">
+									<Button
+										variant="ghost"
+										size="sm"
+										onclick={() => startEdit(doc)}
+									>
+										Edit
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										onclick={() => deletingDocument = doc}
+									>
+										Delete
+									</Button>
+								</div>
 							</div>
 						</div>
 
@@ -185,80 +291,307 @@
 		</div>
 	</div>
 
-	<!-- Upload New Document -->
-	<div class="rounded-lg border bg-card p-4">
-		<h3 class="text-lg font-semibold mb-3">Upload New Document</h3>
-		<div class="grid gap-3 md:grid-cols-2">
-			<div>
-				<label for="document-title" class="text-sm font-medium text-muted-foreground"
-					>Document Title</label
-				>
-				<input
-					id="document-title"
-					type="text"
-					placeholder="Enter document title..."
-					class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-				/>
-			</div>
-			<div>
-				<label for="document-type" class="text-sm font-medium text-muted-foreground"
-					>Document Type</label
-				>
-				<select id="document-type" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
-					<option>License</option>
-					<option>Contract</option>
-					<option>Release</option>
-					<option>Insurance</option>
-					<option>Permit</option>
-					<option>Other</option>
-				</select>
-			</div>
-			<div>
-				<label for="document-due-date" class="text-sm font-medium text-muted-foreground"
-					>Due Date</label
-				>
-				<input
-					id="document-due-date"
-					type="date"
-					class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-				/>
-			</div>
-			<div>
-				<label for="document-status" class="text-sm font-medium text-muted-foreground">Status</label
-				>
-				<select id="document-status" class="w-full mt-1 px-3 py-2 border rounded-lg bg-background">
-					<option>pending</option>
-					<option>submitted</option>
-					<option>approved</option>
-					<option>signed</option>
-					<option>rejected</option>
-				</select>
-			</div>
-		</div>
-		<div class="mt-3">
-			<label for="document-file" class="text-sm font-medium text-muted-foreground"
-				>Upload File</label
+	<!-- Create Document Form -->
+	{#if showCreateForm}
+		<div class="rounded-lg border bg-card p-4">
+			<h3 class="text-lg font-semibold mb-3">Upload New Document</h3>
+			<form 
+				method="POST" 
+				action="?/create" 
+				enctype="multipart/form-data"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update }) => {
+						await update();
+					};
+				}}
 			>
-			<input
-				id="document-file"
-				type="file"
-				accept=".pdf,.doc,.docx,.jpg,.png"
-				class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-			/>
+				<div class="grid gap-3 md:grid-cols-2">
+					<div>
+						<label for="create-title" class="text-sm font-medium text-muted-foreground">
+							Document Title *
+						</label>
+						<input
+							id="create-title"
+							name="title"
+							type="text"
+							bind:value={createFormData.title}
+							placeholder="Enter document title..."
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+							required
+						/>
+						{#if form?.errors?.title}
+							<p class="text-sm text-red-600 mt-1">{form.errors.title}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="create-type" class="text-sm font-medium text-muted-foreground">
+							Document Type *
+						</label>
+						<select 
+							id="create-type" 
+							name="type"
+							bind:value={createFormData.type}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+							required
+						>
+							<option value="permit">Permit</option>
+							<option value="license">License</option>
+							<option value="contract">Contract</option>
+							<option value="other">Other</option>
+						</select>
+						{#if form?.errors?.type}
+							<p class="text-sm text-red-600 mt-1">{form.errors.type}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="create-due-date" class="text-sm font-medium text-muted-foreground">
+							Due Date
+						</label>
+						<input
+							id="create-due-date"
+							name="dueDate"
+							type="date"
+							bind:value={createFormData.dueDate}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						/>
+						{#if form?.errors?.dueDate}
+							<p class="text-sm text-red-600 mt-1">{form.errors.dueDate}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="create-status" class="text-sm font-medium text-muted-foreground">
+							Status
+						</label>
+						<select 
+							id="create-status" 
+							name="status"
+							bind:value={createFormData.status}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						>
+							<option value="pending">Pending</option>
+							<option value="approved">Approved</option>
+							<option value="rejected">Rejected</option>
+						</select>
+						{#if form?.errors?.status}
+							<p class="text-sm text-red-600 mt-1">{form.errors.status}</p>
+						{/if}
+					</div>
+				</div>
+				<div class="mt-3">
+					<FormFileUpload
+						label="Upload File"
+						name="file"
+						bind:files={createFormData.file}
+						accept=".pdf,.doc,.docx,.jpg,.png,.webp"
+						maxSize={10 * 1024 * 1024}
+						description="Supported formats: PDF, DOC, DOCX, JPG, PNG, WebP (Max 10MB)"
+					/>
+				</div>
+				<div class="mt-3">
+					<label for="create-notes" class="text-sm font-medium text-muted-foreground">
+						Notes
+					</label>
+					<textarea
+						id="create-notes"
+						name="notes"
+						bind:value={createFormData.notes}
+						placeholder="Add any notes about this document..."
+						class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						rows="3"
+					></textarea>
+					{#if form?.errors?.notes}
+						<p class="text-sm text-red-600 mt-1">{form.errors.notes}</p>
+					{/if}
+				</div>
+				<div class="flex gap-2 mt-4">
+					<Button
+						type="submit"
+						disabled={isSubmitting}
+					>
+						{isSubmitting ? 'Uploading...' : 'Upload Document'}
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={resetCreateForm}
+					>
+						Cancel
+					</Button>
+				</div>
+			</form>
 		</div>
-		<div class="mt-3">
-			<label for="document-notes" class="text-sm font-medium text-muted-foreground">Notes</label>
-			<textarea
-				id="document-notes"
-				placeholder="Add any notes about this document..."
-				class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
-				rows="3"
-			></textarea>
+	{/if}
+
+	<!-- Edit Document Form -->
+	{#if editingDocument}
+		<div class="rounded-lg border bg-card p-4">
+			<h3 class="text-lg font-semibold mb-3">Edit Document</h3>
+			<form 
+				method="POST" 
+				action="?/update" 
+				enctype="multipart/form-data"
+				use:enhance={() => {
+					isSubmitting = true;
+					return async ({ update }) => {
+						await update();
+					};
+				}}
+			>
+				<input type="hidden" name="documentId" value={editingDocument.id} />
+				<div class="grid gap-3 md:grid-cols-2">
+					<div>
+						<label for="edit-title" class="text-sm font-medium text-muted-foreground">
+							Document Title *
+						</label>
+						<input
+							id="edit-title"
+							name="title"
+							type="text"
+							bind:value={editFormData.title}
+							placeholder="Enter document title..."
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+							required
+						/>
+						{#if form?.errors?.title}
+							<p class="text-sm text-red-600 mt-1">{form.errors.title}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="edit-type" class="text-sm font-medium text-muted-foreground">
+							Document Type *
+						</label>
+						<select 
+							id="edit-type" 
+							name="type"
+							bind:value={editFormData.type}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+							required
+						>
+							<option value="permit">Permit</option>
+							<option value="license">License</option>
+							<option value="contract">Contract</option>
+							<option value="other">Other</option>
+						</select>
+						{#if form?.errors?.type}
+							<p class="text-sm text-red-600 mt-1">{form.errors.type}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="edit-due-date" class="text-sm font-medium text-muted-foreground">
+							Due Date
+						</label>
+						<input
+							id="edit-due-date"
+							name="dueDate"
+							type="date"
+							bind:value={editFormData.dueDate}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						/>
+						{#if form?.errors?.dueDate}
+							<p class="text-sm text-red-600 mt-1">{form.errors.dueDate}</p>
+						{/if}
+					</div>
+					<div>
+						<label for="edit-status" class="text-sm font-medium text-muted-foreground">
+							Status
+						</label>
+						<select 
+							id="edit-status" 
+							name="status"
+							bind:value={editFormData.status}
+							class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						>
+							<option value="pending">Pending</option>
+							<option value="approved">Approved</option>
+							<option value="rejected">Rejected</option>
+						</select>
+						{#if form?.errors?.status}
+							<p class="text-sm text-red-600 mt-1">{form.errors.status}</p>
+						{/if}
+					</div>
+				</div>
+				<div class="mt-3">
+					<FormFileUpload
+						label="Replace File (optional)"
+						name="file"
+						bind:files={editFormData.file}
+						accept=".pdf,.doc,.docx,.jpg,.png,.webp"
+						maxSize={10 * 1024 * 1024}
+						description="Leave empty to keep current file. Supported formats: PDF, DOC, DOCX, JPG, PNG, WebP (Max 10MB)"
+					/>
+				</div>
+				<div class="mt-3">
+					<label for="edit-notes" class="text-sm font-medium text-muted-foreground">
+						Notes
+					</label>
+					<textarea
+						id="edit-notes"
+						name="notes"
+						bind:value={editFormData.notes}
+						placeholder="Add any notes about this document..."
+						class="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+						rows="3"
+					></textarea>
+					{#if form?.errors?.notes}
+						<p class="text-sm text-red-600 mt-1">{form.errors.notes}</p>
+					{/if}
+				</div>
+				<div class="flex gap-2 mt-4">
+					<Button
+						type="submit"
+						disabled={isSubmitting}
+					>
+						{isSubmitting ? 'Updating...' : 'Update Document'}
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={cancelEdit}
+					>
+						Cancel
+					</Button>
+				</div>
+			</form>
 		</div>
-		<button
-			class="mt-3 px-4 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/90 transition-colors"
-		>
-			Upload Document
-		</button>
-	</div>
+	{/if}
+
+	<!-- Delete Confirmation Modal -->
+	{#if deletingDocument}
+		<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+			<div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+				<h3 class="text-lg font-semibold mb-2">Delete Document</h3>
+				<p class="text-muted-foreground mb-4">
+					Are you sure you want to delete "{deletingDocument.title}"? This action cannot be undone.
+				</p>
+				<div class="flex gap-2 justify-end">
+					<Button
+						variant="outline"
+						onclick={() => deletingDocument = null}
+					>
+						Cancel
+					</Button>
+					<form 
+						method="POST" 
+						action="?/delete"
+						use:enhance={() => {
+							isSubmitting = true;
+							return async ({ update }) => {
+								await update();
+							};
+						}}
+					>
+						<input type="hidden" name="documentId" value={deletingDocument.id} />
+						<Button
+							type="submit"
+							variant="destructive"
+							disabled={isSubmitting}
+						>
+							{isSubmitting ? 'Deleting...' : 'Delete'}
+						</Button>
+					</form>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
