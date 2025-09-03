@@ -1,5 +1,4 @@
 <script lang="ts">
-	import 'uno.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
