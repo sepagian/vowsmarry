@@ -7,7 +7,6 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
-	import 'uno.css';
 
 	let { children, data } = $props();
 
