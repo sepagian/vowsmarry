@@ -2,7 +2,7 @@
 	import { notifications, unreadCount, notificationStore } from '$lib/stores/notifications';
 	import { Button } from '$lib/components/ui/button/index';
 	import { onMount } from 'svelte';
-	import {Bell} from 'lucide-svelte'
+	import { Bell } from 'lucide-svelte';
 
 	let showDropdown = $state(false);
 	let dropdownElement: HTMLDivElement;
@@ -24,7 +24,7 @@
 	function formatTimeAgo(date: Date) {
 		const now = new Date();
 		const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-		
+
 		if (diffInSeconds < 60) return 'Just now';
 		if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
 		if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -33,17 +33,23 @@
 
 	function getPriorityColor(priority: string) {
 		switch (priority) {
-			case 'high': return 'text-red-600';
-			case 'medium': return 'text-yellow-600';
-			default: return 'text-blue-600';
+			case 'high':
+				return 'text-red-600';
+			case 'medium':
+				return 'text-yellow-600';
+			default:
+				return 'text-blue-600';
 		}
 	}
 
 	function getPriorityIcon(priority: string) {
 		switch (priority) {
-			case 'high': return '🔴';
-			case 'medium': return '🟡';
-			default: return '🔵';
+			case 'high':
+				return '🔴';
+			case 'medium':
+				return '🟡';
+			default:
+				return '🔵';
 		}
 	}
 
@@ -51,11 +57,11 @@
 		if (!notification.isRead) {
 			notificationStore.markAsRead(notification.id);
 		}
-		
+
 		if (notification.actionUrl) {
 			window.location.href = notification.actionUrl;
 		}
-		
+
 		showDropdown = false;
 	}
 </script>
@@ -64,20 +70,24 @@
 	<Button
 		variant="outline"
 		size="icon"
-		onclick={() => showDropdown = !showDropdown}
+		onclick={() => (showDropdown = !showDropdown)}
 		class="relative"
 	>
-		<Bell class="h-[1.2rem] w-[1.2rem]"/>
+		<Bell class="h-[1.2rem] w-[1.2rem]" />
 		{#if $unreadCount > 0}
-			<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+			<span
+				class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+			>
 				{$unreadCount > 9 ? '9+' : $unreadCount}
 			</span>
 		{/if}
 	</Button>
 
 	{#if showDropdown}
-		<div class="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
-			<div class="p-3 border-b bg-gray-50">
+		<div
+			class="absolute right-0 mt-2 w-80 bg-base-100 border rounded-lg shadow-lg z-50 max-h-96 overflow-hidden"
+		>
+			<div class="p-3 border-b bg-base-100">
 				<div class="flex items-center justify-between">
 					<h3 class="font-semibold">Notifications</h3>
 					{#if $unreadCount > 0}
@@ -92,13 +102,15 @@
 					{/if}
 				</div>
 			</div>
-			
+
 			<div class="max-h-80 overflow-y-auto">
 				{#if $notifications.length > 0}
-					{#each $notifications as notification}
-						<button 
+					{#each $notifications as notification, i (i)}
+						<button
 							type="button"
-							class="w-full p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors {!notification.isRead ? 'bg-blue-50' : ''} text-left"
+							class="w-full p-3 border-b hover:bg-gray-50 cursor-pointer transition-colors {!notification.isRead
+								? 'bg-blue-50'
+								: ''} text-left"
 							onclick={() => handleNotificationClick(notification)}
 							aria-label="Mark notification as read: {notification.title}"
 						>
@@ -118,13 +130,13 @@
 						</button>
 					{/each}
 				{:else}
-					<div class="p-6 text-center text-gray-500">
+					<div class="p-6 text-center font-base-500">
 						<Bell class="h-12 w-12 mx-auto text-gray-400 p-2 rounded-full mb-4" />
 						<p class="text-sm">No notifications yet</p>
 					</div>
 				{/if}
 			</div>
-			
+
 			{#if $notifications.length > 0}
 				<div class="p-2 border-t bg-gray-50">
 					<Button
