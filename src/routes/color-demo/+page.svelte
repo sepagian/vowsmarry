@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ThemeToggle from '$lib/components/ui/ThemeToggle.svelte';
+	import AppearanceSwitcher from '$lib/components/appearance-switcher.svelte';
 </script>
 
 <svelte:head>
@@ -11,7 +11,7 @@
 		<!-- Header -->
 		<div class="flex justify-between items-center mb-8">
 			<h1 class="text-h1">Color System Demo</h1>
-			<ThemeToggle variant="dropdown" showLabel />
+			<AppearanceSwitcher/>
 		</div>
 
 		<!-- Primary Colors -->
