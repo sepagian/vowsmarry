@@ -94,7 +94,8 @@
     - Build document validation and error handling
     - _Requirements: 2.1, 2.2, 2.5_
 
-  - [ ] 6.3 Connect paperwork frontend to backend
+  - [x] 6.3 Connect paperwork frontend to backend
+
 
 
 
@@ -106,15 +107,74 @@
     - Add document reminder notifications and deadline tracking
     - _Requirements: 2.3, 2.4_
 
-- [ ] 7. Implement budgeting module server actions and frontend integration
-  - [ ] 7.1 Add budget CRUD server actions
+- [x] 7. Implement design system foundation with design tokens
+
+
+  - [x] 7.1 Create design token system for layout and spacing
+
+
+
+
+
+    - Define layout tokens for container widths, breakpoints, and grid systems
+    - Create spacing scale tokens (margins, padding, gaps) following 4px base unit
+    - Implement responsive layout utilities with mobile-first approach
+    - Build layout components (Container, Grid, Stack, Flex) using design tokens
+    - Configure UnoCSS with custom spacing and layout token values
+    - _Requirements: 7.1, 7.2, 7.3_
+
+  - [x] 7.2 Establish typography and font sizing tokens
+
+
+
+
+
+    - Define font size scale tokens (xs, sm, base, lg, xl, 2xl, 3xl, 4xl, 5xl)
+    - Create font weight tokens (light, normal, medium, semibold, bold)
+    - Implement line height and letter spacing tokens for optimal readability
+    - Build typography utility classes and component variants
+    - Configure font loading and fallback strategies for performance
+    - _Requirements: 7.1, 7.4_
+
+  - [x] 7.3 Create comprehensive color system tokens
+
+
+
+
+
+    - Define primary color palette with semantic naming (primary, secondary, accent)
+    - Create neutral color scale (gray-50 to gray-900) for backgrounds and text
+    - Implement semantic color tokens (success, warning, error, info)
+    - Build color variants for different states (hover, active, disabled, focus)
+    - Configure dark mode color tokens and theme switching capabilities
+    - _Requirements: 7.1, 7.3_
+
+  - [ ] 7.4 Implement border radius and visual styling tokens
+    - Define border radius scale tokens (none, sm, base, md, lg, xl, full)
+    - Create border width and style tokens for consistent borders
+    - Implement shadow tokens (sm, base, md, lg, xl) for depth and elevation
+    - Build opacity and blur tokens for overlays and effects
+    - Configure animation and transition tokens for smooth interactions
+    - _Requirements: 7.1, 7.4_
+
+  - [ ] 7.5 Build design system documentation and component library
+    - Create design token documentation with usage examples and guidelines
+    - Build Storybook or similar tool for component documentation and testing
+    - Implement design system validation and linting rules
+    - Create design token export functionality for design tools (Figma tokens)
+    - Build automated design system testing and visual regression tests
+    - _Requirements: 7.1, 7.4_
+
+- [-] 8. Implement budgeting module server actions and frontend integration
+
+  - [ ] 8.1 Add budget CRUD server actions
     - Create server actions for budget item creation, update, and deletion with validation
     - Implement budget category management with proper validation
     - Add expense tracking with receipt upload functionality using file upload system
     - Build budget alerts system for overspending and approaching limits
     - _Requirements: 3.1, 3.2, 3.3_
 
-  - [ ] 7.2 Connect budget frontend to backend and add export features
+  - [ ] 8.2 Connect budget frontend to backend and add export features
     - Replace static forms with working server actions
     - Implement budget forms with server actions, validation, and receipt upload
     - Build CSV and PDF export functionality for budget reports and summaries
@@ -122,15 +182,15 @@
     - Integrate budget data with vendor management for cost tracking
     - _Requirements: 3.4, 3.5_
 
-- [ ] 8. Implement task management module server actions and frontend integration
-  - [ ] 8.1 Add todo CRUD server actions
+- [ ] 9. Implement task management module server actions and frontend integration
+  - [ ] 9.1 Add todo CRUD server actions
     - Create server actions for task creation, update, deletion, and status changes with validation
     - Implement task assignment system, priority management, and dependency tracking
     - Add task validation, due date management, and automated reminder system
     - Build task search functionality and category-based filtering
     - _Requirements: 4.1, 4.2, 4.4_
 
-  - [ ] 8.2 Connect todo frontend to backend
+  - [ ] 9.2 Connect todo frontend to backend
     - Replace static forms with working server actions
     - Implement task forms with proper validation, assignment features, and file attachments
     - Build task status update functionality, progress tracking, and completion workflows
@@ -138,15 +198,15 @@
     - Integrate task deadlines with dashboard notifications and alerts
     - _Requirements: 4.3, 4.5_
 
-- [ ] 9. Implement vendor management module server actions and frontend integration
-  - [ ] 9.1 Add vendor CRUD server actions
+- [ ] 10. Implement vendor management module server actions and frontend integration
+  - [ ] 10.1 Add vendor CRUD server actions
     - Create server actions for vendor creation, update, and deletion with validation
     - Implement vendor status tracking, contact management, and communication history
     - Add contract upload functionality with file storage integration and document management
     - Build vendor search, filtering by category, and status-based organization
     - _Requirements: 5.1, 5.2, 5.5_
 
-  - [ ] 9.2 Connect vendor frontend to backend
+  - [ ] 10.2 Connect vendor frontend to backend
     - Replace static forms with working server actions
     - Implement vendor forms with proper validation, file upload, and contact management
     - Build vendor rating and review functionality with persistent storage
@@ -154,15 +214,15 @@
     - Integrate vendor costs with budget module for expense tracking
     - _Requirements: 5.3, 5.4_
 
-- [ ] 10. Implement savings tracking module server actions and frontend integration
-  - [ ] 10.1 Add savings CRUD server actions
+- [ ] 11. Implement savings tracking module server actions and frontend integration
+  - [ ] 11.1 Add savings CRUD server actions
     - Create server actions for savings goal setting, entry logging, and milestone tracking
     - Implement savings calculations, progress tracking, and projection algorithms
     - Add savings analytics with charts, projections, and milestone notifications
     - Build savings history tracking and automated goal progress updates
     - _Requirements: 9.1, 9.2, 9.3_
 
-  - [ ] 10.2 Connect savings frontend to backend
+  - [ ] 11.2 Connect savings frontend to backend
     - Replace static forms with working server actions
     - Implement savings forms with proper validation, calculations, and goal management
     - Build savings progress monitoring, visual charts, and budget integration
@@ -170,15 +230,15 @@
     - Integrate savings data with budget module for affordability calculations
     - _Requirements: 9.4, 9.5_
 
-- [ ] 11. Implement dowry management module server actions and frontend integration
-  - [ ] 11.1 Add dowry CRUD server actions
+- [ ] 12. Implement dowry management module server actions and frontend integration
+  - [ ] 12.1 Add dowry CRUD server actions
     - Create server actions for dowry item creation, update, and deletion with validation
     - Implement dowry value calculations, status tracking, and currency conversion
     - Add proof upload functionality with secure file storage and document management
     - Build dowry categorization, witness management, and verification workflows
     - _Requirements: 10.1, 10.2, 10.4_
 
-  - [ ] 11.2 Connect dowry frontend to backend and add reporting
+  - [ ] 12.2 Connect dowry frontend to backend and add reporting
     - Replace static forms with working server actions
     - Implement dowry forms with proper validation, file upload, and witness management
     - Build dowry documentation export for legal purposes with PDF generation
@@ -186,15 +246,15 @@
     - Create dowry summary reports and value calculations for documentation
     - _Requirements: 10.3, 10.5_
 
-- [ ] 12. Implement souvenir planning module server actions and frontend integration
-  - [ ] 12.1 Add souvenir CRUD server actions
+- [ ] 13. Implement souvenir planning module server actions and frontend integration
+  - [ ] 13.1 Add souvenir CRUD server actions
     - Create server actions for souvenir creation, update, and deletion with validation
     - Implement souvenir status tracking, vendor integration, and order management
     - Add inventory management with quantity tracking, cost calculations, and distribution planning
     - Build souvenir customization options and packaging management
     - _Requirements: 11.1, 11.2, 11.3_
 
-  - [ ] 12.2 Connect souvenir frontend to backend
+  - [ ] 13.2 Connect souvenir frontend to backend
     - Replace static forms with working server actions
     - Implement souvenir forms with proper validation, vendor integration, and customization options
     - Build distribution tracking, guest list integration, and delivery management
@@ -202,15 +262,15 @@
     - Integrate souvenir costs with budget module for expense tracking
     - _Requirements: 11.4, 11.5_
 
-- [ ] 13. Implement dresscode management module server actions and frontend integration
-  - [ ] 13.1 Add dresscode CRUD server actions
+- [ ] 14. Implement dresscode management module server actions and frontend integration
+  - [ ] 14.1 Add dresscode CRUD server actions
     - Create server actions for dresscode creation, update, and deletion with validation
     - Implement inspiration photo upload, organization, and gallery management
     - Add dresscode categorization by event type, validation, and attire specifications
     - Build dresscode templates and cultural requirement management
     - _Requirements: 8.1, 8.2, 8.3_
 
-  - [ ] 13.2 Connect dresscode frontend to backend
+  - [ ] 14.2 Connect dresscode frontend to backend
     - Replace static forms with working server actions
     - Implement dresscode forms with proper validation, media upload, and attire specifications
     - Build dresscode sharing integration with invitation system and guest notifications
@@ -218,15 +278,15 @@
     - Create dresscode guidelines export and sharing functionality
     - _Requirements: 8.4, 8.5_
 
-- [ ] 14. Implement rundown and timeline module server actions and frontend integration
-  - [ ] 14.1 Add rundown CRUD server actions
+- [ ] 15. Implement rundown and timeline module server actions and frontend integration
+  - [ ] 15.1 Add rundown CRUD server actions
     - Create server actions for rundown event creation, update, and deletion with validation
     - Implement timeline management, conflict detection logic, and scheduling algorithms
     - Add responsibility assignment, role management, and vendor coordination functionality
     - Build rundown templates, event dependencies, and buffer time management
     - _Requirements: 6.1, 6.2, 6.4_
 
-  - [ ] 14.2 Connect rundown frontend to backend and add export
+  - [ ] 15.2 Connect rundown frontend to backend and add export
     - Replace static forms with working server actions
     - Implement rundown forms with proper validation, scheduling, and conflict detection
     - Build PDF export functionality for timeline sharing and distribution
@@ -234,8 +294,8 @@
     - Create rundown sharing with vendors and wedding party members
     - _Requirements: 6.3, 6.5_
 
-- [ ] 15. Implement invitation system foundation
-  - [ ] 15.1 Create invitation CRUD operations and template system
+- [ ] 16. Implement invitation system foundation
+  - [ ] 16.1 Create invitation CRUD operations and template system
     - Build +page.server.ts with load function for invitation management and templates
     - Create server actions for invitation creation, update, and deletion with validation
     - Implement invitation template management, customization, and preview functionality
@@ -243,7 +303,7 @@
     - Build invitation validation, publishing workflow, and slug management
     - _Requirements: 12.1, 12.2_
 
-  - [ ] 15.2 Connect invitation frontend to backend
+  - [ ] 16.2 Connect invitation frontend to backend
     - Replace dummy data with real database queries in +page.server.ts
     - Implement invitation forms with server actions, validation, and template selection
     - Build invitation preview, publishing functionality, and real-time updates
@@ -251,8 +311,8 @@
     - Create invitation URL generation and sharing functionality
     - _Requirements: 12.2, 12.5_
 
-- [ ] 16. Implement guest management and RSVP system
-  - [ ] 16.1 Create guest CRUD operations and invitation tokens
+- [ ] 17. Implement guest management and RSVP system
+  - [ ] 17.1 Create guest CRUD operations and invitation tokens
     - Build +page.server.ts with load function for guest management and RSVP tracking
     - Create server actions for guest creation, update, and deletion with validation
     - Implement guest invitation token generation, management, and security
@@ -260,7 +320,7 @@
     - Build guest contact management, categorization, and invitation status tracking
     - _Requirements: 12.3, 12.5_
 
-  - [ ] 16.2 Connect guest management frontend to backend and build RSVP
+  - [ ] 17.2 Connect guest management frontend to backend and build RSVP
     - Replace dummy data with real database queries in +page.server.ts
     - Implement guest forms with server actions, validation, and bulk operations
     - Build RSVP submission, tracking functionality, and guest response management
@@ -268,8 +328,8 @@
     - Create guest list export and RSVP status reporting functionality
     - _Requirements: 12.4, 12.5_
 
-- [ ] 17. Implement gallery and love story features
-  - [ ] 17.1 Create media gallery CRUD operations and optimization
+- [ ] 18. Implement gallery and love story features
+  - [ ] 18.1 Create media gallery CRUD operations and optimization
     - Build +page.server.ts with load function for gallery management and media organization
     - Create server actions for photo and video upload with optimization and validation
     - Implement gallery organization with sorting, categorization, and album management
@@ -277,7 +337,7 @@
     - Build media validation, compression, and batch upload functionality
     - _Requirements: 13.1, 13.2, 13.4_
 
-  - [ ] 17.2 Connect gallery frontend to backend and build love story
+  - [ ] 18.2 Connect gallery frontend to backend and build love story
     - Replace dummy data with real database queries in +page.server.ts
     - Implement gallery forms with server actions, validation, and media management
     - Build love story timeline creation, management, and rich content editing
@@ -285,8 +345,8 @@
     - Create gallery and love story sharing with guests through invitation system
     - _Requirements: 13.3, 13.5_
 
-- [ ] 18. Implement gift management system
-  - [ ] 18.1 Create gift options CRUD operations and payment integration
+- [ ] 19. Implement gift management system
+  - [ ] 19.1 Create gift options CRUD operations and payment integration
     - Build +page.server.ts with load function for gift management and contribution tracking
     - Create server actions for gift option creation, management, and configuration
     - Implement digital envelope setup with bank transfer integration and QR code generation
@@ -294,7 +354,7 @@
     - Build gift contribution tracking, payment processing, and thank you automation
     - _Requirements: 14.1, 14.2, 14.5_
 
-  - [ ] 18.2 Connect gift frontend to backend and build tracking
+  - [ ] 19.2 Connect gift frontend to backend and build tracking
     - Replace dummy data with real database queries in +page.server.ts
     - Implement gift forms with server actions, validation, and payment integration
     - Build gift contribution tracking, thank you system, and donor management
@@ -302,8 +362,8 @@
     - Create gift acknowledgment system and automated thank you messages
     - _Requirements: 14.3, 14.4_
 
-- [ ] 19. Build public invitation pages for guests
-  - [ ] 19.1 Create guest-facing invitation display pages
+- [ ] 20. Build public invitation pages for guests
+  - [ ] 20.1 Create guest-facing invitation display pages
     - Build responsive invitation pages with template rendering and mobile optimization
     - Create public route structure for invitation pages with slug-based routing
     - Implement RSVP form with validation, submission, and guest token authentication
@@ -311,7 +371,7 @@
     - Build invitation page SEO optimization and social media preview functionality
     - _Requirements: 12.4, 13.2, 13.3_
 
-  - [ ] 19.2 Build guest interaction features
+  - [ ] 20.2 Build guest interaction features
     - Implement guest message and guestbook functionality with moderation
     - Create gift contribution interface with payment processing and confirmation
     - Build social sharing features for invitation pages and event details
@@ -319,8 +379,8 @@
     - Create guest notification system for invitation updates and reminders
     - _Requirements: 14.1, 14.4_
 
-- [ ] 20. Implement comprehensive testing suite
-  - [ ] 20.1 Create unit tests for core functionality
+- [ ] 21. Implement comprehensive testing suite
+  - [ ] 21.1 Create unit tests for core functionality
     - Write unit tests for all utility functions, validation logic, and data transformations
     - Implement component tests for UI components, forms, and user interactions
     - Create API endpoint tests for all CRUD operations and server actions
@@ -328,7 +388,7 @@
     - Build authentication and authorization tests for security validation
     - _Testing Strategy: Unit Testing_
 
-  - [ ] 20.2 Build integration and end-to-end tests
+  - [ ] 21.2 Build integration and end-to-end tests
     - Implement integration tests for complete user workflows and module interactions
     - Create end-to-end tests for authentication, module operations, and guest interactions
     - Build performance tests for loading times, responsiveness, and file upload operations
@@ -336,8 +396,8 @@
     - Create cross-browser and mobile device compatibility tests
     - _Testing Strategy: Integration Testing, End-to-End Testing_
 
-- [ ] 21. Optimize performance and implement security measures
-  - [ ] 21.1 Implement performance optimizations
+- [ ] 22. Optimize performance and implement security measures
+  - [ ] 22.1 Implement performance optimizations
     - Optimize database queries with proper indexing, caching, and query optimization
     - Implement image and video optimization for gallery features with compression
     - Create lazy loading and pagination for large data sets across all modules
@@ -345,7 +405,7 @@
     - Build database connection pooling and query performance monitoring
     - _Requirements: 7.4, 15.3_
 
-  - [ ] 21.2 Build security and monitoring features
+  - [ ] 22.2 Build security and monitoring features
     - Implement comprehensive input validation, sanitization, and XSS protection
     - Create audit logging for all user actions, data changes, and security events
     - Build rate limiting, brute force protection, and DDoS mitigation
@@ -353,8 +413,8 @@
     - Implement data encryption, secure file storage, and privacy compliance
     - _Requirements: 15.1, 15.2, 15.4, 15.5_
 
-- [ ] 22. Deploy and configure production environment
-  - [ ] 22.1 Set up production deployment pipeline
+- [ ] 23. Deploy and configure production environment
+  - [ ] 23.1 Set up production deployment pipeline
     - Configure Vercel deployment with environment variables and build optimization
     - Set up Cloudflare R2 for file storage, CDN, and global content delivery
     - Implement database backup, recovery procedures, and disaster recovery planning
@@ -362,7 +422,7 @@
     - Configure SSL certificates, domain management, and security policies
     - _Requirements: 15.3_
 
-  - [ ] 22.2 Configure monitoring and analytics
+  - [ ] 23.2 Configure monitoring and analytics
     - Set up error monitoring, logging systems, and real-time alerting
     - Implement user analytics, usage tracking, and performance metrics
     - Create health checks, uptime monitoring, and system status dashboards
