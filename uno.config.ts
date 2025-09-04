@@ -16,6 +16,7 @@ import { layoutTokens } from './src/lib/design-tokens/layout.js';
 import { spacingTokens } from './src/lib/design-tokens/spacing.js';
 import { typographyTokens } from './src/lib/design-tokens/typography.js';
 import { colorTokens } from './src/lib/design-tokens/colors.js';
+import { visualTokens } from './src/lib/design-tokens/visual.js';
 
 export default defineConfig({
 	preflights: [
@@ -224,6 +225,53 @@ export default defineConfig({
   --letter-spacing-wide: 0.025em;
   --letter-spacing-wider: 0.05em;
   --letter-spacing-widest: 0.1em;
+
+  /* Visual styling tokens */
+  /* Border radius tokens */
+  --border-radius-none: ${visualTokens.borderRadius.none};
+  --border-radius-sm: ${visualTokens.borderRadius.sm};
+  --border-radius-base: ${visualTokens.borderRadius.base};
+  --border-radius-md: ${visualTokens.borderRadius.md};
+  --border-radius-lg: ${visualTokens.borderRadius.lg};
+  --border-radius-xl: ${visualTokens.borderRadius.xl};
+  --border-radius-2xl: ${visualTokens.borderRadius['2xl']};
+  --border-radius-3xl: ${visualTokens.borderRadius['3xl']};
+  --border-radius-full: ${visualTokens.borderRadius.full};
+
+  /* Border width tokens */
+  --border-width-0: ${visualTokens.borderWidth[0]};
+  --border-width-1: ${visualTokens.borderWidth[1]};
+  --border-width-2: ${visualTokens.borderWidth[2]};
+  --border-width-4: ${visualTokens.borderWidth[4]};
+  --border-width-8: ${visualTokens.borderWidth[8]};
+
+  /* Shadow tokens */
+  --shadow-none: ${visualTokens.boxShadow.none};
+  --shadow-sm: ${visualTokens.boxShadow.sm};
+  --shadow-base: ${visualTokens.boxShadow.base};
+  --shadow-md: ${visualTokens.boxShadow.md};
+  --shadow-lg: ${visualTokens.boxShadow.lg};
+  --shadow-xl: ${visualTokens.boxShadow.xl};
+  --shadow-2xl: ${visualTokens.boxShadow['2xl']};
+  --shadow-inner: ${visualTokens.boxShadow.inner};
+
+  /* Animation duration tokens */
+  --duration-75: ${visualTokens.animationDuration[75]};
+  --duration-100: ${visualTokens.animationDuration[100]};
+  --duration-150: ${visualTokens.animationDuration[150]};
+  --duration-200: ${visualTokens.animationDuration[200]};
+  --duration-300: ${visualTokens.animationDuration[300]};
+  --duration-500: ${visualTokens.animationDuration[500]};
+  --duration-700: ${visualTokens.animationDuration[700]};
+  --duration-1000: ${visualTokens.animationDuration[1000]};
+
+  /* Animation timing function tokens */
+  --ease-linear: ${visualTokens.animationTimingFunction.linear};
+  --ease-in: ${visualTokens.animationTimingFunction.in};
+  --ease-out: ${visualTokens.animationTimingFunction.out};
+  --ease-in-out: ${visualTokens.animationTimingFunction['in-out']};
+  --ease-smooth: ${visualTokens.animationTimingFunction['ease-smooth']};
+  --ease-bounce: ${visualTokens.animationTimingFunction['ease-bounce']};
 }
 
 .dark {
@@ -569,7 +617,22 @@ code, pre {
 			disabled: {
 				content: 'var(--disabled-content)'
 			}
-		}
+		},
+
+		// Visual styling tokens
+		borderRadius: visualTokens.borderRadius,
+		borderWidth: visualTokens.borderWidth,
+		boxShadow: visualTokens.boxShadow,
+		dropShadow: visualTokens.dropShadow,
+		opacity: visualTokens.opacity,
+		blur: visualTokens.blur,
+		backdropBlur: visualTokens.backdropBlur,
+		animationDuration: visualTokens.animationDuration,
+		animationTimingFunction: visualTokens.animationTimingFunction,
+		transitionDuration: visualTokens.transitionDuration,
+		transitionTimingFunction: visualTokens.transitionTimingFunction,
+		animation: visualTokens.animations,
+		keyframes: visualTokens.keyframes
 	},
 	variants: [
 		(matcher) => {
@@ -672,7 +735,52 @@ code, pre {
 		// Color utility shortcuts - text styles
 		'text-muted': 'text-neutral-600 dark:text-neutral-400',
 		'text-subtle': 'text-neutral-500 dark:text-neutral-500',
-		'text-placeholder': 'text-neutral-400 dark:text-neutral-600'
+		'text-placeholder': 'text-neutral-400 dark:text-neutral-600',
+
+		// Visual styling shortcuts - border radius
+		'rounded-card': 'rounded-lg',
+		'rounded-button': 'rounded-md',
+		'rounded-input': 'rounded',
+		'rounded-modal': 'rounded-xl',
+		'rounded-avatar': 'rounded-full',
+
+		// Visual styling shortcuts - shadows
+		'shadow-card': 'shadow-md',
+		'shadow-button': 'shadow-sm hover:shadow-md',
+		'shadow-modal': 'shadow-xl',
+		'shadow-dropdown': 'shadow-lg',
+		'shadow-tooltip': 'shadow-base',
+
+		// Visual styling shortcuts - borders
+		'border-default': 'border border-neutral-200 dark:border-neutral-700',
+		'border-input': 'border border-neutral-300 dark:border-neutral-600 focus:border-primary',
+		'border-card': 'border border-neutral-200 dark:border-neutral-800',
+		'border-divider': 'border-t border-neutral-200 dark:border-neutral-700',
+
+		// Visual styling shortcuts - animations
+		'animate-fade-in': 'opacity-0 animate-[fadeIn_300ms_cubic-bezier(0,0,0.2,1)]',
+		'animate-slide-up': 'translate-y-2 opacity-0 animate-[slideUp_300ms_cubic-bezier(0,0,0.2,1)]',
+		'animate-scale-in': 'scale-95 opacity-0 animate-[scaleIn_200ms_cubic-bezier(0,0,0.2,1)]',
+		'animate-bounce-in': 'scale-30 opacity-0 animate-[bounceIn_500ms_cubic-bezier(0.68,-0.55,0.265,1.55)]',
+
+		// Visual styling shortcuts - transitions
+		'transition-smooth': 'transition-all duration-200 ease-smooth',
+		'transition-fast': 'transition-all duration-150 ease-out',
+		'transition-slow': 'transition-all duration-300 ease-in-out',
+
+		// Visual styling shortcuts - interactive states
+		'interactive': 'transition-smooth hover:scale-105 active:scale-95',
+		'interactive-subtle': 'transition-fast hover:opacity-80 active:opacity-60',
+		'interactive-lift': 'transition-smooth hover:shadow-lg hover:-translate-y-1',
+
+		// Visual styling shortcuts - overlays
+		'overlay': 'bg-black bg-opacity-50 backdrop-blur-sm',
+		'overlay-light': 'bg-white bg-opacity-75 backdrop-blur-sm',
+		'overlay-dark': 'bg-black bg-opacity-75 backdrop-blur-md',
+
+		// Visual styling shortcuts - glass morphism
+		'glass': 'bg-white bg-opacity-20 backdrop-blur-md border border-white border-opacity-20',
+		'glass-dark': 'bg-black bg-opacity-20 backdrop-blur-md border border-white border-opacity-10'
 	},
 	safelist: [
 		// Layout and spacing classes that should always be included
@@ -728,6 +836,37 @@ code, pre {
 		'surface-info',
 		'text-muted',
 		'text-subtle',
-		'text-placeholder'
+		'text-placeholder',
+
+		// Visual styling classes that should always be included
+		'rounded-card',
+		'rounded-button',
+		'rounded-input',
+		'rounded-modal',
+		'rounded-avatar',
+		'shadow-card',
+		'shadow-button',
+		'shadow-modal',
+		'shadow-dropdown',
+		'shadow-tooltip',
+		'border-default',
+		'border-input',
+		'border-card',
+		'border-divider',
+		'animate-fade-in',
+		'animate-slide-up',
+		'animate-scale-in',
+		'animate-bounce-in',
+		'transition-smooth',
+		'transition-fast',
+		'transition-slow',
+		'interactive',
+		'interactive-subtle',
+		'interactive-lift',
+		'overlay',
+		'overlay-light',
+		'overlay-dark',
+		'glass',
+		'glass-dark'
 	]
 });
