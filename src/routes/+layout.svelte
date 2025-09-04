@@ -4,7 +4,7 @@
 	import 'uno.css';
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
-	import { ToastContainer } from '$lib/components/ui/toast';
+	import { Toaster } from 'svelte-sonner';
 	import { Progress } from '@friendofsvelte/progress';
 
 	let { data, children } = $props();
@@ -23,4 +23,5 @@
 <ModeWatcher />
 <Progress size="md" color="blue" />
 {@render children()}
-<ToastContainer />
+<!-- Sonner Toast notifications -->
+<Toaster richColors position="top-right" />
