@@ -4,6 +4,7 @@
 	import SiteHeader from '$lib/components/site-header.svelte';
 	import WeddingDataAlert from '$lib/components/wedding-data-alert.svelte';
 	import WeddingDataModal from '$lib/components/wedding-data-modal.svelte';
+	import { Toaster } from 'svelte-sonner';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
@@ -90,4 +91,7 @@
 
 	<!-- Wedding Data Modal -->
 	<WeddingDataModal bind:open={showModal} onSuccess={handleModalSuccess} />
+
+	<!-- Toast notifications -->
+	<Toaster richColors position="top-right" />
 </div>
