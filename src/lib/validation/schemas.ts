@@ -71,6 +71,13 @@ export const documentSchema = z.object({
 export const documentUpdateSchema = documentSchema.partial();
 
 // Budget schemas
+export const budgetCategorySchema = z.object({
+	name: z.string().min(1, 'Category name is required').max(100, 'Category name must be less than 100 characters'),
+	allocatedAmount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Please enter a valid allocated amount'),
+	color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Please enter a valid hex color').optional(),
+	description: z.string().max(500, 'Description must be less than 500 characters').optional()
+});
+
 export const budgetItemSchema = z.object({
 	category: z.string().min(1, 'Category is required').max(100, 'Category must be less than 100 characters'),
 	description: z.string().min(1, 'Description is required').max(200, 'Description must be less than 200 characters'),
@@ -425,6 +432,7 @@ export const schemas = {
 	// Modules
 	document: documentSchema,
 	documentUpdate: documentUpdateSchema,
+	budgetCategory: budgetCategorySchema,
 	budgetItem: budgetItemSchema,
 	budgetItemUpdate: budgetItemUpdateSchema,
 	todo: todoSchema,
@@ -463,6 +471,7 @@ export type RegisterData = z.infer<typeof registerSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
 export type WeddingData = z.infer<typeof weddingSchema>;
 export type DocumentData = z.infer<typeof documentSchema>;
+export type BudgetCategoryData = z.infer<typeof budgetCategorySchema>;
 export type BudgetItemData = z.infer<typeof budgetItemSchema>;
 export type TodoData = z.infer<typeof todoSchema>;
 export type VendorData = z.infer<typeof vendorSchema>;
