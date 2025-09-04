@@ -149,7 +149,11 @@
     - Configure dark mode color tokens and theme switching capabilities
     - _Requirements: 7.1, 7.3_
 
-  - [ ] 7.4 Implement border radius and visual styling tokens
+  - [x] 7.4 Implement border radius and visual styling tokens
+
+
+
+
     - Define border radius scale tokens (none, sm, base, md, lg, xl, full)
     - Create border width and style tokens for consistent borders
     - Implement shadow tokens (sm, base, md, lg, xl) for depth and elevation
@@ -167,7 +171,11 @@
 
 - [-] 8. Implement budgeting module server actions and frontend integration
 
-  - [ ] 8.1 Add budget CRUD server actions
+
+
+  - [x] 8.1 Add budget CRUD server actions
+
+
     - Create server actions for budget item creation, update, and deletion with validation
     - Implement budget category management with proper validation
     - Add expense tracking with receipt upload functionality using file upload system
@@ -175,6 +183,8 @@
     - _Requirements: 3.1, 3.2, 3.3_
 
   - [ ] 8.2 Connect budget frontend to backend and add export features
+
+
     - Replace static forms with working server actions
     - Implement budget forms with server actions, validation, and receipt upload
     - Build CSV and PDF export functionality for budget reports and summaries
