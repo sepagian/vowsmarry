@@ -4,11 +4,12 @@
  */
 
 // Re-export individual tokens
-export { layoutTokens } from './layout.js';
-export { spacingTokens } from './spacing.js';
-export { typographyTokens } from './typography.js';
+export { layoutTokens } from './layout';
+export { spacingTokens } from './spacing';
+export { typographyTokens } from './typography';
 export { colorTokens } from './colors.js';
-export { responsiveUtilities, responsiveSpacing } from './responsive.js';
+export { visualTokens } from './visual';
+export { responsiveUtilities, responsiveSpacing } from './responsive';
 
 // Re-export types
 export type {
@@ -18,7 +19,7 @@ export type {
   GridRows,
   GridColSpan,
   GridRowSpan
-} from './layout.js';
+} from './layout';
 
 export type {
   SpacingValue,
@@ -26,7 +27,7 @@ export type {
   LayoutSpacing,
   SectionSpacing,
   PageSpacing
-} from './spacing.js';
+} from './spacing';
 
 export type {
   FontSize,
@@ -37,7 +38,7 @@ export type {
   HeadingLevel,
   BodyTextSize,
   UITextType
-} from './typography.js';
+} from './typography';
 
 export type {
   PrimaryColor,
@@ -48,8 +49,25 @@ export type {
   SemanticColor,
   StateVariant,
   ColorScale
-} from './colors.js';
+} from './colors';
+
+export type {
+  BorderRadius,
+  BorderWidth,
+  BorderStyle,
+  BoxShadow,
+  DropShadow,
+  Opacity,
+  Blur,
+  BackdropBlur,
+  AnimationDuration,
+  AnimationTimingFunction,
+  TransitionDuration,
+  TransitionTimingFunction,
+  Animation,
+  Keyframe
+} from './visual';
 
 // Re-export combined tokens
-export { designTokens } from './combined.js';
-export type { DesignTokens } from './combined.js';
+export { designTokens } from './combined';
+export type { DesignTokens } from './combined';
