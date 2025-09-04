@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Container, Grid, GridItem, Stack, PageHeader } from '$lib/components/layout';
 	import { Typography, Heading, Text } from '$lib/components/ui';
-	import { layoutTokens, spacingTokens, typographyTokens } from '$lib/design-tokens';
-	import TypographyShowcase from '$lib/components/examples/typography-showcase.svelte';
+	import { layoutTokens, spacingTokens, typographyTokens, visualTokens } from '$lib/design-tokens';
+	import VisualTokensShowcase from '$lib/components/examples/visual-tokens-showcase.svelte';
+
 
 	// Sample data for demonstrating tokens
 	const containerSizes = Object.entries(layoutTokens.container);
@@ -22,7 +23,7 @@
 	<title>Design Tokens Documentation</title>
 </svelte:head>
 
-<TypographyShowcase/>
+
 <Container size="7xl" padding="lg">
 	<Stack direction="vertical" spacing={8}>
 		<PageHeader
@@ -424,6 +425,20 @@
 						</GridItem>
 					</Grid>
 				</div>
+			</Stack>
+		</section>
+
+		<!-- Visual Styling Tokens -->
+		<section>
+			<Stack direction="vertical" spacing={6}>
+				<div>
+					<h2 class="text-2xl font-bold text-base-content mb-4">Visual Styling Tokens</h2>
+					<p class="text-base-content/70 mb-6">
+						Border radius, shadows, opacity, blur, and animation tokens for consistent visual styling and smooth interactions.
+					</p>
+				</div>
+
+				<VisualTokensShowcase />
 			</Stack>
 		</section>
 
