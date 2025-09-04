@@ -1,19 +1,6 @@
-import { writable } from 'svelte/store';
+import { toast as sonnerToast } from 'svelte-sonner';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
-
-export interface Toast {
-	id: string;
-	type: ToastType;
-	title: string;
-	message?: string;
-	duration?: number;
-	dismissible?: boolean;
-	action?: {
-		label: string;
-		handler: () => void;
-	};
-}
 
 export interface ToastOptions {
 	type?: ToastType;
@@ -27,100 +14,110 @@ export interface ToastOptions {
 	};
 }
 
-// Default toast configuration
-const DEFAULT_DURATION = 5000; // 5 seconds
-const DEFAULT_DISMISSIBLE = true;
-
-// Create the toast store
+// Create a wrapper around svelte-sonner to maintain API compatibility
 function createToastStore() {
-	const { subscribe, update } = writable<Toast[]>([]);
-
-	// Generate unique ID for each toast
-	function generateId(): string {
-		return `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-	}
-
-	// Add a new toast
-	function addToast(options: ToastOptions): string {
-		const id = generateId();
-		const toast: Toast = {
-			id,
-			type: options.type || 'info',
-			title: options.title,
-			message: options.message,
-			duration: options.duration ?? DEFAULT_DURATION,
-			dismissible: options.dismissible ?? DEFAULT_DISMISSIBLE,
-			action: options.action
-		};
-
-		update(toasts => [...toasts, toast]);
-
-		// Auto-dismiss toast after duration (if duration > 0)
-		if (toast.duration && toast.duration > 0) {
-			setTimeout(() => {
-				removeToast(id);
-			}, toast.duration);
-		}
-
-		return id;
-	}
-
-	// Remove a toast by ID
-	function removeToast(id: string) {
-		update(toasts => toasts.filter(toast => toast.id !== id));
-	}
-
-	// Clear all toasts
-	function clearAll() {
-		update(() => []);
-	}
-
-	// Update a toast
-	function updateToast(id: string, updates: Partial<Omit<Toast, 'id'>>) {
-		update(toasts => 
-			toasts.map(toast => 
-				toast.id === id ? { ...toast, ...updates } : toast
-			)
-		);
-	}
-
 	// Convenience methods for different toast types
-	function success(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>) {
-		return addToast({
-			type: 'success',
-			title,
-			message,
-			...options
-		});
+	function success(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>): string | number {
+		const description = message || '';
+		const toastOptions: any = {};
+		
+		if (options?.duration !== undefined) {
+			toastOptions.duration = options.duration === 0 ? Infinity : options.duration;
+		}
+		
+		if (options?.action) {
+			toastOptions.action = {
+				label: options.action.label,
+				onClick: options.action.handler
+			};
+		}
+		
+		return sonnerToast.success(title, { description, ...toastOptions });
 	}
 
-	function error(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>) {
-		return addToast({
-			type: 'error',
-			title,
-			message,
-			duration: 0, // Error toasts don't auto-dismiss by default
-			...options
-		});
+	function error(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>): string | number {
+		const description = message || '';
+		const toastOptions: any = {};
+		
+		// Error toasts don't auto-dismiss by default (like the original implementation)
+		if (options?.duration !== undefined) {
+			toastOptions.duration = options.duration === 0 ? Infinity : options.duration;
+		} else {
+			toastOptions.duration = Infinity;
+		}
+		
+		if (options?.action) {
+			toastOptions.action = {
+				label: options.action.label,
+				onClick: options.action.handler
+			};
+		}
+		
+		return sonnerToast.error(title, { description, ...toastOptions });
 	}
 
-	function warning(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>) {
-		return addToast({
-			type: 'warning',
-			title,
-			message,
-			duration: 8000, // Warning toasts stay longer
-			...options
-		});
+	function warning(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>): string | number {
+		const description = message || '';
+		const toastOptions: any = {};
+		
+		if (options?.duration !== undefined) {
+			toastOptions.duration = options.duration === 0 ? Infinity : options.duration;
+		} else {
+			toastOptions.duration = 8000; // Warning toasts stay longer (like original)
+		}
+		
+		if (options?.action) {
+			toastOptions.action = {
+				label: options.action.label,
+				onClick: options.action.handler
+			};
+		}
+		
+		return sonnerToast.warning(title, { description, ...toastOptions });
 	}
 
-	function info(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>) {
-		return addToast({
-			type: 'info',
-			title,
-			message,
-			...options
-		});
+	function info(title: string, message?: string, options?: Omit<ToastOptions, 'type' | 'title' | 'message'>): string | number {
+		const description = message || '';
+		const toastOptions: any = {};
+		
+		if (options?.duration !== undefined) {
+			toastOptions.duration = options.duration === 0 ? Infinity : options.duration;
+		}
+		
+		if (options?.action) {
+			toastOptions.action = {
+				label: options.action.label,
+				onClick: options.action.handler
+			};
+		}
+		
+		return sonnerToast.info(title, { description, ...toastOptions });
+	}
+
+	// Generic addToast method for compatibility
+	function addToast(options: ToastOptions): string | number {
+		const { type = 'info', title, message, ...restOptions } = options;
+		
+		switch (type) {
+			case 'success':
+				return success(title, message, restOptions);
+			case 'error':
+				return error(title, message, restOptions);
+			case 'warning':
+				return warning(title, message, restOptions);
+			case 'info':
+			default:
+				return info(title, message, restOptions);
+		}
+	}
+
+	// Compatibility methods
+	function removeToast(id: string | number) {
+		sonnerToast.dismiss(id);
+	}
+
+	function clearAll() {
+		sonnerToast.dismiss();
 	}
 
 	// Handle form errors (from validation or server errors)
@@ -153,6 +150,27 @@ function createToastStore() {
 		} else if (successMessage) {
 			return success(successMessage);
 		}
+	}
+
+	// Compatibility method for updateToast (sonner handles this internally)
+	function updateToast(id: string | number, updates: any) {
+		// Sonner doesn't support updating existing toasts, so we'll dismiss and create new
+		sonnerToast.dismiss(id);
+		if (updates.type && updates.title) {
+			return addToast({
+				type: updates.type,
+				title: updates.title,
+				message: updates.message,
+				duration: updates.duration,
+				action: updates.action
+			});
+		}
+	}
+
+	// Subscribe method for store compatibility (not used with sonner)
+	function subscribe() {
+		// Sonner doesn't expose a store, so this is mainly for compatibility
+		return () => {}; // Return unsubscribe function
 	}
 
 	return {
@@ -211,8 +229,8 @@ export const toastHelpers = {
 	sessionExpired: () => toast.warning('Session Expired', 'Please log in again to continue.'),
 
 	// Loading states
-	loading: (message: string) => toast.info('Loading', message, { duration: 0, dismissible: false }),
-	loadingComplete: (id: string) => toast.removeToast(id),
+	loading: (message: string) => toast.info('Loading', message, { duration: 0 }),
+	loadingComplete: (id: string | number) => toast.removeToast(id),
 
 	// Wedding planning specific messages
 	weddingCreated: () => toast.success('Wedding Created', 'Your wedding planning journey has begun!'),
@@ -243,3 +261,6 @@ export const toastHelpers = {
 // Export types for use in components
 export type ToastStore = ReturnType<typeof createToastStore>;
 export type ToastHelpers = typeof toastHelpers;
+
+// Re-export svelte-sonner types and components for direct access if needed
+export { toast as sonnerToast, Toaster } from 'svelte-sonner';
