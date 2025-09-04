@@ -1,3 +1,2 @@
-export { default as Toast } from './toast.svelte';
-export { default as ToastContainer } from './toast-container.svelte';
+// Re-export toast store and types from stores
 export * from '$lib/stores/toast';
