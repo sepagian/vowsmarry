@@ -50,12 +50,12 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3">
-	<div class="flex flex-col px-6">
+<div class="flex flex-col gap-3 px-4">
+	<div class="flex flex-col">
 		<h2 class="text-base font-bold text-neutral-600">Uploaded Documents</h2>
 	</div>
 
-	<div class="flex gap-4 flex-col px-6 sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
+	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
 		{#each docsCards as data (data.description)}
 			<Card.Root class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col py-4 px-4">
 				<Card.Header class="flex flex-col gap-3 px-0">
