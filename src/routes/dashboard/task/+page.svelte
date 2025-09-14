@@ -8,29 +8,29 @@
 			description: 'Completed',
 			actionClass: 'i-lucide:badge-check',
 			actionColor: 'bg-green-500 text-white',
-			footer: 'Updated 5 minutes ago'
+			footer: 'Updated 5 minutes ago',
 		},
 		{
 			title: '5',
 			description: 'Pending',
 			actionClass: 'i-lucide:badge-minus',
 			actionColor: 'bg-yellow-500 text-white',
-			footer: 'Updated 10 minutes ago'
+			footer: 'Updated 10 minutes ago',
 		},
 		{
 			title: '0',
 			description: 'Overdue',
 			actionClass: 'i-lucide:badge-alert',
 			actionColor: 'bg-red-500 text-white',
-			footer: 'Updated 2 minutes ago'
+			footer: 'Updated 2 minutes ago',
 		},
 		{
 			title: '7',
 			description: 'Total',
 			actionClass: 'i-lucide:badge-info',
 			actionColor: 'bg-blue-500 text-white',
-			footer: 'Updated 1 hour ago'
-		}
+			footer: 'Updated 1 hour ago',
+		},
 	];
 
 	const overviewTitle = 'Task Overview';
@@ -43,7 +43,7 @@
 			category: 'accommodation' as const,
 			priority: 'High' as const,
 			status: 'Pending' as const,
-			date: '2025-09-15'
+			date: '2025-09-15',
 		},
 		{
 			id: '2',
@@ -52,7 +52,7 @@
 			category: 'catering' as const,
 			priority: 'High' as const,
 			status: 'Pending' as const,
-			date: '2025-09-20'
+			date: '2025-09-20',
 		},
 		{
 			id: '3',
@@ -61,7 +61,7 @@
 			category: 'decoration' as const,
 			priority: 'Medium' as const,
 			status: 'Pending' as const,
-			date: '2025-09-25'
+			date: '2025-09-25',
 		},
 		{
 			id: '4',
@@ -70,7 +70,7 @@
 			category: 'entertainment' as const,
 			priority: 'Low' as const,
 			status: 'Pending' as const,
-			date: '2025-09-28'
+			date: '2025-09-28',
 		},
 		{
 			id: '5',
@@ -79,7 +79,7 @@
 			category: 'makeup-attire' as const,
 			priority: 'High' as const,
 			status: 'Pending' as const,
-			date: '2025-09-18'
+			date: '2025-09-18',
 		},
 		{
 			id: '6',
@@ -88,7 +88,7 @@
 			category: 'paperwork' as const,
 			priority: 'High' as const,
 			status: 'Pending' as const,
-			date: '2025-09-12'
+			date: '2025-09-12',
 		},
 		{
 			id: '7',
@@ -97,7 +97,7 @@
 			category: 'photo-video' as const,
 			priority: 'Medium' as const,
 			status: 'Pending' as const,
-			date: '2025-09-22'
+			date: '2025-09-22',
 		},
 		{
 			id: '8',
@@ -106,7 +106,7 @@
 			category: 'venue' as const,
 			priority: 'Medium' as const,
 			status: 'Pending' as const,
-			date: '2025-09-14'
+			date: '2025-09-14',
 		},
 		{
 			id: '9',
@@ -115,7 +115,7 @@
 			category: 'miscellaneous' as const,
 			priority: 'Low' as const,
 			status: 'Pending' as const,
-			date: '2025-09-26'
+			date: '2025-09-26',
 		},
 		{
 			id: '10',
@@ -124,12 +124,16 @@
 			category: 'paperwork' as const,
 			priority: 'Medium' as const,
 			status: 'Pending' as const,
-			date: '2025-09-10'
-		}
+			date: '2025-09-10',
+		},
 	];
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-lg mx-auto">
-	<SectionCards {overviewCards} {overviewTitle} />
+	<SectionCards
+		{overviewCards}
+		{overviewTitle}
+		columns={4}
+	/>
 	<TaskTable {data} />
 </div>
