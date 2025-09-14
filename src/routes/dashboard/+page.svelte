@@ -8,26 +8,26 @@
 			title: '12',
 			description: 'Tasks',
 			action: 'Total',
-			footer: 'Updated 5 minutes ago'
+			footer: 'Updated 5 minutes ago',
 		},
 		{
 			title: 'Rp20.000.000',
 			description: 'Budget',
 			action: 'Remaining',
-			footer: 'Updated 10 minutes ago'
+			footer: 'Updated 10 minutes ago',
 		},
 		{
 			title: '5',
 			description: 'Document',
 			action: 'Active',
-			footer: 'Updated 2 minutes ago'
+			footer: 'Updated 2 minutes ago',
 		},
 		{
 			title: '4',
 			description: 'Vendor',
 			action: 'Total',
-			footer: 'Updated 1 hour ago'
-		}
+			footer: 'Updated 1 hour ago',
+		},
 	];
 
 	const overviewTitle = 'Project Overview';
@@ -36,38 +36,43 @@
 		{
 			title: 'Rp50.000.000',
 			description: 'Total Budget',
-			footer: 'Updated 1 day ago'
+			footer: 'Updated 1 day ago',
 		},
 		{
 			title: 'Rp30.000.000',
 			description: 'Amount Spent',
-			footer: 'Updated 2 days ago'
+			footer: 'Updated 2 days ago',
 		},
 		{
 			title: 'Rp20.000.000',
 			description: 'Remaining Budget',
-			footer: 'Updated 3 days ago'
-		}
+			footer: 'Updated 3 days ago',
+		},
 	];
 
 	const tasks = [
 		{
 			title: 'Create Wedding Website',
-			description: 'Design and launch the wedding website for guests.'
+			description: 'Design and launch the wedding website for guests.',
 		},
 		{
 			title: 'Send Invitations',
-			description: 'Mail out physical invitations to all guests.'
+			description: 'Mail out physical invitations to all guests.',
 		},
 		{
 			title: 'Book Photographer',
-			description: 'Finalize and book the wedding photographer.'
-		}
+			description: 'Finalize and book the wedding photographer.',
+		},
 	];
 </script>
 
 <div class="flex flex-1 flex-col gap-8 py-4 max-w-screen-lg mx-auto">
-	<SectionCards {overviewCards} {overviewTitle} />
+	<SectionCards
+		{overviewCards}
+		{overviewTitle}
+		columns={4}
+	/>
 	<SectionTodo {tasks} />
 	<SectionBudget {budgetCards} />
 </div>
+
