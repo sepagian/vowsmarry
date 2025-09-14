@@ -13,7 +13,7 @@
 	} = $props();
 </script>
 
-<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-3 px-4">
 	<div class="flex flex-col">
 		<h2 class="text-base font-bold text-neutral-600">{overviewTitle}</h2>
 	</div>
@@ -63,4 +63,3 @@
 		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
 	}
 </style>
-
