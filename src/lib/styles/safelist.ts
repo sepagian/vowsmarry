@@ -76,5 +76,7 @@ export const safelistClasses = [
 	'h-3',
 	'w-4',
 	'h-4',
+	
+	// Dynamic grid column classes
+	'lg-grid-cols-dynamic',
 ];
-
