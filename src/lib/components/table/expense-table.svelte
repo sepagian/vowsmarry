@@ -9,7 +9,7 @@
 		getCoreRowModel,
 		getFilteredRowModel,
 		getPaginationRowModel,
-		getSortedRowModel
+		getSortedRowModel,
 	} from '@tanstack/table-core';
 	import { createRawSnippet } from 'svelte';
 	import ExpenseTableCheckbox from './expense-table-checkbox.svelte';
@@ -23,7 +23,7 @@
 		FlexRender,
 		createSvelteTable,
 		renderComponent,
-		renderSnippet
+		renderSnippet,
 	} from '$lib/components/ui/data-table/index.js';
 	import DialogExpense from '../dialog/dialog-expense.svelte';
 
@@ -37,23 +37,23 @@
 					checked: table.getIsAllPageRowsSelected(),
 					indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
 					onCheckedChange: (value: unknown) => table.toggleAllPageRowsSelected(!!value),
-					'aria-label': 'Select all'
+					'aria-label': 'Select all',
 				}),
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableCheckbox, {
 					checked: row.getIsSelected(),
 					onCheckedChange: (value: unknown) => row.toggleSelected(!!value),
-					'aria-label': 'Select row'
+					'aria-label': 'Select row',
 				}),
 			enableSorting: false,
-			enableHiding: false
+			enableHiding: false,
 		},
 		{
 			accessorKey: 'date',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="">Date</div>`
+						render: () => `<div class="">Date</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -62,19 +62,19 @@
 				const emailSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
-						render: () => `<div class="">${date}</div>`
+						render: () => `<div class="">${date}</div>`,
 					};
 				});
 
 				return renderSnippet(emailSnippet, row.getValue('date'));
-			}
+			},
 		},
 		{
 			accessorKey: 'category',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="">Category</div>`
+						render: () => `<div class="">Category</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -83,19 +83,19 @@
 				const emailSnippet = createRawSnippet<[string]>((getCategory) => {
 					const category = getCategory();
 					return {
-						render: () => `<div class="text-left">${category}</div>`
+						render: () => `<div class="text-left">${category}</div>`,
 					};
 				});
 
 				return renderSnippet(emailSnippet, row.getValue('category'));
-			}
+			},
 		},
 		{
 			accessorKey: 'description',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="">Description</div>`
+						render: () => `<div class="">Description</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -104,12 +104,12 @@
 				const emailSnippet = createRawSnippet<[string]>((getDescription) => {
 					const description = getDescription();
 					return {
-						render: () => `<div class="">${description}</div>`
+						render: () => `<div class="">${description}</div>`,
 					};
 				});
 
 				return renderSnippet(emailSnippet, row.getValue('description'));
-			}
+			},
 		},
 
 		{
@@ -117,7 +117,7 @@
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="text-right">Amount</div>`
+						render: () => `<div class="text-right">Amount</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -126,19 +126,19 @@
 				const amountCellSnippet = createRawSnippet<[string]>((getAmount) => {
 					const amount = getAmount();
 					return {
-						render: () => `<div class="text-right font-medium">${amount}</div>`
+						render: () => `<div class="text-right font-medium">${amount}</div>`,
 					};
 				});
 				const formatter = new Intl.NumberFormat('id-ID', {
 					style: 'currency',
-					currency: 'IDR'
+					currency: 'IDR',
 				});
 
 				return renderSnippet(
 					amountCellSnippet,
-					formatter.format(Number.parseFloat(row.getValue('amount')))
+					formatter.format(Number.parseFloat(row.getValue('amount'))),
 				);
-			}
+			},
 		},
 		{
 			accessorKey: 'status',
@@ -147,17 +147,17 @@
 				const statusSnippet = createRawSnippet<[string]>((getStatus) => {
 					const status = getStatus();
 					return {
-						render: () => `<div class="capitalize">${status}</div>`
+						render: () => `<div class="capitalize">${status}</div>`,
 					};
 				});
 				return renderSnippet(statusSnippet, row.getValue('status'));
-			}
+			},
 		},
 		{
 			id: 'actions',
 			enableHiding: false,
-			cell: ({ row }) => renderComponent(ExpenseTableActions, { id: row.original.id })
-		}
+			cell: ({ row }) => renderComponent(ExpenseTableActions, { id: row.original.id }),
+		},
 	];
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 5 });
@@ -186,7 +186,7 @@
 			},
 			get columnFilters() {
 				return columnFilters;
-			}
+			},
 		},
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
@@ -226,16 +226,17 @@
 			} else {
 				rowSelection = updater;
 			}
-		}
+		},
 	});
 </script>
 
 <div class="w-full">
-	<div class="flex items-center py-4 gap-4">
+	<div class="flex items-center pb-4 gap-4">
 		<Input
 			placeholder="Filter category..."
 			value={(table.getColumn('category')?.getFilterValue() as string) ?? ''}
-			oninput={(e: Event) => table.getColumn('category')?.setFilterValue((e.currentTarget as HTMLInputElement).value)}
+			oninput={(e: Event) =>
+				table.getColumn('category')?.setFilterValue((e.currentTarget as HTMLInputElement).value)}
 			onchange={(e: Event) => {
 				table.getColumn('category')?.setFilterValue((e.currentTarget as HTMLInputElement).value);
 			}}
@@ -244,7 +245,11 @@
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
-					<Button {...props} variant="outline" class="ml-auto items-center">
+					<Button
+						{...props}
+						variant="outline"
+						class="ml-auto items-center"
+					>
 						<div class="i-lucide:columns-2"></div>
 						View
 						<div class="i-lucide:chevron-down ml-2"></div>
@@ -293,13 +298,19 @@
 					<Table.Row data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
 							<Table.Cell class="[&:has([role=checkbox])]:pl-3">
-								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+								<FlexRender
+									content={cell.column.columnDef.cell}
+									context={cell.getContext()}
+								/>
 							</Table.Cell>
 						{/each}
 					</Table.Row>
 				{:else}
 					<Table.Row>
-						<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+						<Table.Cell
+							colspan={columns.length}
+							class="h-24 text-center">No results.</Table.Cell
+						>
 					</Table.Row>
 				{/each}
 			</Table.Body>
