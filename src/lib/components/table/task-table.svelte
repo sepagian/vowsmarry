@@ -23,10 +23,10 @@
 		renderComponent,
 		renderSnippet,
 	} from '$lib/components/ui/data-table/index';
-import TaskTableCheckbox from './task-table-checkbox.svelte';
-import TaskTableActions from './task-table-actions.svelte';
-import TaskTableDesc from './task-table-desc.svelte';
-import TaskTablePriority from './task-table-priority.svelte';
+	import TaskTableCheckbox from './task-table-checkbox.svelte';
+	import TaskTableActions from './task-table-actions.svelte';
+	import TaskTableDesc from './task-table-desc.svelte';
+	import TaskTablePriority from './task-table-priority.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
 
 	let { data }: { data: Task[] } = $props();
@@ -200,7 +200,7 @@ import TaskTablePriority from './task-table-priority.svelte';
 	});
 </script>
 
-<div class="w-full px-6">
+<div class="w-full px-4">
 	<div class="flex items-center py-4 gap-4">
 		<Input
 			placeholder="Filter category..."
@@ -220,7 +220,11 @@ import TaskTablePriority from './task-table-priority.svelte';
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
-					<Button {...props} variant="outline" class="ml-auto items-center">
+					<Button
+						{...props}
+						variant="outline"
+						class="ml-auto items-center"
+					>
 						<div class="i-lucide:columns-2"></div>
 						View
 						<div class="i-lucide:chevron-down ml-2"></div>
@@ -269,13 +273,19 @@ import TaskTablePriority from './task-table-priority.svelte';
 					<Table.Row data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
 							<Table.Cell class="[&:has([role=checkbox])]:pl-3">
-								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
+								<FlexRender
+									content={cell.column.columnDef.cell}
+									context={cell.getContext()}
+								/>
 							</Table.Cell>
 						{/each}
 					</Table.Row>
 				{:else}
 					<Table.Row>
-						<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+						<Table.Cell
+							colspan={columns.length}
+							class="h-24 text-center">No results.</Table.Cell
+						>
 					</Table.Row>
 				{/each}
 			</Table.Body>
