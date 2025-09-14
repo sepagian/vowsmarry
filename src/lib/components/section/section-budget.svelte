@@ -4,19 +4,19 @@
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
 
 	let {
-		budgetCards
+		budgetCards,
 	}: {
 		budgetCards: BudgetCard[];
 	} = $props();
 
-	const data: Expense[] = [
+	const expenseData: Expense[] = [
 		{
 			id: '1',
 			date: '2025-08-01',
 			category: 'Venue',
 			description: 'Down payment for venue booking',
 			amount: 5_000_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '2',
@@ -24,7 +24,7 @@
 			category: 'Venue',
 			description: 'Final payment for venue',
 			amount: 3_000_000,
-			status: 'Pending' as const
+			status: 'Pending' as const,
 		},
 		{
 			id: '3',
@@ -32,7 +32,7 @@
 			category: 'Catering',
 			description: 'Initial catering deposit',
 			amount: 3_000_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '4',
@@ -40,7 +40,7 @@
 			category: 'Catering',
 			description: 'Second catering installment',
 			amount: 2_000_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '5',
@@ -48,7 +48,7 @@
 			category: 'Decoration',
 			description: 'Stage setup & flowers',
 			amount: 3_500_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '6',
@@ -56,7 +56,7 @@
 			category: 'Photography',
 			description: 'Pre-wedding photoshoot',
 			amount: 2_000_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '7',
@@ -64,7 +64,7 @@
 			category: 'Photography',
 			description: 'Wedding day coverage',
 			amount: 2_000_000,
-			status: 'Pending' as const
+			status: 'Pending' as const,
 		},
 		{
 			id: '8',
@@ -72,7 +72,7 @@
 			category: 'Attire',
 			description: 'Bride and groom outfits',
 			amount: 4_000_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '9',
@@ -80,7 +80,7 @@
 			category: 'Entertainment',
 			description: 'Live band booking',
 			amount: 2_500_000,
-			status: 'Paid' as const
+			status: 'Paid' as const,
 		},
 		{
 			id: '10',
@@ -88,19 +88,19 @@
 			category: 'Makeup & Hair',
 			description: 'Bridal makeup package',
 			amount: 3_000_000,
-			status: 'Pending' as const
-		}
+			status: 'Pending' as const,
+		},
 	];
 </script>
 
-<div class="flex flex-col gap-4">
-	<div class="flex flex-col px-6">
+<div class="flex flex-col gap-4 px-4">
+	<div class="flex flex-col">
 		<h2 class="text-base font-bold text-neutral-600">Budget & Expenses</h2>
 	</div>
 
 	<div class="flex flex-col gap-1">
 		<div
-			class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 px-6"
+			class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3"
 		>
 			{#each budgetCards as data (data.description)}
 				<Card.Root class="@container/card shrink-0 w-64 sm:w-auto gap-2">
@@ -124,8 +124,8 @@
 			{/each}
 		</div>
 
-		<div class="flex flex-col px-6">
-			<ExpenseTable {data} />
+		<div class="flex flex-col">
+			<ExpenseTable data={expenseData} />
 		</div>
 	</div>
 </div>
