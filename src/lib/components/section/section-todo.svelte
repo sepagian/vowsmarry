@@ -7,7 +7,7 @@
 	import DialogTask from '../dialog/dialog-task.svelte';
 
 	let {
-		tasks
+		tasks,
 	}: {
 		tasks: SimpleTask[];
 	} = $props();
@@ -15,7 +15,7 @@
 	const filterOptions: { value: Filter; label: string }[] = [
 		{ value: 'all', label: 'All Tasks' },
 		{ value: 'active', label: 'Active' },
-		{ value: 'completed', label: 'Completed' }
+		{ value: 'completed', label: 'Completed' },
 	];
 
 	let filter: Filter = $state('all');
@@ -26,7 +26,7 @@
 			? tasks
 			: filter === 'active'
 				? tasks.filter((t) => !t.done)
-				: tasks.filter((t) => t.done)
+				: tasks.filter((t) => t.done),
 	);
 
 	const completedTasks = $derived(tasks.filter((t) => t.done));
@@ -37,19 +37,26 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2 pb-2">
+<div class="flex flex-col px-4 gap-2 pb-2">
 	<!-- Header -->
-	<div class="flex px-6 justify-between items-center">
+	<div class="flex justify-between items-center">
 		<h2 class="text-base font-bold text-neutral-600">Recent Tasks</h2>
 		<div class="flex flex-1 items-center justify-end gap-4">
-			<Select.Root type="single" name="taskFilter" bind:value={filter}>
+			<Select.Root
+				type="single"
+				name="taskFilter"
+				bind:value={filter}
+			>
 				<Select.Trigger class="w-40 border border-neutral-300">
 					{filterOptions.find((f) => f.value === filter)?.label}
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Group>
 						{#each filterOptions as f (f.value)}
-							<Select.Item value={f.value} label={f.label}>
+							<Select.Item
+								value={f.value}
+								label={f.label}
+							>
 								{f.label}
 							</Select.Item>
 						{/each}
@@ -68,7 +75,7 @@
 	</div>
 
 	<!-- Profile completion alert -->
-	<div class="flex flex-col px-6 gap-4">
+	<div class="flex flex-col gap-4">
 		<Card.Root class="@container/card flex flex-row justify-between items-center">
 			<div class="w-full">
 				<Card.Header>
@@ -79,7 +86,10 @@
 				</Card.Content>
 			</div>
 			<div class="w-fit justify-end flex px-6">
-				<Button variant="outline" size="icon">
+				<Button
+					variant="outline"
+					size="icon"
+				>
 					<div class="i-lucide:chevron-right"></div>
 				</Button>
 			</div>
