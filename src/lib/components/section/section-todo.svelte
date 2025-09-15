@@ -76,7 +76,7 @@
 
 	<!-- Profile completion alert -->
 	<div class="flex flex-col gap-4">
-		<Card.Root class="@container/card flex flex-row justify-between items-center">
+		<Card.Root class="@container/card flex flex-row justify-between items-center shadow-none">
 			<div class="w-full">
 				<Card.Header>
 					<Card.Title class="leading-6 text-base">Almost ready to plan your big day 🎉</Card.Title>
@@ -122,7 +122,7 @@
 			<!-- Always render tasks list if there are any filtered -->
 			{#if filteredTasks.length > 0}
 				{#each filteredTasks as task (task.title)}
-					<Card.Root class="@container/card flex flex-row justify-between items-center">
+					<Card.Root class="@container/card flex flex-row justify-between items-center shadow-none">
 						<div class="pl-6 flex items-center w-full">
 							<input
 								type="checkbox"

@@ -50,14 +50,16 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3 px-4">
+<div class="flex flex-col gap-2 px-4">
 	<div class="flex flex-col">
 		<h2 class="text-base font-bold text-neutral-600">Uploaded Documents</h2>
 	</div>
 
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
 		{#each docsCards as data (data.description)}
-			<Card.Root class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col py-4 px-4">
+			<Card.Root
+				class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col py-4 px-4 shadow-none bg-zinc-50"
+			>
 				<Card.Header class="flex flex-col gap-3 px-0">
 					<div class="inline-flex min-h-[4rem] w-full">
 						<Card.Description class="text-sm font-semibold truncate overflow-hidden">

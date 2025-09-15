@@ -24,7 +24,9 @@
 		style:--cols={columns}
 	>
 		{#each overviewCards as data (data.description)}
-			<Card.Root class="@container/card shrink-0 w-64 h-32 sm:w-auto gap-2 flex flex-col py-4">
+			<Card.Root
+				class="@container/card shrink-0 w-64 h-32 sm:w-auto gap-2 flex flex-col py-4 shadow-none"
+			>
 				<Card.Header class="flex flex-col gap-2">
 					<div class="flex flex-1 justify-between align-center w-full">
 						<Card.Description>{data.description}</Card.Description>
