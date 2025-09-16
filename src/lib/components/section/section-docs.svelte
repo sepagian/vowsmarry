@@ -58,28 +58,23 @@
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
 		{#each docsCards as data (data.description)}
 			<Card.Root
-				class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col py-4 px-4 shadow-none bg-zinc-50"
+				class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col p-2 shadow-none "
 			>
 				<Card.Header class="flex flex-col gap-3 px-0">
-					<div class="inline-flex min-h-[4rem] w-full">
-						<Card.Description class="text-sm font-semibold truncate overflow-hidden">
-							{data.description}
-						</Card.Description>
-					</div>
+					<div class="inline-flex min-h-[8rem] sm:min-h-[6rem] rounded-lg w-full bg-gray-100"></div>
 				</Card.Header>
 				<Card.Footer class="flex-col items-start text-sm justify-start p-0 gap-2.5">
-					<div class="flex flex-col gap-2">
-						<Badge
-							variant="outline"
-							class={`${getTypeColor(data.type)} border text-xs px-2 py-1 w-fit`}
-						>
-							{getTypeInfo(data.type)?.label || 'Unknown'}
-						</Badge>
-					</div>
 					<div class="flex justify-between w-full items-center">
-						<div class="flex gap-1 items-center text-xs text-gray-500">
-							<div class="i-lucide:calendar w-3 h-3"></div>
-							{data.footer}
+						<div class="inline-flex gap-1 items-center text-xs truncate text-gray-600">
+							<Badge
+								variant="outline"
+								class={`${getTypeColor(data.type)} text-xs px-1 py-1 w-fit flex items-center gap-1`}
+							>
+								<div class={`${getTypeInfo(data.type)?.icon} w-3 h-3`}></div>
+							</Badge>
+							<Card.Description class="text-sm font-semibold truncate overflow-hidden">
+								{data.description}
+							</Card.Description>
 						</div>
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
