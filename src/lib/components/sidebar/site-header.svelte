@@ -14,17 +14,20 @@
 				// Capitalize the segment for display
 				const title = segment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 				return { title, href, isLast: index === arr.length - 1 };
-			})
+			}),
 	);
 </script>
 
 <header
 	class="sticky top-0 z-50 flex items-center border-b flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear"
 >
-	<div class="h-14 flex w-full items-center gap-2 justify-between px-6">
+	<div class="h-14 flex w-full items-center gap-2 justify-between px-4">
 		<div class="flex items-center gap-2">
 			<Sidebar.Trigger class="h-4 w-4" />
-			<Separator orientation="vertical" class="mr-2 h-14" />
+			<Separator
+				orientation="vertical"
+				class="mr-2 h-14"
+			/>
 			<Breadcrumb.Root class="hidden sm:block">
 				<Breadcrumb.List>
 					{#each breadcrumbs as crumb, i (i)}
