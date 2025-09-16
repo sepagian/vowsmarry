@@ -66,7 +66,7 @@
 	];
 </script>
 
-<div class="flex flex-1 flex-col gap-8 py-4 max-w-screen-lg mx-auto">
+<div class="flex flex-1 flex-col gap-8 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
@@ -75,4 +75,3 @@
 	<SectionTodo {tasks} />
 	<SectionBudget {budgetCards} />
 </div>
-

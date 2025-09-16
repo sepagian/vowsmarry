@@ -2,6 +2,7 @@
 	import * as Card from '$lib/components/ui/card/index';
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
+	import LineChart from '$lib/components/chart/line-chart.svelte';
 
 	const overviewCards = [
 		{
@@ -113,7 +114,7 @@
 	];
 </script>
 
-<div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-lg mx-auto">
+<div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
@@ -126,7 +127,9 @@
 				<Card.Header class="p-0">
 					<Card.Title class="p-0">Card Title</Card.Title>
 				</Card.Header>
-				<Card.Content class="p-0"></Card.Content>
+				<Card.Content class="py-2 px-0">
+					<LineChart />
+				</Card.Content>
 			</Card.Root>
 		</div>
 		<div class="flex flex-col col-span-1 row-span-3 gap-2 pb-4">
