@@ -1,7 +1,6 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import 'uno.css';
-	import '@unocss/reset/tailwind.css';
 	import { page } from '$app/state';
 	let { children } = $props();
 	const title = $derived(
@@ -18,14 +17,14 @@
 					document: 'Document - vowsmarry',
 					budget: 'Budget - vowsmarry',
 					vendor: 'Vendor - vowsmarry',
-					rundown: 'Schedule - vowsmarry'
+					rundown: 'Schedule - vowsmarry',
 				};
 
 				// Handle invitation subsections
 				if (section === 'invitation' && subsection) {
 					const invitationTitleMap: Record<string, string> = {
 						story: 'Story - vowsmarry',
-						guest: 'Guests Management - vowsmarry'
+						guest: 'Guests Management - vowsmarry',
 					};
 					return invitationTitleMap[subsection] || 'Invitation - vowsmarry';
 				}
@@ -34,12 +33,15 @@
 			}
 
 			return 'vowsmarry';
-		})()
+		})(),
 	);
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link
+		rel="icon"
+		href={favicon}
+	/>
 	<title>{title}</title>
 </svelte:head>
 
