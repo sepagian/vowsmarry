@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Chart from '$lib/components/ui/chart/index';
 	import { scaleBand, scaleOrdinal } from 'd3-scale';
-	import { BarChart, Legend } from 'layerchart';
+	import { BarChart, Legend, Tooltip } from 'layerchart';
 	import { cubicInOut } from 'svelte/easing';
 	import { schemeSpectral } from 'd3-scale-chromatic';
 
@@ -65,13 +65,12 @@
 			y="title"
 			axis="y"
 			padding={{ left: -1.75, top: 0 }}
-			tooltip
 			seriesLayout="stack"
 			{series}
 			props={{
 				bars: {
 					stroke: 'none',
-					radius: 8,
+					radius: 6,
 					insets: {
 						left: 2,
 					},
