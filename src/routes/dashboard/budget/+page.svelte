@@ -2,7 +2,7 @@
 	import * as Card from '$lib/components/ui/card/index';
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
-	import LineChart from '$lib/components/chart/line-chart.svelte';
+	import ExampleChart from '$lib/components/chart/example-chart.svelte';
 
 	const overviewCards = [
 		{
@@ -123,12 +123,9 @@
 	<div class="sm:grid sm:grid-cols-3 gap-4 flex flex-col px-4">
 		<div class="flex flex-col col-span-2 gap-2">
 			<h2 class="text-base font-bold text-neutral-600">Spending Distribution</h2>
-			<Card.Root class="@container/card shrink-0 p-6 gap-0 shadow-none">
-				<Card.Header class="p-0">
-					<Card.Title class="p-0">Card Title</Card.Title>
-				</Card.Header>
-				<Card.Content class="py-2 px-0">
-					<LineChart />
+			<Card.Root class="@container/card shrink-0 p-0 gap-0 shadow-none">
+				<Card.Content class="py-2 px-2">
+					<ExampleChart />
 				</Card.Content>
 			</Card.Root>
 		</div>
