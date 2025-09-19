@@ -60,6 +60,17 @@ declare global {
 		action?: string;
 		footer: string;
 	};
+
+	type Item = {
+		id: string | number;
+		name: string;
+	};
+
+	type ColumnType = {
+		id: string;
+		name: string;
+		items: Item[];
+	};
 	namespace App {
 		// interface Error {}
 		// interface Locals {}
