@@ -17,9 +17,9 @@ import { relations } from 'drizzle-orm';
 export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved']);
 export const taskStatusEnum = pgEnum('task_status', ['pending', 'in_progress', 'completed']);
 export const vendorStatusEnum = pgEnum('vendor_status', [
+	'booked',
 	'contacted',
 	'negotiating',
-	'booked',
 	'completed',
 ]);
 export const invitationStatusEnum = pgEnum('invitation_status', ['draft', 'published', 'expired']);
