@@ -22,9 +22,11 @@
 					label: option?.label || cat,
 					amount, // Keep original amount for display in legend
 					percentage,
-					color: option?.color.split(' ')[0] || 'bg-gray-200', // Use bg- color for bar fill
+					color: option?.color ? option.color.split(' ')[0] || 'bg-gray-200' : 'bg-gray-200', // Use bg- color for bar fill
 					icon: option?.icon || '',
-					textColor: option?.color.split(' ')[1] || 'text-gray-800',
+					textColor: option?.color
+						? option.color.split(' ')[1] || 'text-gray-800'
+						: 'text-gray-800',
 				};
 			})
 			.sort((a, b) => b.percentage - a.percentage), // Sort by percentage descending for better stacking
