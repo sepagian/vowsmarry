@@ -125,7 +125,7 @@
 		</div>
 
 		<div class="flex flex-col">
-			<ExpenseTable data={expenseData} />
+			<ExpenseTable />
 		</div>
 	</div>
 </div>
