@@ -80,7 +80,7 @@
 	</div>
 
 	<!-- Legend: Categories with icons, colors, amounts, and percentages of budget -->
-	<div class="space-y-2">
+	<div class="flex flex-col gap-2">
 		{#each segments as segment (segment.amount)}
 			<div class="flex items-center space-x-3 text-sm">
 				<div class="flex-1 flex justify-between">
@@ -91,7 +91,7 @@
 						></div>
 						<span class="{segment.textColor} font-medium">{segment.label}</span>
 					</div>
-					<div class="text-right">
+					<div class="inline-flex gap-2">
 						<span class="block text-gray-600">Rp{segment.amount.toLocaleString()}</span>
 						<span class="text-xs text-gray-500">({segment.percentage.toFixed(1)}%)</span>
 					</div>
