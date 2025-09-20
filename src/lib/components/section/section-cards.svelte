@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge/index';
 	import * as Card from '$lib/components/ui/card/index';
+	import type { OverviewCard } from '$lib/types';
 
 	let {
 		overviewCards,
