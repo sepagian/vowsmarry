@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { categoryOptions } from '$lib/constants/constants';
+	import type { Task } from '$lib/stores/tasks';
 
 	export let description: Task['description'];
 	export let category: Task['category'];
+	export let status: Task['status'];
 
 	function getCategoryData(category: Task['category']) {
-		return categoryOptions.find((c) => c.value === category) ?? {
-			color: 'bg-gray-200 text-gray-800',
-			icon: 'i-lucide:more-horizontal'
-		};
+		return (
+			categoryOptions.find((c) => c.value === category) ?? {
+				color: 'bg-gray-200 text-gray-800',
+				icon: 'i-lucide:more-horizontal',
+			}
+		);
 	}
 
 	$: categoryData = getCategoryData(category);
@@ -21,5 +25,5 @@
 		<div class={categoryData.icon}></div>
 		{category}
 	</span>
-	<span>{description}</span>
+	<span class={status === 'Completed' ? 'line-through text-gray-500' : ''}>{description}</span>
 </span>
