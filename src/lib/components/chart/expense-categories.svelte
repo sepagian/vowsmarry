@@ -24,7 +24,7 @@
 	}
 </script>
 
-<div class="space-y-4">
+<div class="flex flex-col gap-4">
 	{#each expenses as item (item.category)}
 		<div>
 			<div class="flex justify-between text-sm mb-1">
@@ -42,4 +42,3 @@
 		</div>
 	{/each}
 </div>
-
