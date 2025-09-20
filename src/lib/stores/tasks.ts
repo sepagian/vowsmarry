@@ -1,0 +1,119 @@
+import { writable } from 'svelte/store';
+
+export type TaskStatus = 'Pending' | 'Completed' | 'On Progress';
+export type TaskPriority = 'Low' | 'Medium' | 'High';
+export type TaskCategory =
+	| 'accommodation'
+	| 'catering'
+	| 'decoration'
+	| 'entertainment'
+	| 'makeup-attire'
+	| 'paperwork'
+	| 'photo-video'
+	| 'venue'
+	| 'miscellaneous';
+
+export interface Task {
+	id: string;
+	title: string;
+	description: string;
+	category: TaskCategory;
+	priority: TaskPriority;
+	status: TaskStatus;
+	date: string;
+}
+
+const initialTasks: Task[] = [
+	{
+		id: '1',
+		title: 'Book guest accommodation',
+		description: 'Reserve hotel rooms for out-of-town guests',
+		category: 'accommodation',
+		priority: 'High',
+		status: 'Pending',
+		date: '2025-09-15',
+	},
+	{
+		id: '2',
+		title: 'Arrange catering menu',
+		description: 'Finalize dishes and beverages with the catering service',
+		category: 'catering',
+		priority: 'High',
+		status: 'Pending',
+		date: '2025-09-20',
+	},
+	{
+		id: '3',
+		title: 'Select floral decorations',
+		description: 'Choose color palette and flower arrangements',
+		category: 'decoration',
+		priority: 'Medium',
+		status: 'Pending',
+		date: '2025-09-25',
+	},
+	{
+		id: '4',
+		title: 'Book live band',
+		description: 'Confirm entertainment for the reception party',
+		category: 'entertainment',
+		priority: 'Low',
+		status: 'Pending',
+		date: '2025-09-28',
+	},
+	{
+		id: '5',
+		title: 'Bride’s makeup trial',
+		description: 'Schedule hair and makeup rehearsal',
+		category: 'makeup-attire',
+		priority: 'High',
+		status: 'Pending',
+		date: '2025-09-18',
+	},
+	{
+		id: '6',
+		title: 'Marriage paperwork',
+		description: 'Submit documents to local registrar',
+		category: 'paperwork',
+		priority: 'High',
+		status: 'Pending',
+		date: '2025-09-12',
+	},
+	{
+		id: '7',
+		title: 'Engagement photo shoot',
+		description: 'Outdoor shoot at beach location',
+		category: 'photo-video',
+		priority: 'Medium',
+		status: 'Pending',
+		date: '2025-09-22',
+	},
+	{
+		id: '8',
+		title: 'Confirm venue layout',
+		description: 'Walkthrough with venue manager',
+		category: 'venue',
+		priority: 'Medium',
+		status: 'Pending',
+		date: '2025-09-14',
+	},
+	{
+		id: '9',
+		title: 'Purchase wedding favors',
+		description: 'Order custom souvenirs for guests',
+		category: 'miscellaneous',
+		priority: 'Low',
+		status: 'Pending',
+		date: '2025-09-26',
+	},
+	{
+		id: '10',
+		title: 'Print invitation cards',
+		description: 'Finalize design and print copies',
+		category: 'paperwork',
+		priority: 'Medium',
+		status: 'Pending',
+		date: '2025-09-10',
+	},
+];
+
+export const tasksStore = writable<Task[]>(initialTasks);
