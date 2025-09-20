@@ -28,24 +28,26 @@
 	import TaskTableDesc from './task-table-desc.svelte';
 	import TaskTablePriority from './task-table-priority.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
-
-	let { data }: { data: Task[] } = $props();
+	import { tasksStore, type Task } from '$lib/stores/tasks';
 
 	const columns: ColumnDef<Task>[] = [
 		{
 			id: 'select',
-			header: ({ table }) =>
-				renderComponent(TaskTableCheckbox, {
-					checked: table.getIsAllPageRowsSelected(),
-					indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
-					onCheckedChange: (value: unknown) => table.toggleAllPageRowsSelected(!!value),
-					'aria-label': 'Select all',
-				}),
 			cell: ({ row }) =>
 				renderComponent(TaskTableCheckbox, {
-					checked: row.getIsSelected(),
-					onCheckedChange: (value: unknown) => row.toggleSelected(!!value),
-					'aria-label': 'Select row',
+					checked: row.original.status === 'Completed',
+					onCheckedChange: (value: unknown) => {
+						const isCompleted = !!value;
+						const newStatus: Task['status'] = isCompleted ? 'Completed' : 'Pending';
+						tasksStore.update((tasks) => {
+							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
+							if (taskIndex !== -1) {
+								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
+							}
+							return [...tasks];
+						});
+					},
+					'aria-label': 'Mark as completed',
 				}),
 			enableSorting: false,
 			enableHiding: false,
@@ -64,6 +66,7 @@
 				renderComponent(TaskTableDesc, {
 					category: row.original.category,
 					description: row.original.description,
+					status: row.original.status,
 				}),
 		},
 		{
@@ -120,11 +123,13 @@
 				renderComponent(TaskTableActions, {
 					status: row.original.status,
 					onChange: (newStatus: Task['status']) => {
-						const taskIndex = data.findIndex((task) => task.id === row.original.id);
-						if (taskIndex !== -1) {
-							data[taskIndex] = { ...data[taskIndex], status: newStatus };
-							data = [...data];
-						}
+						tasksStore.update((tasks) => {
+							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
+							if (taskIndex !== -1) {
+								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
+							}
+							return [...tasks];
+						});
 					},
 				}),
 		},
@@ -136,68 +141,70 @@
 	let rowSelection = $state<RowSelectionState>({});
 	let columnVisibility = $state<VisibilityState>({});
 
-	const table = createSvelteTable({
-		get data() {
-			return data;
-		},
-		columns,
-		state: {
-			get pagination() {
-				return pagination;
+	let table = $derived(
+		createSvelteTable({
+			get data() {
+				return $tasksStore;
 			},
-			get sorting() {
-				return sorting;
+			columns,
+			state: {
+				get pagination() {
+					return pagination;
+				},
+				get sorting() {
+					return sorting;
+				},
+				get columnVisibility() {
+					return columnVisibility;
+				},
+				get rowSelection() {
+					return rowSelection;
+				},
+				get columnFilters() {
+					return columnFilters;
+				},
 			},
-			get columnVisibility() {
-				return columnVisibility;
+			getCoreRowModel: getCoreRowModel(),
+			getPaginationRowModel: getPaginationRowModel(),
+			getSortedRowModel: getSortedRowModel(),
+			getFilteredRowModel: getFilteredRowModel(),
+			onPaginationChange: (updater) => {
+				if (typeof updater === 'function') {
+					pagination = updater(pagination);
+				} else {
+					pagination = updater;
+				}
 			},
-			get rowSelection() {
-				return rowSelection;
+			onSortingChange: (updater) => {
+				if (typeof updater === 'function') {
+					sorting = updater(sorting);
+				} else {
+					sorting = updater;
+				}
 			},
-			get columnFilters() {
-				return columnFilters;
+			onColumnFiltersChange: (updater) => {
+				if (typeof updater === 'function') {
+					columnFilters = updater(columnFilters);
+				} else {
+					columnFilters = updater;
+				}
 			},
-		},
-		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onPaginationChange: (updater) => {
-			if (typeof updater === 'function') {
-				pagination = updater(pagination);
-			} else {
-				pagination = updater;
-			}
-		},
-		onSortingChange: (updater) => {
-			if (typeof updater === 'function') {
-				sorting = updater(sorting);
-			} else {
-				sorting = updater;
-			}
-		},
-		onColumnFiltersChange: (updater) => {
-			if (typeof updater === 'function') {
-				columnFilters = updater(columnFilters);
-			} else {
-				columnFilters = updater;
-			}
-		},
-		onColumnVisibilityChange: (updater) => {
-			if (typeof updater === 'function') {
-				columnVisibility = updater(columnVisibility);
-			} else {
-				columnVisibility = updater;
-			}
-		},
-		onRowSelectionChange: (updater) => {
-			if (typeof updater === 'function') {
-				rowSelection = updater(rowSelection);
-			} else {
-				rowSelection = updater;
-			}
-		},
-	});
+			onColumnVisibilityChange: (updater) => {
+				if (typeof updater === 'function') {
+					columnVisibility = updater(columnVisibility);
+				} else {
+					columnVisibility = updater;
+				}
+			},
+			onRowSelectionChange: (updater) => {
+				if (typeof updater === 'function') {
+					rowSelection = updater(rowSelection);
+				} else {
+					rowSelection = updater;
+				}
+			},
+		}),
+	);
 </script>
 
 <div class="w-full px-4">
