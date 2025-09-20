@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
+	import type { Item } from '$lib/stores/vendors';
 
 	const flipDurationMs = 150;
 	export let name: string;
@@ -16,19 +17,19 @@
 	}
 </script>
 
-<div class="wrapper">
-	<div class="column-title">
+<div class="shrink-0 sm:w-auto gap-2 flex flex-col py-2 shadow-none">
+	<div class=" font-bold flex justify-center items-center">
 		{name}
 	</div>
 	<div
-		class="column-content"
+		class="h-[calc(100%-2.5em)] w-full flex flex-col gap-2 overflow-y-scroll"
 		use:dndzone={{ items, flipDurationMs, zoneTabIndex: -1 }}
 		on:consider={handleDndConsiderCards}
 		on:finalize={handleDndFinalizeCards}
 	>
 		{#each items as item (item.id)}
 			<div
-				class="card"
+				class="h-24 w-full p-4 flex justify-center rounded-lg items-center bg-gray-300 border border-gray-800"
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				{item.name}
@@ -36,34 +37,3 @@
 		{/each}
 	</div>
 </div>
-
-<style>
-	.wrapper {
-		height: 100%;
-		width: 100%;
-		/*Notice we make sure this container doesn't scroll so that the title stays on top and the dndzone inside is scrollable*/
-		overflow-y: hidden;
-	}
-	.column-content {
-		height: calc(100% - 2.5em);
-		/* Notice that the scroll container needs to be the dndzone if you want dragging near the edge to trigger scrolling */
-		overflow-y: scroll;
-	}
-	.column-title {
-		height: 2.5em;
-		font-weight: bold;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-	.card {
-		height: 4em;
-		width: 100%;
-		margin: 0.4em 0;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		background-color: #dddddd;
-		border: 1px solid #333333;
-	}
-</style>
