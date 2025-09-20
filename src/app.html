@@ -6,7 +6,7 @@
 		%sveltekit.head%
 		<script>
 			!(function () {
-				var e = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches,
+				var e = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches,
 					t = localStorage.getItem('use-dark') || 'system';
 				('"dark"' === t || (e && '"light"' !== t)) &&
 					document.documentElement.classList.toggle('dark', !0);
