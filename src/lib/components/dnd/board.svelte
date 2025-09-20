@@ -2,6 +2,7 @@
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
 	import Column from './column.svelte';
+	import type { ColumnType, Item } from '$lib/stores/vendors';
 
 	const flipDurationMs = 300;
 
@@ -21,15 +22,15 @@
 	}
 </script>
 
-<section
-	class="board"
+<div
+	class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth h-[90vh] sm:grid md:grid lg:grid-cols-4"
 	use:dndzone={{ items: columns, flipDurationMs, type: 'column' }}
 	on:consider={handleDndConsiderColumns}
 	on:finalize={handleDndFinalizeColumns}
 >
 	{#each columns as { id, name, items }, idx (id)}
 		<div
-			class="column"
+			class="shrink-0 w-64 h-full p-2 border border-gray-200 rounded-xl sm:w-auto"
 			animate:flip={{ duration: flipDurationMs }}
 		>
 			<Column
@@ -39,20 +40,4 @@
 			/>
 		</div>
 	{/each}
-</section>
-
-<style>
-	.board {
-		height: 90vh;
-		width: 100%;
-		padding: 0.5em;
-	}
-	.column {
-		height: 100%;
-		width: 25%;
-		padding: 0.5em;
-		margin: 0.5em;
-		float: left;
-		border: 1px solid #333333;
-	}
-</style>
+</div>
