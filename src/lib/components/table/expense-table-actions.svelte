@@ -1,28 +1,53 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
+	import { expenseStatusOptions } from '$lib/constants/constants';
 
-	let { id }: { id: string } = $props();
+	export let status: Expense['payment-status'];
+	export let onChange: (newStatus: Expense['payment-status']) => void;
+
+	function getColor(status: Expense['payment-status']) {
+		return (
+			expenseStatusOptions.find((s) => s.value === status)?.color ??
+			'bg-neutral-100 text-neutral-800'
+		);
+	}
+	function getIcon(status: Expense['payment-status']) {
+		return expenseStatusOptions.find((s) => s.value === status)?.icon ?? '';
+	}
+	function getLabel(status: Expense['payment-status']) {
+		return expenseStatusOptions.find((s) => s.value === status)?.label ?? '';
+	}
 </script>
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
-		{#snippet child({ props })}
-			<Button {...props} variant="ghost" size="icon" class="relative size-8 p-0">
-				<span class="sr-only">Open menu</span>
-				<div class="i-lucide:ellipsis"></div>
-			</Button>
-		{/snippet}
+		<div
+			class={`rounded-md px-3 inline-flex items-center gap-2 py-1 text-sm font-medium ${getColor(status)}`}
+		>
+			<div class={`${getIcon(status)}`}></div>
+			{getLabel(status)}
+		</div>
 	</DropdownMenu.Trigger>
-	<DropdownMenu.Content>
-		<DropdownMenu.Group>
-			<DropdownMenu.Label>Actions</DropdownMenu.Label>
-			<DropdownMenu.Item onclick={() => navigator.clipboard.writeText(id)}>
-				Copy payment ID
+
+	<DropdownMenu.Content class="bg-white">
+		{#each expenseStatusOptions as s (s.value)}
+			<DropdownMenu.Item
+				class="flex items-center gap-2"
+				onclick={() => onChange(s.value)}
+			>
+				{#if s.value === status}
+					<div class="i-lucide:check h-4 w-4 text-gray-500"></div>
+				{:else}
+					<span class="h-4 w-4"></span>
+				{/if}
+
+				<span
+					class={`inline-flex rounded-md items-center gap-2 px-2 py-1 text-xs font-medium ${s.color}`}
+				>
+					<div class={`${s.icon}`}></div>
+					{s.label}
+				</span>
 			</DropdownMenu.Item>
-		</DropdownMenu.Group>
-		<DropdownMenu.Separator />
-		<DropdownMenu.Item>View customer</DropdownMenu.Item>
-		<DropdownMenu.Item>View payment details</DropdownMenu.Item>
+		{/each}
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
