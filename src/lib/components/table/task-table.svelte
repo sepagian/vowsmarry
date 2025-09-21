@@ -28,17 +28,17 @@
 	import TaskTableDesc from './task-table-desc.svelte';
 	import TaskTablePriority from './task-table-priority.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
-	import { tasksStore, type Task } from '$lib/stores/tasks';
+	import { tasksStore } from '$lib/stores/tasks';
 
 	const columns: ColumnDef<Task>[] = [
 		{
 			id: 'select',
 			cell: ({ row }) =>
 				renderComponent(TaskTableCheckbox, {
-					checked: row.original.status === 'Completed',
+					checked: row.original.status === 'completed',
 					onCheckedChange: (value: unknown) => {
 						const isCompleted = !!value;
-						const newStatus: Task['status'] = isCompleted ? 'Completed' : 'Pending';
+						const newStatus: Task['status'] = isCompleted ? 'completed' : 'pending';
 						tasksStore.update((tasks) => {
 							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
 							if (taskIndex !== -1) {
@@ -210,7 +210,7 @@
 <div class="w-full px-4">
 	<div class="flex items-center py-4 gap-4">
 		<Input
-			placeholder="Filter category..."
+			placeholder="Search tasks"
 			value={(table.getState().globalFilter as string) ?? ''}
 			oninput={(e: Event) => {
 				const val = (e.currentTarget as HTMLInputElement).value;
