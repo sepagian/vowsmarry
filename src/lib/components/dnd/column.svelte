@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
-	import type { Item } from '$lib/stores/vendors';
 
 	const flipDurationMs = 150;
 	export let name: string;
