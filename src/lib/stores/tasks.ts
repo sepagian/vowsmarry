@@ -1,28 +1,5 @@
 import { writable } from 'svelte/store';
 
-export type TaskStatus = 'Pending' | 'Completed' | 'On Progress';
-export type TaskPriority = 'Low' | 'Medium' | 'High';
-export type TaskCategory =
-	| 'accommodation'
-	| 'catering'
-	| 'decoration'
-	| 'entertainment'
-	| 'makeup-attire'
-	| 'paperwork'
-	| 'photo-video'
-	| 'venue'
-	| 'miscellaneous';
-
-export interface Task {
-	id: string;
-	title: string;
-	description: string;
-	category: TaskCategory;
-	priority: TaskPriority;
-	status: TaskStatus;
-	date: string;
-}
-
 const initialTasks: Task[] = [
 	{
 		id: '1',
@@ -30,7 +7,7 @@ const initialTasks: Task[] = [
 		description: 'Reserve hotel rooms for out-of-town guests',
 		category: 'accommodation',
 		priority: 'High',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-15',
 	},
 	{
@@ -39,7 +16,7 @@ const initialTasks: Task[] = [
 		description: 'Finalize dishes and beverages with the catering service',
 		category: 'catering',
 		priority: 'High',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-20',
 	},
 	{
@@ -48,7 +25,7 @@ const initialTasks: Task[] = [
 		description: 'Choose color palette and flower arrangements',
 		category: 'decoration',
 		priority: 'Medium',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-25',
 	},
 	{
@@ -57,7 +34,7 @@ const initialTasks: Task[] = [
 		description: 'Confirm entertainment for the reception party',
 		category: 'entertainment',
 		priority: 'Low',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-28',
 	},
 	{
@@ -66,7 +43,7 @@ const initialTasks: Task[] = [
 		description: 'Schedule hair and makeup rehearsal',
 		category: 'makeup-attire',
 		priority: 'High',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-18',
 	},
 	{
@@ -75,7 +52,7 @@ const initialTasks: Task[] = [
 		description: 'Submit documents to local registrar',
 		category: 'paperwork',
 		priority: 'High',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-12',
 	},
 	{
@@ -84,7 +61,7 @@ const initialTasks: Task[] = [
 		description: 'Outdoor shoot at beach location',
 		category: 'photo-video',
 		priority: 'Medium',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-22',
 	},
 	{
@@ -93,7 +70,7 @@ const initialTasks: Task[] = [
 		description: 'Walkthrough with venue manager',
 		category: 'venue',
 		priority: 'Medium',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-14',
 	},
 	{
@@ -102,7 +79,7 @@ const initialTasks: Task[] = [
 		description: 'Order custom souvenirs for guests',
 		category: 'miscellaneous',
 		priority: 'Low',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-26',
 	},
 	{
@@ -111,7 +88,7 @@ const initialTasks: Task[] = [
 		description: 'Finalize design and print copies',
 		category: 'paperwork',
 		priority: 'Medium',
-		status: 'Pending',
+		status: 'pending',
 		date: '2025-09-10',
 	},
 ];
