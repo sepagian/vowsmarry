@@ -1,96 +1,85 @@
 import { writable } from 'svelte/store';
 
-export type ExpenseStatus = 'Paid' | 'Pending';
-
-export interface Expense {
-	id: string;
-	date: string;
-	category: string;
-	description: string;
-	amount: number;
-	status: ExpenseStatus;
-}
-
 const initialExpenses: Expense[] = [
 	{
 		id: '1',
 		date: '2025-08-01',
-		category: 'Venue',
+		category: 'venue',
 		description: 'Down payment for venue booking',
 		amount: 5_000_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '2',
 		date: '2025-08-03',
-		category: 'Venue',
+		category: 'venue',
 		description: 'Final payment for venue',
 		amount: 3_000_000,
-		status: 'Pending',
+		'payment-status': 'pending',
 	},
 	{
 		id: '3',
 		date: '2025-08-05',
-		category: 'Catering',
+		category: 'catering',
 		description: 'Initial catering deposit',
 		amount: 3_000_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '4',
 		date: '2025-08-08',
-		category: 'Catering',
+		category: 'catering',
 		description: 'Second catering installment',
 		amount: 2_000_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '5',
 		date: '2025-08-10',
-		category: 'Decoration',
+		category: 'decoration',
 		description: 'Stage setup & flowers',
-		amount: 3_500_000,
-		status: 'Paid',
+		amount: 3_000_000,
+		'payment-status': 'paid',
 	},
 	{
 		id: '6',
 		date: '2025-08-12',
-		category: 'Photography',
+		category: 'photo-video',
 		description: 'Pre-wedding photoshoot',
 		amount: 2_000_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '7',
 		date: '2025-08-15',
-		category: 'Photography',
+		category: 'photo-video',
 		description: 'Wedding day coverage',
 		amount: 2_000_000,
-		status: 'Pending',
+		'payment-status': 'pending',
 	},
 	{
 		id: '8',
 		date: '2025-08-18',
-		category: 'Makeup & Attire',
+		category: 'makeup-attire',
 		description: 'Bride and groom outfits',
 		amount: 4_000_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '9',
 		date: '2025-08-20',
-		category: 'Entertainment',
+		category: 'entertainment',
 		description: 'Live band booking',
 		amount: 2_500_000,
-		status: 'Paid',
+		'payment-status': 'paid',
 	},
 	{
 		id: '10',
 		date: '2025-08-22',
-		category: 'Makeup & Attire',
+		category: 'makeup-attire',
 		description: 'Bridal makeup package',
 		amount: 3_000_000,
-		status: 'Pending',
+		'payment-status': 'pending',
 	},
 ];
 
