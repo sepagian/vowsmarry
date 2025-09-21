@@ -4,10 +4,12 @@
 	export let priority: Task['priority'];
 
 	function getPriorityData(priority: Task['priority']) {
-		return priorityOptions.find((p) => p.value === priority) ?? {
-			color: 'bg-gray-200 text-gray-800',
-			icon: 'i-lucide:minus'
-		};
+		return (
+			priorityOptions.find((p) => p.label === priority) ?? {
+				color: 'bg-gray-200 text-gray-800',
+				icon: 'i-lucide:minus',
+			}
+		);
 	}
 
 	$: priorityData = getPriorityData(priority);
