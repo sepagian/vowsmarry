@@ -7,7 +7,7 @@ import {
 	presetWebFonts,
 	transformerCompileClass,
 	transformerDirectives,
-	transformerVariantGroup
+	transformerVariantGroup,
 } from 'unocss';
 import { builtinColors, presetShadcn } from 'unocss-preset-shadcn';
 import { presetAnimations } from 'unocss-preset-animations';
@@ -21,11 +21,11 @@ export default defineConfig({
 		presetIcons({
 			extraProperties: {
 				display: 'inline-block',
-				'vertical-align': 'middle'
+				'vertical-align': 'middle',
 			},
 			collections: {
-				lucide: () => import('@iconify-json/lucide/icons.json').then((i) => i.default)
-			}
+				lucide: () => import('@iconify-json/lucide/icons.json').then((i) => i.default),
+			},
 		}),
 		presetAttributify(),
 		presetTypography(),
@@ -34,12 +34,12 @@ export default defineConfig({
 			fonts: {
 				sans: 'Rethink Sans',
 				serif: 'Instrument Serif',
-				mono: 'Fira Code'
-			}
+				mono: 'Fira Code',
+			},
 		}),
 		presetAnimations(),
 		presetShadcn(builtinColors.map((c) => ({ color: c }))),
-		presetScrollbar()
+		presetScrollbar(),
 	],
-	transformers: [transformerDirectives(), transformerVariantGroup(), transformerCompileClass()]
+	transformers: [transformerDirectives(), transformerVariantGroup(), transformerCompileClass()],
 });
