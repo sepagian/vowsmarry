@@ -26,6 +26,7 @@ declare global {
 
 	// Simple Task type for todo sections
 	type SimpleTask = {
+		id: string;
 		title: string;
 		description?: string;
 		done?: boolean | false;
@@ -59,6 +60,39 @@ declare global {
 		description: string;
 		action?: string;
 		footer: string;
+	};
+
+	type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
+
+	type Vendor = {
+		vendorName: string;
+		vendorCategory: Category;
+		vendorEmail?: string;
+		vendorPhone?: string;
+		vendorWebsite?: string;
+		vendorPrice?: string;
+		vendorDesc?: string;
+		vendorRating?: 1 | 2 | 3 | 4 | 5;
+		vendorStatus: VendorStatus;
+	};
+
+	type RundownCategory =
+		| 'preparation'
+		| 'ceremony'
+		| 'reception'
+		| 'entertainment'
+		| 'logistics'
+		| 'photo-video'
+		| 'paperwork'
+		| 'closing'
+		| 'miscellaneous';
+
+	type Rundown = {
+		id: string;
+		event: string;
+		time: string;
+		category: RundownCategory;
+		description?: string;
 	};
 
 	type Item = {
