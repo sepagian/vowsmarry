@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { categoryOptions } from '$lib/constants/constants';
-	import type { Task } from '$lib/stores/tasks';
 
 	export let description: Task['description'];
 	export let category: Task['category'];
@@ -14,6 +13,9 @@
 			}
 		);
 	}
+	function getCategoryLabel(category: Task['category']) {
+		return categoryOptions.find((s) => s.value === category)?.label ?? category;
+	}
 
 	$: categoryData = getCategoryData(category);
 </script>
@@ -23,7 +25,7 @@
 		class="inline-flex items-center rounded-md px-2 py-1 text-xs gap-2 font-medium {categoryData.color}"
 	>
 		<div class={categoryData.icon}></div>
-		{category}
+		{getCategoryLabel(category)}
 	</span>
-	<span class={status === 'Completed' ? 'line-through text-gray-500' : ''}>{description}</span>
+	<span class={status === 'completed' ? 'line-through text-gray-500' : ''}>{description}</span>
 </span>
