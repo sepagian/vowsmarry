@@ -8,9 +8,9 @@
 	// Reactive overviewCards based on the store
 	$: overviewCards = (() => {
 		const tasks = $tasksStore;
-		const completed = tasks.filter((task) => task.status === 'Completed').length;
-		const pending = tasks.filter((task) => task.status === 'Pending').length;
-		const onprogress = tasks.filter((task) => task.status === 'On Progress').length;
+		const completed = tasks.filter((task) => task.status === 'completed').length;
+		const pending = tasks.filter((task) => task.status === 'pending').length;
+		const onprogress = tasks.filter((task) => task.status === 'on-progress').length;
 		const total = tasks.length;
 
 		return [
