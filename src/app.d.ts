@@ -14,13 +14,16 @@ declare global {
 
 	type DocType = 'legal-formal' | 'vendor-finance' | 'guest-ceremony' | 'personal-keepsake';
 
+	type TaskStatus = 'pending' | 'on-progress' | 'completed';
+	type TaskPriority = 'low' | 'medium' | 'high';
+
 	type Task = {
 		id: string;
 		title: string;
 		description?: string;
 		category: (typeof Category)[number];
-		priority?: 'Low' | 'Medium' | 'High';
-		status: 'Pending' | 'On Progress' | 'Completed';
+		priority?: TaskPriority;
+		status: TaskStatus;
 		date?: string;
 	};
 
@@ -33,13 +36,15 @@ declare global {
 	};
 
 	// Expense type for expense tracking
+	type ExpenseStatus = 'pending' | 'paid';
+
 	type Expense = {
 		id: string;
 		date: string;
 		category: string;
 		description: string;
 		amount: number;
-		status: 'Paid' | 'Pending';
+		'payment-status': ExpenseStatus;
 	};
 
 	// Filter type for todo sections
