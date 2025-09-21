@@ -3,7 +3,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
 	let {
-		items
+		items,
 	}: {
 		items: {
 			title: string;
@@ -26,7 +26,10 @@
 				tooltipContent="Dashboard"
 				class="hover:bg-neutral-200 dark:hover:bg-neutral-900 h-10"
 			>
-				<a href="/dashboard" class="flex flex-1 gap-2 items-center">
+				<a
+					href="/dashboard"
+					class="flex flex-1 gap-2 items-center"
+				>
 					<div
 						class="i-lucide:house translate-y-[1px] translate-x-[-2px] h-5 w-5 bg-neutral-700 dark:bg-neutral-200"
 					></div>
@@ -37,12 +40,18 @@
 	</Sidebar.Menu>
 	<Sidebar.Menu class="gap-2">
 		{#each items as item (item.title)}
-			<Collapsible.Root open={item.isActive} class="group/collapsible">
+			<Collapsible.Root
+				open={item.isActive}
+				class="group/collapsible"
+			>
 				{#snippet child({ props })}
 					<Sidebar.MenuItem {...props}>
 						<Collapsible.Trigger>
 							{#snippet child({ props })}
-								<Sidebar.MenuButton {...props} tooltipContent={item.title}>
+								<Sidebar.MenuButton
+									{...props}
+									tooltipContent={item.title}
+								>
 									<div class="flex flex-1 gap-2 items-center">
 										{#if item.icon}
 											<div
@@ -65,7 +74,10 @@
 											class="hover:bg-neutral-200 dark:hover:bg-neutral-900 h-8"
 										>
 											{#snippet child({ props }: { props: any })}
-												<a href={subItem.url} {...props}>
+												<a
+													href={subItem.url}
+													{...props}
+												>
 													{#if subItem.icon}
 														<div class="{subItem.icon} h-5 w-5"></div>
 													{/if}
