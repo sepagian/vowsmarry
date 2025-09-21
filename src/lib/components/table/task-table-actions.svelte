@@ -13,6 +13,9 @@
 	function getIcon(status: Task['status']) {
 		return statusOptions.find((s) => s.value === status)?.icon ?? 'i-lucide:alarm-clock-minus';
 	}
+	function getLabel(status: Task['status']) {
+		return statusOptions.find((s) => s.value === status)?.label ?? status;
+	}
 </script>
 
 <DropdownMenu.Root>
@@ -21,7 +24,7 @@
 			class={`rounded-md px-3 inline-flex items-center gap-2 py-1 text-sm font-medium ${getColor(status)}`}
 		>
 			<div class={`${getIcon(status)}`}></div>
-			{status}
+			{getLabel(status)}
 		</div>
 	</DropdownMenu.Trigger>
 
@@ -41,7 +44,7 @@
 					class={`inline-flex rounded-md items-center gap-2 px-2 py-1 text-xs font-medium ${s.color}`}
 				>
 					<div class={`${s.icon}`}></div>
-					{s.value}
+					{s.label}
 				</span>
 			</DropdownMenu.Item>
 		{/each}
