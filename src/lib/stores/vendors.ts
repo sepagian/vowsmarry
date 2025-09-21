@@ -1,50 +1,67 @@
 import { writable } from 'svelte/store';
 
-export interface Item {
-	id: string;
-	name: string;
+export interface Vendor {
+	vendorName: string;
+	vendorCategory: Category;
+	vendorEmail?: string;
+	vendorPhone?: string;
+	vendorWebsite?: string;
+	vendorPrice?: string;
+	vendorAddress?: string;
+	vendorDesc?: string;
+	vendorRating?: vendorRating;
+	vendorStatus: vendorStatus;
 }
 
-export interface ColumnType {
-	id: string;
-	name: string;
-	items: Item[];
-}
-
-const initialColumns: ColumnType[] = [
+const initialVendors: Vendor[] = [
 	{
-		id: 'c1',
-		name: 'Booked',
-		items: [
-			{ id: '1', name: 'item41' },
-			{ id: '2', name: 'item42' },
-			{ id: '3', name: 'item43' },
-			{ id: '4', name: 'item44' },
-			{ id: '5', name: 'item45' },
-			{ id: '6', name: 'item46' },
-			{ id: '7', name: 'item47' },
-			{ id: '8', name: 'item48' },
-			{ id: '9', name: 'item49' },
-		],
+		vendorName: 'The Wedding Venue',
+		vendorCategory: 'venue',
+		vendorEmail: 'venue@email.com',
+		vendorPhone: '(512) 555-5555',
+		vendorWebsite: 'https://www.weddingvenue.com',
+		vendorPrice: '$10,000',
+		vendorAddress: '123 Main St, Anytown, USA',
+		vendorDesc: 'Ranch style venue',
+		vendorRating: 4,
+		vendorStatus: 'researching',
 	},
 	{
-		id: 'c2',
-		name: 'Contacted',
-		items: [
-			{ id: '10', name: 'item50' },
-			{ id: '11', name: 'item51' },
-		],
+		vendorName: 'The Catering Company',
+		vendorCategory: 'catering',
+		vendorEmail: 'catering@email.com',
+		vendorPhone: '(512) 555-5555',
+		vendorWebsite: 'https://www.cateringcompany.com',
+		vendorPrice: '$10,000',
+		vendorAddress: '123 Main St, Anytown, USA',
+		vendorDesc: 'Ranch style food',
+		vendorRating: 4,
+		vendorStatus: 'researching',
 	},
 	{
-		id: 'c3',
-		name: 'Negotiated',
-		items: [{ id: '13', name: 'item52' }],
+		vendorName: 'The Decor Company',
+		vendorCategory: 'decoration',
+		vendorEmail: 'decoration@email.com',
+		vendorPhone: '(512) 555-5555',
+		vendorWebsite: 'https://www.decorationcompany.com',
+		vendorPrice: '$10,000',
+		vendorAddress: '123 Main St, Anytown, USA',
+		vendorDesc: 'Ranch style decorations',
+		vendorRating: 4,
+		vendorStatus: 'researching',
 	},
 	{
-		id: 'c4',
-		name: 'Completed',
-		items: [{ id: '14', name: 'item53' }],
+		vendorName: 'The Entertainment Company',
+		vendorCategory: 'entertainment',
+		vendorEmail: 'entertainment@email.com',
+		vendorPhone: '(512) 555-5555',
+		vendorWebsite: 'https://www.entertainmentcompany.com',
+		vendorPrice: '$10,000',
+		vendorAddress: '123 Main St, Anytown, USA',
+		vendorDesc: 'Ranch style entertainment',
+		vendorRating: 4,
+		vendorStatus: 'researching',
 	},
 ];
 
-export const vendorsColumns = writable<ColumnType[]>(initialColumns);
+export const vendorsStore = writable<Vendor[]>(initialVendors);
