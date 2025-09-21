@@ -61,32 +61,32 @@ export const categoryOptions: Option<Category>[] = [
 
 // --- Priorities ---
 export const priorityOptions: Option<NonNullable<Task['priority']>>[] = [
-	{ value: 'Low', label: 'Low', icon: 'i-lucide:arrow-down', color: 'bg-green-100 text-green-800' },
+	{ value: 'low', label: 'Low', icon: 'i-lucide:arrow-down', color: 'bg-green-100 text-green-800' },
 	{
-		value: 'Medium',
+		value: 'medium',
 		label: 'Medium',
 		icon: 'i-lucide:arrow-right',
 		color: 'bg-yellow-100 text-yellow-800',
 	},
-	{ value: 'High', label: 'High', icon: 'i-lucide:arrow-up', color: 'bg-red-100 text-red-800' },
+	{ value: 'high', label: 'High', icon: 'i-lucide:arrow-up', color: 'bg-red-100 text-red-800' },
 ];
 
 // --- Status ---
 export const statusOptions: Option<Task['status']>[] = [
 	{
-		value: 'Pending',
+		value: 'pending',
 		label: 'Pending',
 		icon: 'i-lucide:alarm-clock-minus',
 		color: 'bg-gray-200 text-gray-800',
 	},
 	{
-		value: 'On Progress',
+		value: 'on-progress',
 		label: 'On Progress',
 		icon: 'i-lucide:alarm-clock',
 		color: 'bg-yellow-100 text-yellow-800',
 	},
 	{
-		value: 'Completed',
+		value: 'completed',
 		label: 'Completed',
 		icon: 'i-lucide:alarm-clock-check',
 		color: 'bg-green-100 text-green-800',
@@ -102,7 +102,98 @@ export const docTypeOptions: Option<DocType>[] = [
 ];
 
 // --- Expense Status ---
-export const expenseStatusOptions: Option<Expense['status']>[] = [
-	{ value: 'Paid', label: 'Paid', icon: 'i-lucide:check' },
-	{ value: 'Pending', label: 'Pending', icon: 'i-lucide:clock' },
+export const expenseStatusOptions: Option<Expense['payment-status']>[] = [
+	{ value: 'paid', label: 'Paid', icon: 'i-lucide:check', color: 'bg-green-100 text-green-800' },
+	{
+		value: 'pending',
+		label: 'Pending',
+		icon: 'i-lucide:alarm-clock-minus',
+		color: 'bg-yellow-100 text-yellow-800',
+	},
+];
+
+// --- Vendor Status ---
+export const vendorStatusOptions: Option<VendorStatus>[] = [
+	{
+		value: 'researching',
+		label: 'Researching',
+		icon: 'i-lucide:search',
+		color: 'bg-blue-100 text-blue-800',
+	},
+	{
+		value: 'contacted',
+		label: 'Contacted',
+		icon: 'i-lucide:phone',
+		color: 'bg-yellow-100 text-yellow-800',
+	},
+	{
+		value: 'quoted',
+		label: 'Quoted',
+		icon: 'i-lucide:dollar-sign',
+		color: 'bg-orange-100 text-orange-800',
+	},
+	{
+		value: 'booked',
+		label: 'Booked',
+		icon: 'i-lucide:check-circle',
+		color: 'bg-green-100 text-green-800',
+	},
+];
+
+// --- Rundown Categories ---
+export const rundownCategoryOptions: Option<Rundown['category']>[] = [
+	{
+		value: 'preparation',
+		label: 'Preparation',
+		icon: 'i-lucide:sparkles',
+		color: 'bg-blue-100 text-blue-800',
+	},
+	{
+		value: 'ceremony',
+		label: 'Ceremony',
+		icon: 'i-lucide:heart',
+		color: 'bg-pink-100 text-pink-800',
+	},
+	{
+		value: 'reception',
+		label: 'Reception',
+		icon: 'i-lucide:utensils',
+		color: 'bg-yellow-100 text-yellow-800',
+	},
+	{
+		value: 'entertainment',
+		label: 'Entertainment',
+		icon: 'i-lucide:music',
+		color: 'bg-purple-100 text-purple-800',
+	},
+	{
+		value: 'logistics',
+		label: 'Logistics',
+		icon: 'i-lucide:truck',
+		color: 'bg-orange-100 text-orange-800',
+	},
+	{
+		value: 'photo-video',
+		label: 'Photo & Video',
+		icon: 'i-lucide:camera',
+		color: 'bg-green-100 text-green-800',
+	},
+	{
+		value: 'paperwork',
+		label: 'Paperwork',
+		icon: 'i-lucide:scroll',
+		color: 'bg-red-100 text-red-800',
+	},
+	{
+		value: 'closing',
+		label: 'Closing & Afterparty',
+		icon: 'i-lucide:party-popper',
+		color: 'bg-indigo-100 text-indigo-800',
+	},
+	{
+		value: 'miscellaneous',
+		label: 'Miscellaneous',
+		icon: 'i-lucide:more-horizontal',
+		color: 'bg-gray-100 text-gray-800',
+	},
 ];
