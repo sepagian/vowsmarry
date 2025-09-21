@@ -12,7 +12,7 @@
 		getSortedRowModel,
 	} from '@tanstack/table-core';
 	import { createRawSnippet } from 'svelte';
-	import ExpenseTableCheckbox from './expense-table-checkbox.svelte';
+	import ExpenseTableDesc from './expense-table-desc.svelte';
 	import ExpenseTableActions from './expense-table-actions.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -26,34 +26,32 @@
 		renderSnippet,
 	} from '$lib/components/ui/data-table/index.js';
 	import DialogExpense from '../dialog/dialog-expense.svelte';
-
-	let { data }: { data: Expense[] } = $props();
+	import { expensesStore } from '$lib/stores/expenses';
 
 	const columns: ColumnDef<Expense>[] = [
 		{
-			id: 'select',
-			header: ({ table }) =>
-				renderComponent(ExpenseTableCheckbox, {
-					checked: table.getIsAllPageRowsSelected(),
-					indeterminate: table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected(),
-					onCheckedChange: (value: unknown) => table.toggleAllPageRowsSelected(!!value),
-					'aria-label': 'Select all',
-				}),
+			accessorKey: 'description',
+			header: () => {
+				const amountHeaderSnippet = createRawSnippet(() => {
+					return {
+						render: () => `<div class="font-semibold">Description</div>`,
+					};
+				});
+				return renderSnippet(amountHeaderSnippet, '');
+			},
 			cell: ({ row }) =>
-				renderComponent(ExpenseTableCheckbox, {
-					checked: row.getIsSelected(),
-					onCheckedChange: (value: unknown) => row.toggleSelected(!!value),
-					'aria-label': 'Select row',
+				renderComponent(ExpenseTableDesc, {
+					category: row.original.category,
+					description: row.original.description,
+					status: row.original['payment-status'],
 				}),
-			enableSorting: false,
-			enableHiding: false,
 		},
 		{
 			accessorKey: 'date',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="">Date</div>`,
+						render: () => `<div class="font-semibold">Date</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -70,54 +68,11 @@
 			},
 		},
 		{
-			accessorKey: 'category',
-			header: () => {
-				const amountHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="">Category</div>`,
-					};
-				});
-				return renderSnippet(amountHeaderSnippet, '');
-			},
-			cell: ({ row }) => {
-				const emailSnippet = createRawSnippet<[string]>((getCategory) => {
-					const category = getCategory();
-					return {
-						render: () => `<div class="text-left">${category}</div>`,
-					};
-				});
-
-				return renderSnippet(emailSnippet, row.getValue('category'));
-			},
-		},
-		{
-			accessorKey: 'description',
-			header: () => {
-				const amountHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="">Description</div>`,
-					};
-				});
-				return renderSnippet(amountHeaderSnippet, '');
-			},
-			cell: ({ row }) => {
-				const emailSnippet = createRawSnippet<[string]>((getDescription) => {
-					const description = getDescription();
-					return {
-						render: () => `<div class="">${description}</div>`,
-					};
-				});
-
-				return renderSnippet(emailSnippet, row.getValue('description'));
-			},
-		},
-
-		{
 			accessorKey: 'amount',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="text-right">Amount</div>`,
+						render: () => `<div class="text-right font-semibold">Amount</div>`,
 					};
 				});
 				return renderSnippet(amountHeaderSnippet, '');
@@ -126,12 +81,14 @@
 				const amountCellSnippet = createRawSnippet<[string]>((getAmount) => {
 					const amount = getAmount();
 					return {
-						render: () => `<div class="text-right font-medium">${amount}</div>`,
+						render: () => `<div class="text-right">${amount}</div>`,
 					};
 				});
 				const formatter = new Intl.NumberFormat('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0,
 				});
 
 				return renderSnippet(
@@ -141,22 +98,30 @@
 			},
 		},
 		{
+			id: 'actions',
 			accessorKey: 'status',
-			header: 'Status',
-			cell: ({ row }) => {
-				const statusSnippet = createRawSnippet<[string]>((getStatus) => {
-					const status = getStatus();
+			header: () => {
+				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="capitalize">${status}</div>`,
+						render: () => `<div class="font-semibold w-32">Payment Status</div>`,
 					};
 				});
-				return renderSnippet(statusSnippet, row.getValue('status'));
+				return renderSnippet(actionsHeaderSnippet, '');
 			},
-		},
-		{
-			id: 'actions',
 			enableHiding: false,
-			cell: ({ row }) => renderComponent(ExpenseTableActions, { id: row.original.id }),
+			cell: ({ row }) =>
+				renderComponent(ExpenseTableActions, {
+					status: row.original['payment-status'],
+					onChange: (newStatus: Expense['payment-status']) => {
+						expensesStore.update((expenses) => {
+							const expenseIndex = expenses.findIndex((expense) => expense.id === row.original.id);
+							if (expenseIndex !== -1) {
+								expenses[expenseIndex] = { ...expenses[expenseIndex], 'payment-status': newStatus };
+							}
+							return [...expenses];
+						});
+					},
+				}),
 		},
 	];
 
@@ -168,7 +133,7 @@
 
 	const table = createSvelteTable({
 		get data() {
-			return data;
+			return $expensesStore;
 		},
 		columns,
 		state: {
@@ -233,12 +198,17 @@
 <div class="w-full">
 	<div class="flex items-center pb-4 gap-4">
 		<Input
-			placeholder="Filter category..."
-			value={(table.getColumn('category')?.getFilterValue() as string) ?? ''}
-			oninput={(e: Event) =>
-				table.getColumn('category')?.setFilterValue((e.currentTarget as HTMLInputElement).value)}
+			placeholder="Search expenses"
+			value={(table.getState().globalFilter as string) ?? ''}
+			oninput={(e: Event) => {
+				const val = (e.currentTarget as HTMLInputElement).value;
+				table.getColumn('description')?.setFilterValue(val);
+				table.getColumn('category')?.setFilterValue(val);
+			}}
 			onchange={(e: Event) => {
-				table.getColumn('category')?.setFilterValue((e.currentTarget as HTMLInputElement).value);
+				const val = (e.currentTarget as HTMLInputElement).value;
+				table.getColumn('description')?.setFilterValue(val);
+				table.getColumn('category')?.setFilterValue(val);
 			}}
 			class="max-w-sm border-1 border-neutral-200"
 		/>
