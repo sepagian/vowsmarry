@@ -1,9 +1,12 @@
-<script lang="ts" module>
+<script
+	lang="ts"
+	module
+>
 	const items = {
 		user: {
 			id: '1',
 			name: 'Mawar Melati',
-			email: 'm@example.com'
+			email: 'm@example.com',
 		},
 		navMain: [
 			{
@@ -15,8 +18,8 @@
 					{ title: 'Documents', url: '/dashboard/document' }, // contracts, receipts, inspo
 					{ title: 'Budget', url: '/dashboard/budget' }, // quick link to finance
 					{ title: 'Vendors', url: '/dashboard/vendor' },
-					{ title: 'Schedule', url: '/dashboard/rundown' } // could include dresscode
-				]
+					{ title: 'Schedule', url: '/dashboard/rundown' }, // could include dresscode
+				],
 			},
 			{
 				title: 'Invitation',
@@ -25,10 +28,10 @@
 				items: [
 					{ title: 'Setup', url: '/dashboard/invitation' }, // overview, templates, couple details
 					{ title: 'Story', url: '/dashboard/invitation/story' }, // love story, gallery
-					{ title: 'Guests', url: '/dashboard/invitation/guest' } // guests, RSVP, gifts
-				]
-			}
-		]
+					{ title: 'Guests', url: '/dashboard/invitation/guest' }, // guests, RSVP, gifts
+				],
+			},
+		],
 	};
 </script>
 
@@ -47,7 +50,12 @@
 	}: ComponentProps<typeof Sidebar.Root> = $props();
 </script>
 
-<Sidebar.Root class="" {collapsible} {variant} {...restProps}>
+<Sidebar.Root
+	class=""
+	{collapsible}
+	{variant}
+	{...restProps}
+>
 	<Sidebar.Header class="h-13.75"></Sidebar.Header>
 	<Sidebar.Content class="align-center">
 		<NavMain items={items.navMain} />
