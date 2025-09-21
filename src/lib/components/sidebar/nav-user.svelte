@@ -59,7 +59,11 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<form method="POST" action="/logout" use:enhance>
+				<form
+					method="POST"
+					action="/logout"
+					use:enhance
+				>
 					<DropdownMenu.Item
 						onclick={(e) => {
 							e.preventDefault();
