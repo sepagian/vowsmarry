@@ -43,7 +43,6 @@ export const documents = pgTable('documents', {
 	userId: uuid('user_id').notNull(), // references auth.users(id)
 	title: text('title').notNull(),
 	type: text('type').notNull(),
-	status: documentStatusEnum('status').default('pending').notNull(),
 	dueDate: timestamp('due_date'),
 	fileUrl: text('file_url'),
 	createdAt: timestamp('created_at').defaultNow().notNull(),
