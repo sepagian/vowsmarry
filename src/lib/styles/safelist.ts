@@ -62,6 +62,10 @@ export const safelistClasses = [
 	'i-lucide:alarm-clock',
 	'i-lucide:alarm-clock-check',
 	'i-lucide:minus',
+	'i-lucide:scale',
+	'i-lucide:scroll-text',
+	'i-lucide:book-open-check',
+	'i-lucide:heart',
 
 	// Common layout classes used in components
 	'inline-flex',
