@@ -1,6 +1,17 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
+	// Card types for overview sections
+	type OverviewCard = {
+		title: string;
+		description: string;
+		action?: string;
+		actionClass?: string;
+		actionColor?: string;
+		footer: string;
+	};
+
+	// Global category types
 	type Category =
 		| 'accommodation'
 		| 'catering'
@@ -12,32 +23,32 @@ declare global {
 		| 'venue'
 		| 'miscellaneous';
 
-	type DocType = 'legal-formal' | 'vendor-finance' | 'guest-ceremony' | 'personal-keepsake';
-
-	type TaskStatus = 'pending' | 'on-progress' | 'completed';
-	type TaskPriority = 'low' | 'medium' | 'high';
-
+	// Tasks
 	type Task = {
 		id: string;
 		title: string;
 		description?: string;
-		category: (typeof Category)[number];
+		category: Category;
 		priority?: TaskPriority;
 		status: TaskStatus;
 		date?: string;
 	};
 
-	// Simple Task type for todo sections
-	type SimpleTask = {
+	type TaskStatus = 'pending' | 'on-progress' | 'completed';
+	type TaskPriority = 'low' | 'medium' | 'high';
+	type Filter = 'all' | 'active' | 'completed';
+
+	// Docs
+	type Document = {
 		id: string;
-		title: string;
-		description?: string;
-		done?: boolean | false;
+		description: string;
+		date: string;
+		category: DocType;
 	};
 
-	// Expense type for expense tracking
-	type ExpenseStatus = 'pending' | 'paid';
+	type DocType = 'legal-formal' | 'vendor-finance' | 'guest-ceremony' | 'personal-keepsake';
 
+	// Expenses
 	type Expense = {
 		id: string;
 		date: string;
@@ -47,28 +58,9 @@ declare global {
 		'payment-status': ExpenseStatus;
 	};
 
-	// Filter type for todo sections
-	type Filter = 'all' | 'active' | 'completed';
+	type ExpenseStatus = 'pending' | 'paid';
 
-	// Card types for overview sections
-	type OverviewCard = {
-		title: string;
-		description: string;
-		action?: string;
-		actionClass?: string;
-		actionColor?: string;
-		footer: string;
-	};
-
-	type BudgetCard = {
-		title: string;
-		description: string;
-		action?: string;
-		footer: string;
-	};
-
-	type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
-
+	// Vendors
 	type Vendor = {
 		vendorName: string;
 		vendorCategory: Category;
@@ -79,6 +71,20 @@ declare global {
 		vendorDesc?: string;
 		vendorRating?: 1 | 2 | 3 | 4 | 5;
 		vendorStatus: VendorStatus;
+	};
+
+	type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
+
+	//Rundowns
+	type Rundown = {
+		id: string;
+		title: string;
+		description?: string;
+		category: RundownCategory;
+		startTime: string;
+		endTime: string;
+		location?: string;
+		attendees?: string;
 	};
 
 	type RundownCategory =
@@ -92,14 +98,7 @@ declare global {
 		| 'closing'
 		| 'miscellaneous';
 
-	type Rundown = {
-		id: string;
-		event: string;
-		time: string;
-		category: RundownCategory;
-		description?: string;
-	};
-
+	// DnD
 	type Item = {
 		id: string | number;
 		name: string;
