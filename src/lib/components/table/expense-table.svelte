@@ -125,7 +125,7 @@
 		},
 	];
 
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 5 });
+	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	let sorting = $state<SortingState>([]);
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let rowSelection = $state<RowSelectionState>({});
