@@ -7,6 +7,9 @@
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { categoryOptions, priorityOptions } from '$lib/constants/constants';
 
+	let taskName = $state('');
+	let taskDescription = $state('');
+	let taskDue = $state('');
 	let categoryValue = $state('');
 	let priorityValue = $state('');
 
@@ -21,6 +24,20 @@
 			? priorityOptions.find((p) => p.value === priorityValue)?.label
 			: 'Choose priority level',
 	);
+
+	function addTask(event: Event) {
+		event.preventDefault();
+		if (!taskName) return;
+
+		// TODO: Add task logic here
+
+		// Reset form
+		taskName = '';
+		taskDescription = '';
+		categoryValue = '';
+		priorityValue = '';
+		taskDue = '';
+	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -30,7 +47,10 @@
 			<p>Write down what needs to be done for your wedding journey.</p>
 		</Dialog.Description>
 	</Dialog.Header>
-	<div class="flex flex-col gap-4 py-4">
+	<form
+		onsubmit={addTask}
+		class="flex flex-col gap-4 py-4"
+	>
 		<div class="flex flex-col items-start gap-2">
 			<Label
 				for="taskName"
@@ -125,7 +145,7 @@
 				placeholder="Select date..."
 			/>
 		</div>
-	</div>
+	</form>
 	<Dialog.Footer>
 		<Button type="submit">Add Task</Button>
 	</Dialog.Footer>
