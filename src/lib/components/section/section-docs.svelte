@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge/index';
+	import { buttonVariants } from '$lib/components/ui/button/index';
 	import * as Card from '$lib/components/ui/card/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
-	import { docTypeOptions } from '$lib/constants/constants';
+	import * as Dialog from '$lib/components/ui/dialog/index';
 	import type { DocType } from '$lib/types';
+	import { docTypeOptions } from '$lib/constants/constants';
+	import DialogDocument from '../dialog/dialog-document.svelte';
 
 	let {
 		docsCards,
@@ -52,8 +55,17 @@
 </script>
 
 <div class="flex flex-col gap-2 px-4">
-	<div class="flex flex-col">
+	<div class="flex justify-between items-center">
 		<h2 class="text-base font-bold text-neutral-600">Uploaded Documents</h2>
+		<div class="flex flex-1 items-center justify-end gap-4">
+			<Dialog.Root>
+				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
+					<div class="i-lucide:plus p-2"></div>
+					<span class="hidden lg:inline">Upload New Document</span>
+				</Dialog.Trigger>
+				<DialogDocument />
+			</Dialog.Root>
+		</div>
 	</div>
 
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
