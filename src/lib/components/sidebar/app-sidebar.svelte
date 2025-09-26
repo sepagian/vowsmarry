@@ -9,28 +9,15 @@
 			email: 'm@example.com',
 		},
 		navMain: [
-			{
-				title: 'Planner',
-				icon: 'i-lucide:notebook-pen',
-				isActive: true,
-				items: [
-					{ title: 'Tasks', url: '/dashboard/task' }, // could include paperwork
-					{ title: 'Documents', url: '/dashboard/document' }, // contracts, receipts, inspo
-					{ title: 'Budget', url: '/dashboard/budget' }, // quick link to finance
-					{ title: 'Vendors', url: '/dashboard/vendor' },
-					{ title: 'Schedule', url: '/dashboard/schedule' }, // could include dresscode
-				],
-			},
-			{
-				title: 'Invitation',
-				icon: 'i-lucide:mail',
-				isActive: true,
-				items: [
-					{ title: 'Setup', url: '/dashboard/invitation' }, // overview, templates, couple details
-					{ title: 'Story', url: '/dashboard/invitation/story' }, // love story, gallery
-					{ title: 'Guests', url: '/dashboard/invitation/guest' }, // guests, RSVP, gifts
-				],
-			},
+			{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // dashboard
+			{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // could include paperwork
+			{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:scroll-text' }, // contracts, receipts, inspo
+			{ title: 'Budget', url: '/dashboard/budget', icon: 'i-lucide:dollar-sign' }, // quick link to finance
+			{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' },
+			{ title: 'Schedule', url: '/dashboard/schedule', icon: 'i-lucide:calendar-1' }, // could include dresscode
+			{ title: 'Setup', url: '/dashboard/invitation', icon: 'i-lucide:settings' }, // overview, templates, couple details
+			{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // love story, gallery
+			{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // guests, RSVP, gifts
 		],
 	};
 </script>
@@ -43,7 +30,6 @@
 	import type { ComponentProps } from 'svelte';
 
 	let {
-		ref = $bindable(null),
 		collapsible = 'icon',
 		variant = 'sidebar',
 		...restProps
