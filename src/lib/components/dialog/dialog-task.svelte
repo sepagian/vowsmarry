@@ -63,7 +63,10 @@
 				name="taskCategory"
 				bind:value={categoryValue}
 			>
-				<Select.Trigger class="w-full">
+				<Select.Trigger
+					class="w-full"
+					aria-label="Task Category"
+				>
 					{triggerCategory}
 				</Select.Trigger>
 				<Select.Content>
@@ -90,7 +93,10 @@
 				name="taskPriority"
 				bind:value={priorityValue}
 			>
-				<Select.Trigger class="w-full">
+				<Select.Trigger
+					class="w-full"
+					aria-label="Task Priority"
+				>
 					{triggerPriority}
 				</Select.Trigger>
 				<Select.Content>
