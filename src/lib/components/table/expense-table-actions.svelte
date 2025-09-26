@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import { expenseStatusOptions } from '$lib/constants/constants';
+	import type { Expense } from '$lib/types';
 
 	export let status: Expense['payment-status'];
 	export let onChange: (newStatus: Expense['payment-status']) => void;
