@@ -7,6 +7,10 @@
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { categoryOptions, expenseStatusOptions } from '$lib/constants/constants';
 
+	let expenseName = $state('');
+	let expenseDescription = $state('');
+	let expenseAmount = $state('');
+	let expenseDue = $state('');
 	let categoryValue = $state('');
 	let statusValue = $state('');
 
@@ -21,6 +25,21 @@
 			? expenseStatusOptions.find((p) => p.value === statusValue)?.label
 			: 'Payment status',
 	);
+
+	function addExpense(event: Event) {
+		event.preventDefault();
+		if (!expenseName) return;
+
+		// TODO: Add expense logic here
+
+		// Reset form
+		expenseName = '';
+		expenseDescription = '';
+		expenseAmount = '';
+		categoryValue = '';
+		statusValue = '';
+		expenseDue = '';
+	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -30,7 +49,10 @@
 			<p>Keep track of where the budget goes — from flowers to fireworks.</p>
 		</Dialog.Description>
 	</Dialog.Header>
-	<div class="flex flex-col gap-4 py-4">
+	<form
+		onsubmit={addExpense}
+		class="flex flex-col gap-4 py-4"
+	>
 		<div class="flex flex-col items-start gap-2">
 			<Label
 				for="expenseName"
@@ -137,7 +159,7 @@
 				placeholder="Select date..."
 			/>
 		</div>
-	</div>
+	</form>
 	<Dialog.Footer>
 		<Button type="submit">Add Expense</Button>
 	</Dialog.Footer>
