@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import type { Expense } from '$lib/types';
 
 const initialExpenses: Expense[] = [
 	{
