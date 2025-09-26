@@ -5,11 +5,12 @@
 	import * as Dialog from '../ui/dialog/index';
 	import { Badge } from '$lib/components/ui/badge/index';
 	import { dndzone } from 'svelte-dnd-action';
-	import { Button, buttonVariants } from '../ui/button/index';
+	import { buttonVariants } from '../ui/button/index';
+	import { Switch } from '../ui/switch/index';
 	import DialogRundown from '../dialog/dialog-rundown.svelte';
 
 	let { items } = $props();
-	let dragDisabled = $state(false);
+	let dragDisabled = $state(true);
 	const flipDurationMs = 300;
 	const delayTouchStart = 300;
 
@@ -73,14 +74,12 @@
 			<h2 class="text-base font-bold text-neutral-600">Schedule Breakdown</h2>
 		</div>
 
-		<div class="inline-flex gap-4">
-			<Button
+		<div class="inline-flex items-center gap-4">
+			<Switch
+				id="toggle-drag"
+				class=""
 				onclick={toggleDrag}
-				variant="outline"
-				size="default"
-				><div class="i-lucide:arrow-up-down"></div>
-				<span class="hidden lg:inline">Arrange</span>
-			</Button>
+			/>
 			<Dialog.Root>
 				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 					<div class="i-lucide:plus p-2"></div>
