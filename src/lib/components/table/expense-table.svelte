@@ -27,6 +27,7 @@
 	} from '$lib/components/ui/data-table/index.js';
 	import DialogExpense from '../dialog/dialog-expense.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
+	import type { Expense } from '$lib/types';
 
 	const columns: ColumnDef<Expense>[] = [
 		{
