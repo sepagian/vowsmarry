@@ -8,10 +8,11 @@
 	import { createEventDispatcher } from 'svelte';
 	import { rundownCategoryOptions } from '$lib/constants/constants';
 	import { rundownsStore } from '$lib/stores/rundowns';
+	import type { Rundown, RundownCategory } from '$lib/types';
 
 	const dispatch = createEventDispatcher();
 
-	let event = $state('');
+	let title = $state('');
 	let categoryValue = $state('');
 	let description = $state('');
 	let startTime = $state('');
@@ -26,15 +27,18 @@
 	);
 
 	function addEvent(formEvent: Event) {
-		event.preventDefault();
-		if (!event || !categoryValue || !startTime) return;
+		formEvent.preventDefault();
+		if (!title || !categoryValue || !startTime) return;
 
 		const newRundown: Rundown = {
 			id: Date.now().toString(),
-			event,
-			time: startTime,
-			category: categoryValue as RundownCategory,
+			title,
 			description: description || undefined,
+			category: categoryValue as RundownCategory,
+			startTime,
+			endTime: endTime || '',
+			location: location || undefined,
+			attendees: attendees || undefined,
 		};
 
 		rundownsStore.update((rundowns) => [...rundowns, newRundown]);
@@ -42,7 +46,7 @@
 		dispatch('close');
 
 		// Reset form
-		event = '';
+		title = '';
 		categoryValue = '';
 		description = '';
 		startTime = '';
@@ -71,8 +75,8 @@
 						class="text-right">Event Title</Label
 					>
 					<Input
-						bind:value={event}
-						id="event"
+						bind:value={title}
+						id="title"
 						type="text"
 						placeholder="e.g. Ceremony"
 						class="col-span-3"
