@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { categoryOptions } from '$lib/constants/constants';
+	import type { Expense } from '$lib/types';
 
 	export let description: Expense['description'];
 	export let category: Expense['category'];
