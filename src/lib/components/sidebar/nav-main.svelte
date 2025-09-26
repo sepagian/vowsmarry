@@ -24,14 +24,23 @@
 		{#each items as item (item.title)}
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton tooltipContent={item.title}>
-					<a href={resolve(item.url)}>
+					{#if item.url}
+						<a href={item.url}>
+							<div class="flex flex-1 gap-2 items-center">
+								{#if item.icon}
+									<div class="{item.icon} h-4 w-4"></div>
+								{/if}
+								<span class="text-sm">{item.title}</span>
+							</div>
+						</a>
+					{:else}
 						<div class="flex flex-1 gap-2 items-center">
 							{#if item.icon}
 								<div class="{item.icon} h-4 w-4"></div>
 							{/if}
 							<span class="text-sm">{item.title}</span>
 						</div>
-					</a>
+					{/if}
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>
 		{/each}
