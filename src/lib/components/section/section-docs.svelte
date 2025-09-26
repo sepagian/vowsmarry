@@ -3,6 +3,7 @@
 	import * as Card from '$lib/components/ui/card/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import { docTypeOptions } from '$lib/constants/constants';
+	import type { DocType } from '$lib/types';
 
 	let {
 		docsCards,
