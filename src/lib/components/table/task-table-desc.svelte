@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { categoryOptions } from '$lib/constants/constants';
+	import type { Task } from '$lib/types';
 
 	export let description: Task['description'];
 	export let category: Task['category'];
