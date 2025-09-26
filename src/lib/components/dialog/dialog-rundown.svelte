@@ -5,12 +5,7 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { Label } from '$lib/components/ui/label/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
-	import { createEventDispatcher } from 'svelte';
 	import { rundownCategoryOptions } from '$lib/constants/constants';
-	import { rundownsStore } from '$lib/stores/rundowns';
-	import type { Rundown, RundownCategory } from '$lib/types';
-
-	const dispatch = createEventDispatcher();
 
 	let title = $state('');
 	let categoryValue = $state('');
@@ -25,35 +20,6 @@
 			? rundownCategoryOptions.find((c) => c.value === categoryValue)?.label
 			: 'Pick a category',
 	);
-
-	function addEvent(formEvent: Event) {
-		formEvent.preventDefault();
-		if (!title || !categoryValue || !startTime) return;
-
-		const newRundown: Rundown = {
-			id: Date.now().toString(),
-			title,
-			description: description || undefined,
-			category: categoryValue as RundownCategory,
-			startTime,
-			endTime: endTime || '',
-			location: location || undefined,
-			attendees: attendees || undefined,
-		};
-
-		rundownsStore.update((rundowns) => [...rundowns, newRundown]);
-
-		dispatch('close');
-
-		// Reset form
-		title = '';
-		categoryValue = '';
-		description = '';
-		startTime = '';
-		endTime = '';
-		location = '';
-		attendees = '';
-	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -63,15 +29,12 @@
 			<p>Add a new event to your wedding day timeline</p>
 		</Dialog.Description>
 	</Dialog.Header>
-	<form
-		onsubmit={addEvent}
-		class="flex flex-col gap-4 py-4"
-	>
+	<form class="flex flex-col gap-4 py-4">
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-row items-start justify-between gap-2">
 				<div class="flex flex-col items-start w-full gap-2">
 					<Label
-						for="taskName"
+						for="title"
 						class="text-right">Event Title</Label
 					>
 					<Input
@@ -84,15 +47,18 @@
 				</div>
 				<div class="flex flex-col w-full gap-2">
 					<Label
-						for="taskCategory"
+						for="rundownCategory"
 						class="text-right">Category</Label
 					>
 					<Select.Root
 						type="single"
-						name="taskCategory"
+						name="rundownCategory"
 						bind:value={categoryValue}
 					>
-						<Select.Trigger class="w-full">
+						<Select.Trigger
+							class="w-full"
+							aria-label="Rundown Category"
+						>
 							{triggerCategory}
 						</Select.Trigger>
 						<Select.Content>
@@ -112,7 +78,7 @@
 			</div>
 			<div class="flex flex-col gap-2">
 				<Label
-					for="taskDescription"
+					for="description"
 					class="text-right">Description (Optional)</Label
 				>
 				<Textarea
@@ -125,7 +91,7 @@
 			<div class="flex flex-row items-start justify-between gap-2">
 				<div class="flex flex-col items-start w-full gap-2">
 					<Label
-						for="taskName"
+						for="startTime"
 						class="text-right">Start Time</Label
 					>
 					<Input
@@ -137,7 +103,7 @@
 				</div>
 				<div class="flex flex-col items-start w-full gap-2">
 					<Label
-						for="taskName"
+						for="endTime"
 						class="text-right">End Time</Label
 					>
 					<Input
@@ -151,7 +117,7 @@
 			<div class="flex flex-row items-start justify-between gap-2">
 				<div class="flex flex-col items-start gap-2">
 					<Label
-						for="taskName"
+						for="location"
 						class="text-right">Location</Label
 					>
 					<Input
@@ -163,7 +129,7 @@
 				</div>
 				<div class="flex flex-col items-start gap-2">
 					<Label
-						for="taskName"
+						for="attendees"
 						class="text-right">Attendees (Optional)</Label
 					>
 					<Input
