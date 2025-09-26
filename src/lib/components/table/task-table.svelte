@@ -29,6 +29,7 @@
 	import TaskTablePriority from './task-table-priority.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
+	import type { Task } from '$lib/types';
 
 	const columns: ColumnDef<Task>[] = [
 		{
