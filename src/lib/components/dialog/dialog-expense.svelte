@@ -75,7 +75,10 @@
 				name="expenseCategory"
 				bind:value={categoryValue}
 			>
-				<Select.Trigger class="w-full">
+				<Select.Trigger
+					class="w-full"
+					aria-label="Expense Category"
+				>
 					{triggerCategory}
 				</Select.Trigger>
 				<Select.Content>
@@ -102,7 +105,10 @@
 				name="expenseStatus"
 				bind:value={statusValue}
 			>
-				<Select.Trigger class="w-full">
+				<Select.Trigger
+					class="w-full"
+					aria-label="Expense Status"
+				>
 					{triggerStatus}
 				</Select.Trigger>
 				<Select.Content>
