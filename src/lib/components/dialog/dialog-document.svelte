@@ -17,6 +17,19 @@
 			? docTypeOptions.find((d) => d.value === docTypeValue)?.label
 			: 'Pick a document type',
 	);
+
+	function addDocument(event: Event) {
+		event.preventDefault();
+		if (!description) return;
+
+		// TODO: Add document logic here
+
+		// Reset form
+		description = '';
+		docTypeValue = '';
+		date = '';
+		fileUrl = '';
+	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -26,7 +39,10 @@
 			<p>Add a new document to track your wedding paperwork.</p>
 		</Dialog.Description>
 	</Dialog.Header>
-	<div class="flex flex-col gap-4 py-4">
+	<form
+		onsubmit={addDocument}
+		class="flex flex-col gap-4 py-4"
+	>
 		<div class="flex flex-col items-start gap-2">
 			<Label
 				for="documentDescription"
@@ -84,17 +100,17 @@
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label
-				for="documentFileUrl"
-				class="text-right">File URL</Label
+				for="documentFile"
+				class="text-right">Upload File</Label
 			>
 			<Input
-				id="documentFileUrl"
+				id="documentFile"
 				bind:value={fileUrl}
-				placeholder="https://example.com/file.pdf"
 				class="col-span-3"
+				type="file"
 			/>
 		</div>
-	</div>
+	</form>
 	<Dialog.Footer>
 		<Button type="submit">Add Document</Button>
 	</Dialog.Footer>
