@@ -73,11 +73,12 @@ export type Vendor = {
 	vendorWebsite?: string;
 	vendorPrice?: string;
 	vendorDesc?: string;
-	vendorRating?: 1 | 2 | 3 | 4 | 5;
+	vendorRating?: VendorRating;
 	vendorStatus: VendorStatus;
 };
 
 export type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
+export type VendorRating = 1 | 2 | 3 | 4 | 5;
 
 //Rundowns
 export type Rundown = {
