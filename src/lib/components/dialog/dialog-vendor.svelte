@@ -79,7 +79,7 @@
 		<div class="flex flex-row items-start justify-between gap-2">
 			<div class="flex flex-col items-start w-full gap-2">
 				<Label
-					for="taskName"
+					for="vendorName"
 					class="text-right">Vendor Name</Label
 				>
 				<Input
@@ -92,15 +92,18 @@
 			</div>
 			<div class="flex flex-col w-full gap-2">
 				<Label
-					for="taskCategory"
+					for="vendorCategory"
 					class="text-right">Category</Label
 				>
 				<Select.Root
 					type="single"
-					name="taskCategory"
+					name="vendorCategory"
 					bind:value={categoryValue}
 				>
-					<Select.Trigger class="w-full">
+					<Select.Trigger
+						class="w-full"
+						aria-label="Vendor Category"
+					>
 						{triggerCategory}
 					</Select.Trigger>
 					<Select.Content>
@@ -121,7 +124,7 @@
 		<div class="flex flex-row items-start justify-between gap-2">
 			<div class="flex flex-col items-start w-full gap-2">
 				<Label
-					for="taskName"
+					for="vendorEmail"
 					class="text-right">Email</Label
 				>
 				<Input
@@ -134,7 +137,7 @@
 			</div>
 			<div class="flex flex-col items-start w-full gap-2">
 				<Label
-					for="taskName"
+					for="vendorPhone"
 					class="text-right">Phone</Label
 				>
 				<Input
@@ -149,7 +152,7 @@
 		<div class="flex flex-row items-start justify-between gap-2">
 			<div class="flex flex-col items-start w-full gap-2">
 				<Label
-					for="taskName"
+					for="vendorWebsite"
 					class="text-right">Website URL</Label
 				>
 				<Input
@@ -176,7 +179,7 @@
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label
-				for="taskDescription"
+				for="vendorDesc"
 				class="text-right">Description</Label
 			>
 			<Textarea
@@ -189,15 +192,18 @@
 		<div class="flex flex-row items-start justify-between gap-2">
 			<div class="flex flex-col items-start w-full gap-2">
 				<Label
-					for="taskName"
+					for="vendorRating"
 					class="text-right">Rating</Label
 				>
 				<Select.Root
 					type="single"
-					name="taskCategory"
+					name="vendorRating"
 					bind:value={vendorRatingValue}
 				>
-					<Select.Trigger class="w-full">
+					<Select.Trigger
+						class="w-full"
+						aria-label="Vendor Rating"
+					>
 						{triggerRating}
 					</Select.Trigger>
 					<Select.Content>
@@ -221,7 +227,10 @@
 					name="vendorStatus"
 					bind:value={vendorStatusValue}
 				>
-					<Select.Trigger class="w-full">
+					<Select.Trigger
+						class="w-full"
+						aria-label="Vendor Status"
+					>
 						{triggerStatus}
 					</Select.Trigger>
 					<Select.Content>
