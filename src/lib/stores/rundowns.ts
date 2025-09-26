@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import type { Rundown } from '$lib/types';
 
 const initialRundowns: Rundown[] = [
 	{
