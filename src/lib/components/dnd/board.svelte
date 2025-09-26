@@ -2,7 +2,7 @@
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
 	import Column from './column.svelte';
-	import type { ColumnType, Item } from '$lib/stores/vendors';
+	import type { ColumnType, Item } from '$lib/types';
 
 	const flipDurationMs = 300;
 
