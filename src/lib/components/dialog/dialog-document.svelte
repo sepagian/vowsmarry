@@ -4,79 +4,65 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Label } from '$lib/components/ui/label/index';
-	import { Textarea } from '$lib/components/ui/textarea/index';
-	import { categoryOptions, priorityOptions } from '$lib/constants/constants';
+	import { docTypeOptions } from '$lib/constants/constants';
+	import type { DocType } from '$lib/types';
 
-	let categoryValue = $state('');
-	let priorityValue = $state('');
+	let docTypeValue = $state<DocType | ''>('');
+	let description = $state('');
+	let date = $state('');
+	let fileUrl = $state('');
 
-	const triggerCategory = $derived(
-		categoryValue
-			? categoryOptions.find((c) => c.value === categoryValue)?.label
-			: 'Pick a category',
-	);
-
-	const triggerPriority = $derived(
-		priorityValue
-			? priorityOptions.find((p) => p.value === priorityValue)?.label
-			: 'Choose priority level',
+	const triggerDocType = $derived(
+		docTypeValue
+			? docTypeOptions.find((d) => d.value === docTypeValue)?.label
+			: 'Pick a document type',
 	);
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
 	<Dialog.Header>
-		<Dialog.Title>Add New Task</Dialog.Title>
+		<Dialog.Title>Add New Document</Dialog.Title>
 		<Dialog.Description>
-			<p>Write down what needs to be done for your wedding journey.</p>
+			<p>Add a new document to track your wedding paperwork.</p>
 		</Dialog.Description>
 	</Dialog.Header>
 	<div class="flex flex-col gap-4 py-4">
 		<div class="flex flex-col items-start gap-2">
 			<Label
-				for="taskName"
-				class="text-right">Task Title *</Label
+				for="documentDescription"
+				class="text-right">Document Description *</Label
 			>
 			<Input
-				id="taskName"
-				placeholder="e.g. Book the photographer"
+				id="documentDescription"
+				bind:value={description}
+				placeholder="e.g. Marriage License"
 				class="col-span-3"
 			/>
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label
-				for="taskDescription"
-				class="text-right">Description</Label
-			>
-			<Textarea
-				id="taskDescription"
-				placeholder="Add details or notes (optional)"
-				class="col-span-3"
-			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="taskCategory"
+				for="documentCategory"
 				class="text-right">Category</Label
 			>
 			<Select.Root
 				type="single"
-				name="taskCategory"
-				bind:value={categoryValue}
+				name="documentCategory"
+				bind:value={docTypeValue}
 			>
 				<Select.Trigger
 					class="w-full"
-					aria-label="Task Category"
+					aria-label="Document Category"
 				>
-					{triggerCategory}
+					{triggerDocType}
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Group>
-						{#each categoryOptions as category (category.value)}
+						{#each docTypeOptions as docType (docType.value)}
 							<Select.Item
-								value={category.value}
-								label={category.label}
+								value={docType.value}
+								label={docType.label}
 							>
-								{category.label}
+								{docType.label}
 							</Select.Item>
 						{/each}
 					</Select.Group>
@@ -85,48 +71,31 @@
 		</div>
 		<div class="flex flex-col gap-2">
 			<Label
-				for="taskPriority"
-				class="text-right">Priority</Label
-			>
-			<Select.Root
-				type="single"
-				name="taskPriority"
-				bind:value={priorityValue}
-			>
-				<Select.Trigger
-					class="w-full"
-					aria-label="Task Priority"
-				>
-					{triggerPriority}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Group>
-						{#each priorityOptions as priority (priority.value)}
-							<Select.Item
-								value={priority.value}
-								label={priority.label}
-							>
-								{priority.label}
-							</Select.Item>
-						{/each}
-					</Select.Group>
-				</Select.Content>
-			</Select.Root>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="taskDue"
-				class="text-right">Due Date</Label
+				for="documentDate"
+				class="text-right">Date</Label
 			>
 			<Input
 				type="date"
-				id="taskDue"
+				id="documentDate"
+				bind:value={date}
 				class="w-full"
 				placeholder="Select date..."
 			/>
 		</div>
+		<div class="flex flex-col gap-2">
+			<Label
+				for="documentFileUrl"
+				class="text-right">File URL</Label
+			>
+			<Input
+				id="documentFileUrl"
+				bind:value={fileUrl}
+				placeholder="https://example.com/file.pdf"
+				class="col-span-3"
+			/>
+		</div>
 	</div>
 	<Dialog.Footer>
-		<Button type="submit">Add Task</Button>
+		<Button type="submit">Add Document</Button>
 	</Dialog.Footer>
 </Dialog.Content>
