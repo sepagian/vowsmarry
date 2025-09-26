@@ -3,6 +3,7 @@
 	import { Progress } from '$lib/components/ui/progress';
 	import { categoryOptions } from '$lib/constants/constants';
 	import { expensesStore } from '$lib/stores/expenses';
+	import type { Category } from '$lib/types';
 
 	const totalBudget = 100_000_000;
 
