@@ -1,5 +1,5 @@
 // src/lib/constants.ts
-import type { Option } from '$lib/types';
+import type { Option, Category, Task, DocType, Expense, VendorStatus, Rundown } from '$lib/types';
 
 // --- Categories ---
 export const categoryOptions: Option<Category>[] = [
@@ -72,7 +72,7 @@ export const priorityOptions: Option<NonNullable<Task['priority']>>[] = [
 ];
 
 // --- Status ---
-export const statusOptions: Option<Task['status']>[] = [
+export const statusOptions: Option<NonNullable<Task['status']>>[] = [
 	{
 		value: 'pending',
 		label: 'Pending',
