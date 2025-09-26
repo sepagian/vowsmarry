@@ -1,4 +1,7 @@
 import { writable } from 'svelte/store';
+import type { Category, VendorStatus, Item, ColumnType } from '$lib/types';
+
+export type { Item, ColumnType };
 
 export interface Vendor {
 	vendorName: string;
@@ -9,8 +12,8 @@ export interface Vendor {
 	vendorPrice?: string;
 	vendorAddress?: string;
 	vendorDesc?: string;
-	vendorRating?: vendorRating;
-	vendorStatus: vendorStatus;
+	vendorRating?: 1 | 2 | 3 | 4 | 5;
+	vendorStatus: VendorStatus;
 }
 
 const initialVendors: Vendor[] = [
