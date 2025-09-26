@@ -32,7 +32,7 @@
 		"@types/node": "^22",
 		"@unovis/svelte": "^1.6.1",
 		"@unovis/ts": "^1.6.1",
-		"bits-ui": "^2.8.6",
+		"bits-ui": "^2.11.0",
 		"drizzle-kit": "^0.31.4",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
