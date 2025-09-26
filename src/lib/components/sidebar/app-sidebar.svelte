@@ -11,7 +11,7 @@
 		navMain: [
 			{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // dashboard
 			{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // could include paperwork
-			{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:scroll-text' }, // contracts, receipts, inspo
+			{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // contracts, receipts, inspo
 			{ title: 'Budget', url: '/dashboard/budget', icon: 'i-lucide:dollar-sign' }, // quick link to finance
 			{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' },
 			{ title: 'Schedule', url: '/dashboard/schedule', icon: 'i-lucide:calendar-1' }, // could include dresscode
