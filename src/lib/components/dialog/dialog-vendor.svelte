@@ -6,7 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { categoryOptions } from '$lib/constants/constants';
-	import { vendorsStore, type Vendor } from '$lib/stores/vendors';
+	import { vendorsStore } from '$lib/stores/vendors';
 	import type { Category } from '$lib/types';
 
 	let vendorName = $state('');
