@@ -6,25 +6,24 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index';
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
+	import type { SimpleTask, Task } from '$lib/types';
 
 	// Show 3 most recent tasks as SimpleTask
-	const filteredTasks = $derived(() => {
-		return $tasksStore
-			.sort((a, b) => {
-				const dateA = a.date ? new Date(a.date) : new Date(0);
-				const dateB = b.date ? new Date(b.date) : new Date(0);
-				return dateB.getTime() - dateA.getTime();
-			})
-			.slice(0, 3)
-			.map(
-				(t): SimpleTask => ({
-					id: t.id,
-					title: t.title,
-					description: t.description,
-					done: t.status === 'completed',
-				}),
-			);
-	});
+	$: filteredTasks = $tasksStore
+		.sort((a, b) => {
+			const dateA = a.date ? new Date(a.date) : new Date(0);
+			const dateB = b.date ? new Date(b.date) : new Date(0);
+			return dateB.getTime() - dateA.getTime();
+		})
+		.slice(0, 3)
+		.map(
+			(t): SimpleTask => ({
+				id: t.id,
+				title: t.title,
+				description: t.description,
+				done: t.status === 'completed',
+			}),
+		);
 
 	function toggleTask(t: SimpleTask) {
 		const newStatus: Task['status'] = t.done ? 'pending' : 'completed';
