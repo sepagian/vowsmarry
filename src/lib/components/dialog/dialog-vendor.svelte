@@ -6,7 +6,8 @@
 	import { Label } from '$lib/components/ui/label/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { categoryOptions } from '$lib/constants/constants';
-	import { vendorsStore, type VendorType } from '$lib/stores/vendors';
+	import { vendorsStore, type Vendor } from '$lib/stores/vendors';
+	import type { Category } from '$lib/types';
 
 	let vendorName = $state('');
 	let categoryValue = $state('');
@@ -37,7 +38,7 @@
 
 		const vendorData = {
 			vendorName,
-			vendorCategory: categoryValue as VendorType,
+			vendorCategory: categoryValue as Category,
 			vendorEmail: vendorEmail || undefined,
 			vendorPhone: vendorPhone || undefined,
 			vendorWebsite: vendorWebsite || undefined,
