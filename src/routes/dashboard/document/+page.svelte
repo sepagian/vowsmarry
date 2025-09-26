@@ -1,7 +1,8 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
-	import { documentsStore, type DocType } from '$lib/stores/documents';
+	import { documentsStore } from '$lib/stores/documents';
+	import type { DocType } from '$lib/types';
 	import { docTypeOptions } from '$lib/constants/constants';
 
 	const overviewTitle = 'Document Overview';
@@ -14,11 +15,11 @@
 				acc[doc.type] = (acc[doc.type] || 0) + 1;
 				return acc;
 			},
-			{} as Record<DocType, number>,
+			{} as Partial<Record<DocType, number>>,
 		);
 
 		return docTypeOptions.map((option) => {
-			const count = typeCounts[option.value] || 0;
+			const count = typeCounts[option.value] ?? 0;
 			let actionColor = '';
 			switch (option.value) {
 				case 'legal-formal':
