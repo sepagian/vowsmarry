@@ -6,7 +6,7 @@
 	import ExpenseChart from '$lib/components/chart/expense-chart.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
 
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const expenses = $expensesStore;
 		const totalbudget = 100_000_000;
 		const totalspent = expenses
@@ -52,7 +52,7 @@
 				footer: 'Updated just now',
 			},
 		];
-	})();
+	});
 
 	const overviewTitle = 'Budget Overview';
 </script>

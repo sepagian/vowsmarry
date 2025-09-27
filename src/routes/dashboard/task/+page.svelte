@@ -4,9 +4,10 @@
 	import { tasksStore } from '$lib/stores/tasks';
 
 	const overviewTitle = 'Task Overview';
+	let { data } = $props();
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const tasks = $tasksStore;
 		const completed = tasks.filter((task) => task.status === 'completed').length;
 		const pending = tasks.filter((task) => task.status === 'pending').length;
@@ -43,7 +44,7 @@
 				footer: 'Updated just now',
 			},
 		];
-	})();
+	});
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
@@ -52,5 +53,5 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<TaskTable />
+	<TaskTable {data} />
 </div>

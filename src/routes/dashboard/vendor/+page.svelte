@@ -6,7 +6,7 @@
 	const overviewTitle = 'Vendors Overview';
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const vendors = $vendorsStore;
 		const researching = vendors.filter((vendor) => vendor.vendorStatus === 'researching').length;
 		const contacted = vendors.filter((vendor) => vendor.vendorStatus === 'contacted').length;
@@ -43,7 +43,7 @@
 				footer: 'Updated just now',
 			},
 		];
-	})();
+	});
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">

@@ -8,7 +8,7 @@
 	const overviewTitle = 'Document Overview';
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const documents = $documentsStore;
 		const typeCounts = documents.reduce(
 			(acc, doc) => {
@@ -43,10 +43,9 @@
 				footer: 'Updated just now',
 			};
 		});
-	})();
+	});
 
-	// Reactive docsCards
-	$: docsCards = $documentsStore.map((doc) => ({
+	let docsCards = $documentsStore.map((doc) => ({
 		description: doc.description,
 		type: doc.type,
 		action: doc.action,
