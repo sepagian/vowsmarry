@@ -8,7 +8,7 @@
 		overviewTitle,
 		columns = 3,
 	}: {
-		overviewCards: OverviewCard[];
+		overviewCards: () => OverviewCard[];
 		overviewTitle: string;
 		columns?: number;
 	} = $props();
@@ -24,7 +24,7 @@
 		class:lg-grid-cols-dynamic={columns > 0}
 		style:--cols={columns}
 	>
-		{#each overviewCards as data (data.description)}
+		{#each overviewCards() as data (data.description)}
 			<Card.Root
 				class="@container/card shrink-0 w-64 h-32 sm:w-auto gap-2 flex flex-col py-4 shadow-none"
 			>

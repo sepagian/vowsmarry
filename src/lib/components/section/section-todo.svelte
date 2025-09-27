@@ -8,8 +8,10 @@
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { SimpleTask, Task } from '$lib/types';
 
+	let { data } = $props();
+
 	// Show 3 most recent tasks as SimpleTask
-	$: filteredTasks = $tasksStore
+	let filteredTasks = $tasksStore
 		.sort((a, b) => {
 			const dateA = a.date ? new Date(a.date) : new Date(0);
 			const dateB = b.date ? new Date(b.date) : new Date(0);
@@ -47,7 +49,7 @@
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Add New Task</span>
 				</Dialog.Trigger>
-				<DialogTask />
+				<DialogTask {data} />
 			</Dialog.Root>
 		</div>
 	</div>

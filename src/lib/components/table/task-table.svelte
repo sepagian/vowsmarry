@@ -31,6 +31,8 @@
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
 
+	let { data } = $props();
+
 	const columns: ColumnDef<Task>[] = [
 		{
 			id: 'select',
@@ -114,7 +116,7 @@
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-32">Status</div>`,
+						render: () => `<div class="font-semibold w-38">Status</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
@@ -255,7 +257,7 @@
 				<div class="i-lucide:plus p-2"></div>
 				<span class="hidden lg:inline">Add Task</span>
 			</Dialog.Trigger>
-			<DialogTask />
+			<DialogTask {data} />
 		</Dialog.Root>
 	</div>
 	<div class="rounded-md border">
