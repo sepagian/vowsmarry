@@ -6,6 +6,7 @@
 	import DialogVendor from '../dialog/dialog-vendor.svelte';
 	import { vendorsStore } from '$lib/stores/vendors';
 
+	let { data } = $props();
 	let searchTerm = $state('');
 	let dialogOpen = $state(false);
 
@@ -35,7 +36,7 @@
 				<div class="i-lucide:plus p-2"></div>
 				<span class="hidden lg:inline">Add Vendor</span>
 			</Dialog.Trigger>
-			<DialogVendor on:close={() => (dialogOpen = false)} />
+			<DialogVendor {data} />
 		</Dialog.Root>
 	</div>
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
@@ -59,10 +60,3 @@
 		{/each}
 	</div>
 </div>
-
-<style>
-	:global(*) {
-		box-sizing: border-box;
-		margin: 0;
-	}
-</style>
