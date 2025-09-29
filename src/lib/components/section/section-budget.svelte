@@ -1,5 +1,7 @@
 <script lang="ts">
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
+
+	let { data } = $props();
 </script>
 
 <div class="flex flex-col gap-4 px-4">
@@ -9,7 +11,7 @@
 
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-col">
-			<ExpenseTable />
+			<ExpenseTable {data} />
 		</div>
 	</div>
 </div>

@@ -1,45 +1,38 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import * as Select from '$lib/components/ui/select/index';
-	import { Button } from '$lib/components/ui/button/index';
+	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { Label } from '$lib/components/ui/label/index';
-	import { Textarea } from '$lib/components/ui/textarea/index';
-	import { categoryOptions, expenseStatusOptions } from '$lib/constants/constants';
+	import { toast } from 'svelte-sonner';
+	import { superForm } from 'sveltekit-superforms';
+	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { expenseFormSchema, categorySchema, paymentStatusSchema } from '$lib/validation/expense';
 
-	let expenseName = $state('');
-	let expenseDescription = $state('');
-	let expenseAmount = $state('');
-	let expenseDue = $state('');
-	let categoryValue = $state('');
-	let statusValue = $state('');
+	let { data } = $props();
 
-	const triggerCategory = $derived(
-		categoryValue
-			? categoryOptions.find((c) => c.value === categoryValue)?.label
-			: 'Pick a category',
+	const form = superForm(data.expenseForm, {
+		validators: zod4(expenseFormSchema as any),
+		onUpdate: ({ form: f }) => {
+			if (f.valid) {
+				toast.success(`You submitted ${JSON.stringify(f.data, null, 2)}`);
+			} else {
+				toast.error('Please fix the errors in the form.');
+			}
+		},
+	});
+	const { form: formData, enhance } = form;
+
+	const selectedCategory = $derived(
+		$formData.category
+			? categorySchema[$formData.category as keyof typeof categorySchema]
+			: 'Choose category',
 	);
 
-	const triggerStatus = $derived(
-		statusValue
-			? expenseStatusOptions.find((p) => p.value === statusValue)?.label
-			: 'Payment status',
+	const selectedStatus = $derived(
+		$formData.status
+			? paymentStatusSchema[$formData.status as keyof typeof paymentStatusSchema]
+			: 'Select task status',
 	);
-
-	function addExpense(event: Event) {
-		event.preventDefault();
-		if (!expenseName) return;
-
-		// TODO: Add expense logic here
-
-		// Reset form
-		expenseName = '';
-		expenseDescription = '';
-		expenseAmount = '';
-		categoryValue = '';
-		statusValue = '';
-		expenseDue = '';
-	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -50,117 +43,125 @@
 		</Dialog.Description>
 	</Dialog.Header>
 	<form
-		onsubmit={addExpense}
+		method="POST"
+		use:enhance
 		class="flex flex-col gap-4 py-4"
 	>
-		<div class="flex flex-col items-start gap-2">
-			<Label
-				for="expenseName"
-				class="text-right">Expense Title *</Label
+		<Form.Field
+			{form}
+			name="description"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Description</Form.Label>
+					<Input
+						{...props}
+						type="text"
+						bind:value={$formData.description}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
+		<Form.Field
+			{form}
+			name="amount"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Amount</Form.Label>
+					<Input
+						{...props}
+						type="number"
+						inputmode="decimal"
+						bind:value={$formData.amount}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
+		<div class="flex w-full gap-4">
+			<Form.Field
+				{form}
+				name="category"
+				class="flex flex-col w-full"
 			>
-			<Input
-				id="expenseName"
-				placeholder="e.g. Down payment for venue"
-				class="col-span-3"
-			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="expenseDescription"
-				class="text-right">Description</Label
-			>
-			<Textarea
-				id="expenseDescription"
-				placeholder="Add details or notes (optional)"
-				class="col-span-3"
-			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="expenseAmount"
-				class="text-right">Amount</Label
-			>
-			<Input
-				id="expenseAmount"
-				placeholder="e.g. 2,500,000"
-				class="col-span-3"
-			/>
-		</div>
-
-		<div class="flex flex-col gap-2">
-			<Label
-				for="expenseCategory"
-				class="text-right">Category</Label
-			>
-			<Select.Root
-				type="single"
-				name="expenseCategory"
-				bind:value={categoryValue}
-			>
-				<Select.Trigger
-					class="w-full"
-					aria-label="Expense Category"
-				>
-					{triggerCategory}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Group>
-						{#each categoryOptions as category (category.value)}
-							<Select.Item
-								value={category.value}
-								label={category.label}
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Category</Form.Label>
+						<Select.Root
+							type="single"
+							bind:value={$formData.category}
+							name={props.name}
+						>
+							<Select.Trigger
+								{...props}
+								class="flex w-full"
 							>
-								{category.label}
-							</Select.Item>
-						{/each}
-					</Select.Group>
-				</Select.Content>
-			</Select.Root>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="expenseStatus"
-				class="text-right">Status</Label
+								{selectedCategory}
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(categorySchema) as [value, label] (label)}
+									<Select.Item {value}>
+										{label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
+			<Form.Field
+				{form}
+				name="status"
+				class="flex flex-col w-full"
 			>
-			<Select.Root
-				type="single"
-				name="expenseStatus"
-				bind:value={statusValue}
-			>
-				<Select.Trigger
-					class="w-full"
-					aria-label="Expense Status"
-				>
-					{triggerStatus}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Group>
-						{#each expenseStatusOptions as status (status.value)}
-							<Select.Item
-								value={status.value}
-								label={status.label}
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label>Payment Status</Form.Label>
+						<Select.Root
+							type="single"
+							bind:value={$formData.status}
+							name={props.name}
+						>
+							<Select.Trigger
+								{...props}
+								class="flex w-full"
 							>
-								{status.label}
-							</Select.Item>
-						{/each}
-					</Select.Group>
-				</Select.Content>
-			</Select.Root>
+								{selectedStatus}
+							</Select.Trigger>
+							<Select.Content>
+								{#each Object.entries(paymentStatusSchema) as [value, label] (label)}
+									<Select.Item {value}>
+										{label}
+									</Select.Item>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+					{/snippet}
+				</Form.Control>
+				<Form.FieldErrors />
+			</Form.Field>
 		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="expenseDue"
-				class="text-right">Date</Label
-			>
-			<Input
-				type="date"
-				id="expenseDue"
-				class="w-full"
-				placeholder="Select date..."
-			/>
-		</div>
+		<Form.Field
+			{form}
+			name="date"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Date</Form.Label>
+					<Input
+						{...props}
+						type="date"
+						bind:value={$formData.date}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
+		<Dialog.Footer>
+			<Form.Button type="submit">Add New Expense</Form.Button>
+		</Dialog.Footer>
 	</form>
-	<Dialog.Footer>
-		<Button type="submit">Add Expense</Button>
-	</Dialog.Footer>
 </Dialog.Content>

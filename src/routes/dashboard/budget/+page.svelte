@@ -4,7 +4,10 @@
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
 	import ExpenseCategories from '$lib/components/chart/expense-categories.svelte';
 	import ExpenseChart from '$lib/components/chart/expense-chart.svelte';
+	import { Toaster } from 'svelte-sonner';
 	import { expensesStore } from '$lib/stores/expenses';
+
+	let { data } = $props();
 
 	let overviewCards = $derived(() => {
 		const expenses = $expensesStore;
@@ -69,7 +72,7 @@
 	<div class="sm:grid sm:grid-cols-3 gap-4 flex flex-col px-4">
 		<div class="flex flex-col col-span-2 gap-2">
 			<h2 class="text-base font-bold text-neutral-600">Recent Expenses</h2>
-			<ExpenseTable />
+			<ExpenseTable {data} />
 		</div>
 		<div class="flex flex-col col-span-1 row-span-3 gap-2 pb-4">
 			<h2 class="text-base font-bold text-neutral-600">Expense by Category</h2>
@@ -80,4 +83,10 @@
 			</Card.Root>
 		</div>
 	</div>
+	<Toaster
+		position="top-right"
+		expand={true}
+		richColors
+		closeButton
+	/>
 </div>
