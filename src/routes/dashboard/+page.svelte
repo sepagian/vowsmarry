@@ -57,5 +57,5 @@
 		columns={4}
 	/>
 	<SectionTodo {data} />
-	<SectionBudget />
+	<SectionBudget {data} />
 </div>

@@ -1,10 +1,21 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { taskFormSchema } from '$lib/validation/task';
+import { expenseFormSchema, expenseSchema } from '$lib/validation/expense';
+import { taskFormSchema, taskSchema } from '$lib/validation/task';
 
 export const load: PageServerLoad = async () => {
-	const form = await superValidate(zod4(taskFormSchema as any));
+	const taskForm = await superValidate(zod4(taskFormSchema as any));
+	const expenseForm = await superValidate(zod4(expenseFormSchema as any));
 
-	return { form };
+	return { taskForm, expenseForm };
+};
+
+export const actions: Actions = {
+	default: async ({ request }) => {
+		const taskForm = await superValidate(request, zod4(taskSchema as any));
+		const expenseForm = await superValidate(request, zod4(expenseSchema as any));
+
+		return { taskForm, expenseForm };
+	},
 };
