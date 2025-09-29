@@ -4,14 +4,14 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { taskFormSchema, taskSchema } from '$lib/validation/task';
 
 export const load: PageServerLoad = async () => {
-	const form = await superValidate(zod4(taskFormSchema as any));
+	const taskForm = await superValidate(zod4(taskFormSchema as any));
 
-	return { form };
+	return { taskForm };
 };
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		const form = await superValidate(request, zod4(taskSchema as any));
-		console.log(form);
+		const taskForm = await superValidate(request, zod4(taskSchema as any));
+		console.log(taskForm);
 	},
 };

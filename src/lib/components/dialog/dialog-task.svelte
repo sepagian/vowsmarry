@@ -3,6 +3,7 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import * as Select from '$lib/components/ui/select/index';
 	import { Input } from '$lib/components/ui/input/index';
+	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import {
@@ -14,8 +15,15 @@
 
 	let { data } = $props();
 
-	const form = superForm(data.form, {
+	const form = superForm(data.taskForm, {
 		validators: zod4(taskFormSchema as any),
+		onUpdate: ({ form: f }) => {
+			if (f.valid) {
+				toast.success(`You submitted ${JSON.stringify(f.data, null, 2)}`);
+			} else {
+				toast.error('Please fix the errors in the form.');
+			}
+		},
 	});
 	const { form: formData, enhance } = form;
 

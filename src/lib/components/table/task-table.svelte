@@ -11,7 +11,7 @@
 		getPaginationRowModel,
 		getSortedRowModel,
 	} from '@tanstack/table-core';
-	import { createRawSnippet } from 'svelte';
+	import { createEventDispatcher, createRawSnippet } from 'svelte';
 	import * as Table from '$lib/components/ui/table/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
@@ -32,6 +32,8 @@
 	import type { Task } from '$lib/types';
 
 	let { data } = $props();
+
+	const dispatch = createEventDispatcher();
 
 	const columns: ColumnDef<Task>[] = [
 		{
@@ -257,7 +259,10 @@
 				<div class="i-lucide:plus p-2"></div>
 				<span class="hidden lg:inline">Add Task</span>
 			</Dialog.Trigger>
-			<DialogTask {data} />
+			<DialogTask
+				{data}
+				on:toast={(e) => dispatch('toast', e.detail)}
+			/>
 		</Dialog.Root>
 	</div>
 	<div class="rounded-md border">

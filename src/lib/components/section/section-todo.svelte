@@ -74,32 +74,5 @@
 				</Button>
 			</div>
 		</Card.Root>
-
-		<!-- Task list -->
-		<div class="flex flex-col gap-4">
-			{#if $tasksStore.length === 0}
-				<Label class="flex items-center justify-center h-12 gap-3 rounded-lg border p-3">
-					You don’t have any tasks yet
-				</Label>
-			{:else}
-				{#each filteredTasks as task (task.id)}
-					<Card.Root class="flex flex-row items-center gap-3 p-4">
-						<Checkbox
-							checked={task.done}
-							onCheckedChange={() => toggleTask(task)}
-							aria-label="Mark task as completed"
-						/>
-						<div class="flex-1">
-							<Card.Title class="text-sm font-medium leading-5">{task.title}</Card.Title>
-							{#if task.description}
-								<Card.Description class="text-xs text-muted-foreground mt-1">
-									{task.description}
-								</Card.Description>
-							{/if}
-						</div>
-					</Card.Root>
-				{/each}
-			{/if}
-		</div>
 	</div>
 </div>
