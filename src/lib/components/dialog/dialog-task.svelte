@@ -72,7 +72,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Form.Field
 			{form}
@@ -183,7 +183,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Dialog.Footer>
 			<Form.Button>Add Task</Form.Button>

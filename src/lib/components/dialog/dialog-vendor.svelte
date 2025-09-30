@@ -60,7 +60,7 @@
 	>
 		<Form.Field
 			{form}
-			name="description"
+			name="name"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -72,7 +72,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs" />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<div class="flex w-full gap-4">
 			<Form.Field
@@ -121,29 +121,14 @@
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
+				<Form.FieldErrors class="text-xs text-red-500" />
 			</Form.Field>
 		</div>
 		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="url"
-			>
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Website</Form.Label>
-						<Input
-							{...props}
-							type="text"
-							bind:value={$formData.url}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
-			</Form.Field>
-			<Form.Field
-				{form}
-				name="phone"
+				name="price"
+				class="flex flex-col w-full"
 			>
 				<Form.Control>
 					{#snippet children({ props })}
@@ -151,14 +136,13 @@
 						<Input
 							{...props}
 							type="number"
+							inputmode="decimal"
 							bind:value={$formData.price}
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
+				<Form.FieldErrors class="text-xs text-red-500" />
 			</Form.Field>
-		</div>
-		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
 				name="status"
@@ -190,6 +174,8 @@
 				</Form.Control>
 				<Form.FieldErrors class="text-xs" />
 			</Form.Field>
+		</div>
+		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
 				name="rating"
@@ -224,7 +210,7 @@
 		</div>
 
 		<Dialog.Footer>
-			<Form.Button type="submit">Add New Vendor</Form.Button>
+			<Form.Button>Add New Vendor</Form.Button>
 		</Dialog.Footer>
 	</form>
 </Dialog.Content>

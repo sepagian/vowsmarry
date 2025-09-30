@@ -6,6 +6,7 @@
 	import { docTypeOptions } from '$lib/constants/constants';
 
 	const overviewTitle = 'Document Overview';
+	let { data } = $props();
 
 	// Reactive overviewCards based on the store
 	let overviewCards = $derived(() => {
@@ -59,5 +60,8 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<SectionDocs {docsCards} />
+	<SectionDocs
+		{data}
+		{docsCards}
+	/>
 </div>

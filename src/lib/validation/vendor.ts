@@ -31,13 +31,12 @@ type Category = keyof typeof categorySchema;
 type Status = keyof typeof vendorStatusSchema;
 
 export const vendorFormSchema = z.object({
-	name: z.string({ message: 'Please insert vendor name' }),
+	name: z.string().min(1, { message: 'Please insert vendor name' }),
 	category: z.enum(Object.keys(categorySchema) as [Category, ...Category[]]),
-	instagram: z.string(),
-	price: z.number().min(1, { message: 'Price must be more than 0' }),
+	instagram: z.string().min(1, { message: 'Please insert instagram handle' }),
+	price: z.coerce.number().min(1, { message: 'Price must be more than 0' }),
 	rating: z.enum(Object.keys(vendorRatingSchema)),
 	status: z.enum(Object.keys(vendorStatusSchema) as [Status, ...Status[]]).default('researching'),
-	date: z.iso.date({ message: 'Please select date' }),
 });
 
 export const vendorSchema = z.discriminatedUnion('action', [

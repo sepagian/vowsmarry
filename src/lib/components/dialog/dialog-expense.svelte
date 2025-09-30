@@ -61,7 +61,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Form.Field
 			{form}
@@ -78,7 +78,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<div class="flex w-full gap-4">
 			<Form.Field
@@ -158,7 +158,7 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors />
+			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Dialog.Footer>
 			<Form.Button type="submit">Add New Expense</Form.Button>
