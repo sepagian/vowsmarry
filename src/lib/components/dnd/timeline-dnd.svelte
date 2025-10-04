@@ -9,7 +9,7 @@
 	import { Switch } from '../ui/switch/index';
 	import DialogRundown from '../dialog/dialog-rundown.svelte';
 
-	let { items } = $props();
+	let { items, data } = $props();
 	let dragDisabled = $state(true);
 	const flipDurationMs = 300;
 	const delayTouchStart = 300;
@@ -85,7 +85,7 @@
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Add Event</span>
 				</Dialog.Trigger>
-				<DialogRundown />
+				<DialogRundown {data} />
 			</Dialog.Root>
 		</div>
 	</div>
