@@ -6,7 +6,7 @@
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
-	import { expenseFormSchema, categorySchema, paymentStatusSchema } from '$lib/validation/expense';
+	import { expenseFormSchema, categorySchema, paymentStatusSchema } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -14,9 +14,20 @@
 		validators: zod4(expenseFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				toast.success(`You submitted ${JSON.stringify(f.data, null, 2)}`);
+				// Check if there's a success message from server
+				if (f.message) {
+					toast.success(f.message);
+				} else {
+					toast.success('Expense added successfully!');
+				}
 			} else {
 				toast.error('Please fix the errors in the form.');
+			}
+		},
+		onError: ({ result }) => {
+			// Handle server validation errors
+			if (result.type === 'error') {
+				toast.error('An error occurred while saving the expense.');
 			}
 		},
 	});
