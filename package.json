@@ -12,6 +12,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
+		"test": "vitest",
+		"test:run": "vitest --run",
 		"db:push": "doppler run -- drizzle-kit push",
 		"db:generate": "doppler run -- drizzle-kit generate",
 		"db:migrate": "doppler run -- drizzle-kit migrate",
@@ -39,6 +41,7 @@
 		"eslint-plugin-svelte": "^3.0.0",
 		"formsnap": "^2.0.1",
 		"globals": "^16.0.0",
+		"jsdom": "^27.0.0",
 		"mode-watcher": "^1.1.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
@@ -54,6 +57,7 @@
 		"unocss-preset-scrollbar": "^3.2.0",
 		"unocss-preset-shadcn": "^1.0.1",
 		"vite": "^7.0.4",
+		"vitest": "^3.2.4",
 		"zod": "^4.1.11"
 	},
 	"dependencies": {
