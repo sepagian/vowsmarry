@@ -12,5 +12,16 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const documentForm = await superValidate(request, zod4(documentSchema as any));
+
+		if (!documentForm.valid) {
+			return { documentForm };
+		}
+
+		// Access the single file from the array
+		const file = documentForm.data.file[0];
+
+		// TODO: Implement file upload logic (e.g., save to storage, database)
+
+		return { documentForm };
 	},
 };
