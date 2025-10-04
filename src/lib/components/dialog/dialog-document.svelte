@@ -10,13 +10,10 @@
 	} from '$lib/components/ui/file-drop-zone';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
-	import { Progress } from '$lib/components/ui/progress/index';
-	import { onDestroy } from 'svelte';
-	import { SvelteDate } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
 	import { superForm, filesProxy } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
-	import { documentFormSchema, categorySchema } from '$lib/validation/document';
+	import { documentFormSchema, categorySchema } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -24,9 +21,20 @@
 		validators: zod4(documentFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				toast.success(`You submitted ${JSON.stringify(f.data, null, 2)}`);
+				// Check if there's a success message from server
+				if (f.message) {
+					toast.success(f.message);
+				} else {
+					toast.success('Document uploaded successfully!');
+				}
 			} else {
 				toast.error('Please fix the errors in the form.');
+			}
+		},
+		onError: ({ result }) => {
+			// Handle server validation errors
+			if (result.type === 'error') {
+				toast.error('An error occurred while uploading the document.');
 			}
 		},
 	});
@@ -47,7 +55,7 @@
 		toast.error(`${file.name} failed to upload!`, { description: reason });
 	};
 
-	const files = filesProxy(form, 'attachments');
+	const files = filesProxy(form, 'file');
 </script>
 
 <Dialog.Content class="w-full sm:w-[120rem] bg-neutral-100">
@@ -109,6 +117,22 @@
 			</Form.Control>
 			<Form.FieldErrors />
 		</Form.Field>
+		<Form.Field
+			{form}
+			name="date"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Date</Form.Label>
+					<Input
+						{...props}
+						type="date"
+						bind:value={$formData.date}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
 
 		<FileDropZone
 			{onUpload}
@@ -129,7 +153,7 @@
 			</div>
 		</FileDropZone>
 		<input
-			name="attachments"
+			name="file"
 			type="file"
 			bind:files={$files}
 			class="hidden"
@@ -154,6 +178,7 @@
 				</div>
 			{/each}
 		</div>
+
 		<Dialog.Footer>
 			<Form.Button type="submit">Add Document</Form.Button>
 		</Dialog.Footer>
