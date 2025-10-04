@@ -11,7 +11,7 @@
 		categorySchema,
 		taskPrioritySchema,
 		taskStatusSchema,
-	} from '$lib/validation/task';
+	} from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -19,9 +19,20 @@
 		validators: zod4(taskFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				toast.success(`You submitted ${JSON.stringify(f.data, null, 2)}`);
+				// Check if there's a success message from server
+				if (f.message) {
+					toast.success(f.message);
+				} else {
+					toast.success('Task created successfully!');
+				}
 			} else {
 				toast.error('Please fix the errors in the form.');
+			}
+		},
+		onError: ({ result }) => {
+			// Handle server validation errors
+			if (result.type === 'error') {
+				toast.error('An error occurred while saving the task.');
 			}
 		},
 	});
