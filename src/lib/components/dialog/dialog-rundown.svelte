@@ -6,36 +6,6 @@
 	import { Label } from '$lib/components/ui/label/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { rundownCategoryOptions } from '$lib/constants/constants';
-
-	let title = $state('');
-	let categoryValue = $state('');
-	let description = $state('');
-	let startTime = $state('');
-	let endTime = $state('');
-	let location = $state('');
-	let attendees = $state('');
-
-	const triggerCategory = $derived(
-		categoryValue
-			? rundownCategoryOptions.find((c) => c.value === categoryValue)?.label
-			: 'Pick a category',
-	);
-
-	function addRundown(event: Event) {
-		event.preventDefault();
-		if (!title) return;
-
-		// TODO: Add rundown logic here
-
-		// Reset form
-		title = '';
-		categoryValue = '';
-		description = '';
-		startTime = '';
-		endTime = '';
-		location = '';
-		attendees = '';
-	}
 </script>
 
 <Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
@@ -45,10 +15,7 @@
 			<p>Add a new event to your wedding day timeline</p>
 		</Dialog.Description>
 	</Dialog.Header>
-	<form
-		onsubmit={addRundown}
-		class="flex flex-col gap-4 py-4"
-	>
+	<form class="flex flex-col gap-4 py-4">
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-row items-start justify-between gap-2">
 				<div class="flex flex-col items-start w-full gap-2">
