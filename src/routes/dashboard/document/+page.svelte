@@ -3,6 +3,8 @@
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
 	import { documentsStore } from '$lib/stores/documents';
 	import type { DocType } from '$lib/types';
+	import { Toaster } from 'svelte-sonner';
+
 	import { docTypeOptions } from '$lib/constants/constants';
 
 	const overviewTitle = 'Document Overview';
@@ -63,5 +65,11 @@
 	<SectionDocs
 		{data}
 		{docsCards}
+	/>
+	<Toaster
+		position="top-right"
+		expand={true}
+		richColors
+		closeButton
 	/>
 </div>
