@@ -4,6 +4,8 @@
 	import TimelineDnd from '$lib/components/dnd/timeline-dnd.svelte';
 	import { rundownsStore } from '$lib/stores/rundowns';
 
+	let { data } = $props();
+
 	let items = $rundownsStore.map((rundown) => ({
 		id: rundown.id,
 		title: rundown.title,
@@ -64,5 +66,5 @@
 		columns={4}
 	/>
 	<SectionRundown />
-	<TimelineDnd {items} />
+	<TimelineDnd {items} {data} />
 </div>
