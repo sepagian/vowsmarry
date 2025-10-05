@@ -1,197 +1,98 @@
 # Implementation Plan
 
-- [x] 1. Set up validation utilities and enhanced error messaging system
+- [x] 1. Set up core validation infrastructure
+  - [x] Create validation utilities (email, phone, URL, Instagram validators)
+  - [x] Implement error messaging system with context-specific messages
+  - [x] Add input sanitization functions for security
+  - [x] Enhance existing schemas (vendor, document, expense, task) with better validation
+  - [x] Implement user authentication schemas
+  - [x] Implement schedule/rundown schemas with time validation and utility functions
+  - [x] Implement budget management schemas (categories, items, calculations)
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 5.1, 6.1, 6.2, 6.4_
 
-
-
-
-
-  - Create `src/lib/validation/utils.ts` with format validators (email, phone, URL, Instagram)
-  - Create `src/lib/validation/messages.ts` with context-specific error messages
-  - Create `src/lib/validation/sanitization.ts` with input sanitization functions
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 5.1_
-
-- [x] 2. Enhance existing schemas with improved validation and error messages
-
-
-
-
-
-  - [x] 2.1 Update vendor schema with enhanced validation
-
-
-
-
-
-    - Add email, phone, website fields with proper format validation
-    - Implement Instagram handle validation with custom regex
-    - Add input sanitization for text fields
-    - Replace generic error messages with specific, helpful ones
-    - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.4_
-
-  - [x] 2.2 Update document schema with file type and date validation
-
-
-
-
-
-    - Enhance file upload validation with proper MIME type checking
-    - Add file size validation with user-friendly error messages
-    - Implement date range validation for document dates
-    - _Requirements: 1.5, 1.6_
-
-  - [x] 2.3 Update expense schema with enhanced amount validation
-
-
-
-
-
-    - Add currency amount validation with proper decimal handling
-    - Implement date range validation for expense dates
-    - Add category-specific validation rules
-    - _Requirements: 1.6, 6.4_
-
-  - [x] 2.4 Update task schema with priority and date validation
-
-
-
-
-
-    - Add task priority validation with conditional rules
-    - Implement due date validation (future dates only)
-    - Add task description length and content validation
-    - _Requirements: 1.6, 6.4_
-
-- [ ] 3. Create new validation schemas for missing features
-  - [ ] 3.1 Implement user authentication schemas
-    - Create login schema with email and password validation
-    - Create registration schema with password confirmation
-    - Add password strength validation with clear requirements
-    - _Requirements: 6.2_
-
-  - [ ] 3.2 Implement guest management schemas
+- [ ] 2. Complete missing validation schemas and standardize error messages
+  - [ ] 2.1 Implement guest management schemas
     - Create guest schema with contact information validation
     - Add RSVP status validation with enum constraints
     - Implement dietary restrictions text validation
-    - _Requirements: 6.3_
+    - Add corresponding test files
+    - _Requirements: 6.3, 7.1_
 
-  - [ ] 3.3 Implement budget management schemas
-    - Create budget category schema with amount validation
-    - Add budget item schema with expense tracking
-    - Implement budget calculation validation
-    - _Requirements: 6.4_
-
-  - [x] 3.4 Implement schedule/rundown schemas
+  - [x] 2.2 Standardize error messages across all schemas
 
 
 
 
 
-    - Create schedule event schema with time validation
-    - Add event duration and overlap validation
-    - Implement location and responsibility field validation
-    - Populate the empty `src/lib/validation/schedule.ts` file
-    - _Requirements: 6.1_
 
-- [ ] 4. Implement accessibility enhancements
-  - [ ] 4.1 Create accessibility utilities
-    - Create `src/lib/validation/accessibility.ts` with ARIA label generators
-    - Implement focus management utilities for form validation
+
+
+    - Update vendor schema to use validationMessages.vendor instead of inline messages
+    - Update document schema to use validationMessages.document instead of inline messages
+    - Update expense schema to use validationMessages.expense instead of inline messages
+    - Update task schema to use validationMessages.task instead of inline messages
+    - Update auth schemas to use validationMessages.auth instead of inline messages
+    - Update schedule schema to use validationMessages.schedule instead of inline messages
+    - Update budget schemas to use validationMessages.budget instead of inline messages
+    - Create helper function to consistently apply messages from validationMessages object
+    - _Requirements: 1.2, 4.4_
+
+- [ ] 3. Implement accessibility and UX enhancements
+  - [ ] 3.1 Create accessibility utilities
+    - Create ARIA label generators and focus management utilities
     - Add screen reader announcement functions
-    - _Requirements: 3.1, 3.2, 3.3_
-
-  - [ ] 4.2 Add ARIA attributes to validation schemas
-    - Add ARIA labels and descriptions to all form field schemas
-    - Implement ARIA live regions for dynamic error announcements
-    - Add keyboard navigation support utilities
+    - Implement keyboard navigation support
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 5. Implement form UX enhancements
-  - [ ] 5.1 Create form state management utilities
+  - [ ] 3.2 Add form UX improvements
     - Implement auto-focus on first invalid field functionality
     - Create loading state management for form submissions
     - Add form draft auto-save utilities using localStorage
-    - _Requirements: 2.1, 2.2, 2.3_
+    - Implement progressive disclosure for conditional fields
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-  - [ ] 5.2 Implement progressive disclosure for conditional fields
-    - Create conditional field display utilities
-    - Add vendor status-dependent field validation
-    - Implement dynamic form field showing/hiding logic
-    - _Requirements: 2.4_
-
-- [ ] 6. Implement server-side validation and security
-  - [ ] 6.1 Create server-side validation utilities
-    - Create `src/lib/validation/server.ts` with server validation functions
+- [ ] 4. Implement server-side validation and security
+  - [ ] 4.1 Create server-side validation utilities
+    - Create server validation functions that mirror client schemas
     - Implement database constraint validation helpers
-    - Add server-side schema validation that mirrors client schemas
-    - _Requirements: 5.4, 5.5_
-
-  - [ ] 6.2 Implement security enhancements
     - Add CSRF token validation utilities
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+  - [ ] 4.2 Add security enhancements
     - Implement rate limiting helpers for form submissions
     - Create file upload security validation functions
+    - Add XSS prevention measures
     - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 7. Add performance optimizations
-  - [ ] 7.1 Implement schema caching and optimization
+- [ ] 5. Add performance optimizations and testing
+  - [ ] 5.1 Implement performance optimizations
     - Create schema caching utilities to avoid recompilation
     - Implement debounced validation for expensive checks
     - Add bundle size optimization for validation libraries
     - _Requirements: 2.5_
 
-- [ ] 8. Create comprehensive validation testing
-  - [ ] 8.1 Write unit tests for validation schemas
-    - Create test files for all enhanced schemas using Vitest
-    - Test edge cases: empty inputs, maximum lengths, special characters
-    - Add tests for custom validators and sanitization functions
-    - _Requirements: 7.1, 7.3_
-
-  - [ ] 8.2 Write integration tests for form validation flows
-    - Create integration tests for complete form submission flows
+  - [ ] 5.2 Complete comprehensive testing
+    - Write integration tests for complete form validation flows
+    - Add accessibility testing with jest-axe
     - Test client-server validation consistency
-    - Add tests for error message display and accessibility
-    - _Requirements: 7.2_
+    - _Requirements: 7.1, 7.2, 7.3_
 
-  - [ ] 8.3 Add accessibility testing
-    - Implement automated accessibility tests using jest-axe
-    - Test ARIA attributes and screen reader compatibility
-    - Add keyboard navigation and focus management tests
-    - _Requirements: 7.2, 3.4_
-
-- [ ] 9. Update existing forms to use enhanced validation
-  - [ ] 9.1 Update vendor management forms
-    - Integrate enhanced vendor schema into vendor forms
+- [ ] 6. Update existing forms and add monitoring
+  - [x] 6.1 Update existing forms to use enhanced validation
+    - Integrate enhanced schemas into vendor, document, expense, and task forms
     - Add accessibility attributes and error handling
     - Implement auto-save and progressive disclosure features
-    - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.4, 3.1_
+    - _Requirements: 1.1, 1.2, 1.3, 1.5, 1.6, 2.1, 2.4, 3.1_
 
-  - [ ] 9.2 Update document management forms
-    - Integrate enhanced document schema into document forms
-    - Add file upload security and validation improvements
-    - Implement better error messaging for file uploads
-    - _Requirements: 1.5, 1.6, 2.1_
+  - [ ] 6.2 Create message standardization utilities
+    - Create helper functions to apply validationMessages consistently across schemas
+    - Implement message interpolation for dynamic values (field names, limits, etc.)
+    - Add validation message testing utilities to ensure all messages are defined
+    - Create linting rules to prevent inline error messages in schemas
+    - _Requirements: 1.2, 4.4_
 
-  - [ ] 9.3 Update expense tracking forms
-    - Integrate enhanced expense schema into expense forms
-    - Add currency validation and better date handling
-    - Implement category-specific validation rules
-    - _Requirements: 1.6, 2.1, 6.4_
-
-  - [ ] 9.4 Update task management forms
-    - Integrate enhanced task schema into task forms
-    - Add priority-based validation and due date checking
-    - Implement task description validation improvements
-    - _Requirements: 1.6, 2.1, 6.4_
-
-- [ ] 10. Implement monitoring and maintenance utilities
-  - [ ] 10.1 Add validation failure logging
+  - [ ] 6.3 Add monitoring and maintenance utilities
     - Create logging utilities for tracking validation failures
-    - Implement error reporting for common validation issues
-    - Add monitoring for validation performance metrics
-    - _Requirements: 7.4_
-
-  - [ ] 10.2 Create validation documentation and maintenance tools
     - Add JSDoc comments to all validation functions and schemas
-    - Create validation rule documentation for maintainers
-    - Implement automated compatibility checks for Zod and superforms versions
-    - _Requirements: 4.4, 7.5_
+    - Implement automated compatibility checks for dependencies
+    - _Requirements: 4.4, 7.4, 7.5_
