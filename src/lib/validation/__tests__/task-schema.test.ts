@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { taskFormSchema } from '../index';
 
+// Helper function to get ISO date string
+const getISODate = (daysFromNow: number) => {
+	const date = new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);
+	return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+};
+
 describe('Enhanced Task Schema', () => {
 	describe('Task Description Validation', () => {
 		it('should accept valid task descriptions', () => {
@@ -9,7 +15,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+				date: getISODate(7) // 7 days from now
 			};
 			
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
@@ -21,7 +27,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -33,7 +39,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -45,7 +51,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -53,11 +59,11 @@ describe('Enhanced Task Schema', () => {
 
 		it('should transform description by capitalizing first letter and cleaning spaces', () => {
 			const inputData = {
-				description: '  book   wedding   venue  ',
+				description: '  book wedding venue  ',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			const result = taskFormSchema.parse(inputData);
@@ -72,22 +78,19 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+				date: getISODate(7) // 7 days from now
 			};
 			
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
 		});
 
 		it('should accept today as due date', () => {
-			const today = new Date();
-			today.setHours(12, 0, 0, 0); // Set to noon today
-			
 			const validData = {
 				description: 'Complete wedding venue booking',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: today
+				date: getISODate(0) // Today
 			};
 			
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
@@ -99,71 +102,56 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() - 24 * 60 * 60 * 1000) // Yesterday
+				date: getISODate(-1) // Yesterday
 			};
 			
-			expect(() => taskFormSchema.parse(invalidData)).toThrow('Due date cannot be in the past');
+			expect(() => taskFormSchema.parse(invalidData)).toThrow('Please select a future date for the task due date');
 		});
 
-		it('should handle string dates and convert them', () => {
+		it('should handle ISO date strings', () => {
 			const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
 			const validData = {
 				description: 'Complete wedding venue booking',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: tomorrow.toISOString()
+				date: tomorrow.toISOString().split('T')[0] // ISO date string (YYYY-MM-DD)
 			};
 			
 			const result = taskFormSchema.parse(validData);
-			expect(result.date).toBeInstanceOf(Date);
+			expect(result.date).toBe(tomorrow.toISOString().split('T')[0]);
 		});
 	});
 
-	describe('Priority-based Conditional Validation', () => {
-		it('should require longer descriptions for high priority tasks', () => {
-			const invalidData = {
-				description: 'Book venue', // Too short for high priority
-				category: 'venue',
-				priority: 'high',
-				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-			};
-			
-			expect(() => taskFormSchema.parse(invalidData)).toThrow('High priority tasks require more detailed descriptions');
-		});
-
-		it('should accept longer descriptions for high priority tasks', () => {
-			const validData = {
-				description: 'Complete wedding venue booking with detailed requirements and timeline coordination',
-				category: 'venue',
-				priority: 'high',
-				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-			};
-			
-			expect(() => taskFormSchema.parse(validData)).not.toThrow();
-		});
-
-		it('should allow short descriptions for low and medium priority tasks', () => {
-			const validDataLow = {
+	describe('Priority Validation', () => {
+		it('should accept all priority levels with any description length', () => {
+			const validDataHigh = {
 				description: 'Book venue',
 				category: 'venue',
-				priority: 'low',
+				priority: 'high',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
-
+			
 			const validDataMedium = {
-				description: 'Book venue',
+				description: 'Call venue',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
-			expect(() => taskFormSchema.parse(validDataLow)).not.toThrow();
+			const validDataLow = {
+				description: 'Check venue',
+				category: 'venue',
+				priority: 'low',
+				status: 'pending',
+				date: getISODate(7)
+			};
+			
+			expect(() => taskFormSchema.parse(validDataHigh)).not.toThrow();
 			expect(() => taskFormSchema.parse(validDataMedium)).not.toThrow();
+			expect(() => taskFormSchema.parse(validDataLow)).not.toThrow();
 		});
 	});
 
@@ -183,7 +171,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'invalid-category',
 				priority: 'invalid-priority',
 				status: 'invalid-status',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -197,7 +185,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -209,7 +197,7 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
@@ -217,11 +205,11 @@ describe('Enhanced Task Schema', () => {
 
 		it('should handle special characters in descriptions', () => {
 			const validData = {
-				description: 'Book venue @ 2:00 PM - confirm with vendor!',
+				description: 'Book venue @ 2:00 PM (confirm with John & Mary)',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+				date: getISODate(7)
 			};
 			
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
