@@ -29,6 +29,8 @@
 	import { expensesStore } from '$lib/stores/expenses';
 	import type { Expense } from '$lib/types';
 
+	let { data } = $props();
+
 	const columns: ColumnDef<Expense>[] = [
 		{
 			accessorKey: 'description',
@@ -243,7 +245,7 @@
 				<div class="i-lucide:plus p-2"></div>
 				<span class="hidden lg:inline">Add Expense</span>
 			</Dialog.Trigger>
-			<DialogExpense />
+			<DialogExpense {data} />
 		</Dialog.Root>
 	</div>
 	<div class="rounded-md border">

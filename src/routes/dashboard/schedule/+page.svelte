@@ -4,7 +4,9 @@
 	import TimelineDnd from '$lib/components/dnd/timeline-dnd.svelte';
 	import { rundownsStore } from '$lib/stores/rundowns';
 
-	$: items = $rundownsStore.map((rundown) => ({
+	let { data } = $props();
+
+	let items = $rundownsStore.map((rundown) => ({
 		id: rundown.id,
 		title: rundown.title,
 		description: rundown.description || '',
@@ -15,7 +17,7 @@
 		location: rundown.location,
 	}));
 
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const rundowns = $rundownsStore;
 		const totalEvents = rundowns.length;
 		const preparationEvents = rundowns.filter((r) => r.category === 'preparation').length;
@@ -52,7 +54,7 @@
 				footer: 'Reception activities',
 			},
 		];
-	})();
+	});
 
 	const overviewTitle = 'Schedule Overview';
 </script>
@@ -64,5 +66,5 @@
 		columns={4}
 	/>
 	<SectionRundown />
-	<TimelineDnd {items} />
+	<TimelineDnd {items} {data} />
 </div>

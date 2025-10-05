@@ -1,38 +1,69 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index';
+	import * as Form from '$lib/components/ui/form/index';
 	import * as Select from '$lib/components/ui/select/index';
-	import { Button } from '$lib/components/ui/button/index';
+	import {
+		displaySize,
+		MEGABYTE,
+		FileDropZone,
+		type FileDropZoneProps,
+	} from '$lib/components/ui/file-drop-zone';
 	import { Input } from '$lib/components/ui/input/index';
-	import { Label } from '$lib/components/ui/label/index';
-	import { docTypeOptions } from '$lib/constants/constants';
-	import type { DocType } from '$lib/types';
+	import { Button } from '$lib/components/ui/button/index';
+	import { toast } from 'svelte-sonner';
+	import SuperDebug, { superForm, filesProxy } from 'sveltekit-superforms';
+	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { documentFormSchema, categorySchema } from '$lib/validation/index';
 
-	let docTypeValue = $state<DocType | ''>('');
-	let description = $state('');
-	let date = $state('');
-	let fileUrl = $state('');
+	let { data } = $props();
 
-	const triggerDocType = $derived(
-		docTypeValue
-			? docTypeOptions.find((d) => d.value === docTypeValue)?.label
-			: 'Pick a document type',
+	const form = superForm(data.documentForm, {
+		validators: zod4(documentFormSchema as any),
+		onUpdate: ({ form: f }) => {
+			if (f.valid) {
+				// Check if there's a success message from server
+				if (f.message) {
+					toast.success(f.message);
+				} else {
+					toast.success('Document uploaded successfully!');
+				}
+			}
+			// Zod validation errors are now displayed in Form.FieldErrors
+		},
+		onError: ({ result }) => {
+			// Handle server validation errors
+			if (result.type === 'error') {
+				toast.error('An error occurred while uploading the document.');
+			}
+		},
+	});
+	const { form: formData, enhance } = form;
+
+	const selectedCategory = $derived(
+		$formData.category
+			? categorySchema[$formData.category as keyof typeof categorySchema]
+			: 'Choose category',
 	);
 
-	function addDocument(event: Event) {
-		event.preventDefault();
-		if (!description) return;
+	const onUpload: FileDropZoneProps['onUpload'] = async (uploadedFiles) => {
+		// we use set instead of an assignment since it accepts a File[]
+		files.set([...Array.from($files), ...uploadedFiles]);
+	};
 
-		// TODO: Add document logic here
+	const onFileRejected: FileDropZoneProps['onFileRejected'] = async ({ reason, file }) => {
+		toast.error(`${file.name} failed to upload!`, { description: reason });
+	};
 
-		// Reset form
-		description = '';
-		docTypeValue = '';
-		date = '';
-		fileUrl = '';
-	}
+	const files = filesProxy(form, 'file');
+
+	$effect(() => {
+		if (!open) {
+			form.reset();
+		}
+	});
 </script>
 
-<Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
+<Dialog.Content class="w-full sm:w-[120rem] bg-neutral-100">
 	<Dialog.Header>
 		<Dialog.Title>Add New Document</Dialog.Title>
 		<Dialog.Description>
@@ -40,78 +71,171 @@
 		</Dialog.Description>
 	</Dialog.Header>
 	<form
-		onsubmit={addDocument}
-		class="flex flex-col gap-4 py-4"
+		use:enhance
+		method="POST"
+		enctype="multipart/form-data"
+		class="flex flex-col gap-2 py-4"
 	>
-		<div class="flex flex-col items-start gap-2">
-			<Label
-				for="documentDescription"
-				class="text-right">Document Description *</Label
-			>
-			<Input
-				id="documentDescription"
-				bind:value={description}
-				placeholder="e.g. Marriage License"
-				class="col-span-3"
-			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="documentCategory"
-				class="text-right">Category</Label
-			>
-			<Select.Root
-				type="single"
-				name="documentCategory"
-				bind:value={docTypeValue}
-			>
-				<Select.Trigger
-					class="w-full"
-					aria-label="Document Category"
-				>
-					{triggerDocType}
-				</Select.Trigger>
-				<Select.Content>
-					<Select.Group>
-						{#each docTypeOptions as docType (docType.value)}
-							<Select.Item
-								value={docType.value}
-								label={docType.label}
-							>
-								{docType.label}
-							</Select.Item>
+		<Form.Field
+			{form}
+			name="name"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Description</Form.Label>
+					<Input
+						{...props}
+						type="text"
+						bind:value={$formData.name}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+		<Form.Field
+			{form}
+			name="category"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Category</Form.Label>
+					<Select.Root
+						type="single"
+						bind:value={$formData.category}
+						name={props.name}
+					>
+						<Select.Trigger
+							{...props}
+							class="w-full"
+						>
+							{selectedCategory}
+						</Select.Trigger>
+						<Select.Content>
+							{#each Object.entries(categorySchema) as [value, label] (label)}
+								<Select.Item {value}>
+									{label}
+								</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors />
+		</Form.Field>
+		<Form.Field
+			{form}
+			name="date"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Document Date</Form.Label>
+					<Input
+						{...props}
+						type="date"
+						bind:value={$formData.date}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="expiryDate"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Expiry Date (Optional)</Form.Label>
+					<Input
+						{...props}
+						type="date"
+						bind:value={$formData.expiryDate}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="description"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Description (Optional)</Form.Label>
+					<Input
+						{...props}
+						type="text"
+						placeholder="Additional notes about this document..."
+						bind:value={$formData.description}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="file"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<FileDropZone
+						{...props}
+						{onUpload}
+						{onFileRejected}
+						maxFileSize={10 * MEGABYTE}
+						accept="image/*, application/pdf"
+						maxFiles={1}
+						fileCount={$files.length}
+					>
+						<div class="flex flex-col gap-2 w-full items-center justify-center">
+							<div class="i-lucide:upload h-12 w-12 bg-neutral-500"></div>
+							<div class="flex flex-col w-full gap-0 items-center justify-center">
+								<h2 class="text-base font-bold text-neutral-500">
+									Drag 'n' drop files here, or click to select files
+								</h2>
+								<span class="text-sm text-neutral-500">You can upload PDF, JPEG, or PNG files up to 10 MB</span>
+							</div>
+						</div>
+					</FileDropZone>
+					<input
+						name="file"
+						type="file"
+						bind:files={$files}
+						class="hidden"
+					/>
+					<div class="flex flex-col gap-2">
+						{#each Array.from($files) as file, i (file.name)}
+							<div class="flex place-items-center justify-between gap-2">
+								<div class="flex flex-col">
+									<span>{file.name}</span>
+									<span class="text-muted-foreground text-xs">{displaySize(file.size)}</span>
+								</div>
+								<Button
+									variant="outline"
+									size="icon"
+									onclick={() => {
+										// we use set instead of an assignment since it accepts a File[]
+										files.set([
+											...Array.from($files).slice(0, i),
+											...Array.from($files).slice(i + 1),
+										]);
+									}}
+								>
+									<div class="i-lucide:x"></div>
+								</Button>
+							</div>
 						{/each}
-					</Select.Group>
-				</Select.Content>
-			</Select.Root>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="documentDate"
-				class="text-right">Date</Label
-			>
-			<Input
-				type="date"
-				id="documentDate"
-				bind:value={date}
-				class="w-full"
-				placeholder="Select date..."
-			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<Label
-				for="documentFile"
-				class="text-right">Upload File</Label
-			>
-			<Input
-				id="documentFile"
-				bind:value={fileUrl}
-				class="col-span-3"
-				type="file"
-			/>
-		</div>
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Dialog.Footer>
+			<Form.Button type="submit">Add Document</Form.Button>
+		</Dialog.Footer>
 	</form>
-	<Dialog.Footer>
-		<Button type="submit">Add Document</Button>
-	</Dialog.Footer>
 </Dialog.Content>
+<SuperDebug data={formData} />

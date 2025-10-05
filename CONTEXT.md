@@ -5,10 +5,15 @@
 **VowsMarry – Wedding Planner Platform**  
 _Tagline:_ "Plan Your Perfect Day – Organized, Elegant, Effortless."
 
-VowsMarry is a **full-fledged wedding planner SaaS platform** designed for couples and wedding planners.  
-It provides tools to manage **paperwork, budgeting, tasks, vendors, dresscode, rundown, and savings**, with **digital wedding invitations** as an **add-on feature**.
+VowsMarry is a **comprehensive wedding planner SaaS platform** designed for couples and wedding planners. It provides an integrated suite of tools to manage all aspects of wedding planning including **paperwork tracking, budgeting, task management, vendor coordination, dresscode planning, event rundown, and savings tracking**, with **digital wedding invitations** as a premium add-on feature.
 
-This makes VowsMarry more than just an invitation builder — it becomes a **comprehensive wedding planning hub**.
+### Key Differentiators
+- **All-in-one Solution**: Unlike competitors focusing solely on invitations, VowsMarry provides end-to-end wedding planning capabilities
+- **Cultural Sensitivity**: Includes features like dowry (Mahar) tracking and traditional ceremony elements
+- **Freemium Model**: Core planning tools free, premium features and templates monetized
+- **Guest Experience**: Seamless integration between planning tools and guest-facing invitation platform
+
+This positions VowsMarry as more than just an invitation builder — it becomes a **comprehensive wedding planning ecosystem**.
 
 ---
 
@@ -57,77 +62,178 @@ This makes VowsMarry more than just an invitation builder — it becomes a **com
 
 ---
 
-## 5. Tech Stack
+## 5. Tech Stack & Architecture
 
-| Layer      | Choice                                                    |
-| ---------- | --------------------------------------------------------- |
-| Frontend   | **SvelteKit 5** (TypeScript)                              |
-| Runtime    | Bun                                                       |
-| Backend    | Supabase (Postgres, pg_cron)                              |
-| ORM        | Drizzle ORM                                               |
-| Auth       | **Supabase Auth**                                         |
-| Media      | **Cloudflare R2 + Images + Stream** (recommended default) |
-| UI         | Shadcn-svelte + UnoCSS                                    |
-| Animations | GSAP                                                      |
-| Styling    | Tailwind CSS / UnoCSS                                     |
-| Hosting    | Vercel (wildcard subdomain support)                       |
-| DNS        | Cloudflare (wildcard `*.vowsmarry.id`)                    |
+### Core Technologies
+| Layer          | Technology                                                |
+| -------------- | --------------------------------------------------------- |
+| **Frontend**   | SvelteKit 5 with TypeScript                              |
+| **Runtime**    | Bun (with npm fallback)                                  |
+| **Backend**    | Supabase (PostgreSQL with pg_cron)                       |
+| **ORM**        | Drizzle ORM with Drizzle Kit                             |
+| **Auth**       | Supabase Auth                                            |
+| **Styling**    | UnoCSS with Tailwind CSS utilities                       |
+| **UI**         | Shadcn-svelte + bits-ui components                       |
+| **Forms**      | Superforms + Formsnap + Zod validation                   |
+| **Charts**     | LayerChart + D3                                          |
+| **Icons**      | Lucide icons via @iconify-json/lucide                    |
+| **Media**      | Cloudflare R2 + Images + Stream                          |
+| **Deployment** | Vercel with adapter-vercel                               |
+| **DNS**        | Cloudflare (wildcard `*.vowsmarry.id`)                   |
+
+### Development Tools
+- **Environment**: Doppler for secrets management
+- **Database**: Drizzle Kit for migrations and schema management  
+- **Code Quality**: ESLint + Prettier + TypeScript strict mode
+- **Package Manager**: Bun with package-lock.json fallback
 
 ---
 
-## 6. Routing Structure
+## 6. Project Structure & Architecture
 
+### Source Organization
+```
+src/
+├── lib/                    # Shared library code
+│   ├── components/         # Reusable UI components (Shadcn-svelte)
+│   ├── server/db/         # Database schema and utilities
+│   ├── stores/            # Svelte stores for state management
+│   ├── utils/             # Utility functions
+│   ├── validation/        # Zod schemas and validation
+│   ├── styles/            # CSS and UnoCSS safelist classes
+│   └── types.ts           # TypeScript type definitions
+├── routes/                # SvelteKit file-based routing
+└── app.html              # HTML template
+```
+
+### Routing Structure (Planned)
+```
 src/routes/
-├── (dashboard)/ # Wedding planner dashboard
-│ ├── task/
-│ ├── document/
-│ ├── budget/
-│ ├── vendor/
-│ ├── schedule/
+├── (dashboard)/           # Wedding planner dashboard
+│   ├── paperwork/        # Document tracking
+│   ├── budget/           # Budget management
+│   ├── tasks/            # To-do list management
+│   ├── vendors/          # Vendor coordination
+│   ├── dresscode/        # Uniform/dresscode planning
+│   ├── rundown/          # Event timeline
+│   ├── savings/          # Savings tracking
+│   ├── dowry/            # Mahar management
+│   └── souvenirs/        # Souvenir planning
 │
-├── (invitation)/ # Invitation planner
-│ ├── setup/
-│ ├── story/
-│ ├── guests/
+├── (invitation)/         # Invitation planner interface
+│   ├── templates/        # Template selection
+│   ├── setup/            # Couple details setup
+│   ├── story/            # Love story section
+│   ├── guests/           # Guest management
+│   ├── gallery/          # Photo/video gallery
+│   └── gifts/            # Digital gifts setup
 │
-├── (public)/ # Public invitation pages
-│ ├── [token]/ # Guest-specific invitation
-│ └── +layout.svelte
+├── (public)/             # Public invitation pages
+│   ├── [token]/          # Guest-specific invitation
+│   ├── rsvp/             # RSVP handling
+│   └── gallery/          # Public photo gallery
 │
-├─ (auth)/
-│ ├── login/
-│ ├── register/
-│ ├── verify/
-│ └── logout/
+└── (auth)/               # Authentication flows
+    ├── login/
+    ├── register/
+    ├── verify/
+    └── logout/
+```
 
 ---
 
 ## 7. Database Schema (High-Level)
 
-### Planner Modules
-
+### Core Tables Structure
 ```sql
-paperwork(id, user_id, title, type, status, due_date, file_url, created_at)
-budgets(id, user_id, category, planned_amount, actual_amount, created_at)
-todos(id, user_id, title, description, status, due_date, assigned_to, created_at)
-vendors(id, user_id, name, category, contact_info, status, contract_url, created_at)
-dresscodes(id, user_id, event_name, description, image_url, created_at)
-rundowns(id, user_id, event_name, start_time, end_time, description, assigned_to, created_at)
-savings(id, user_id, goal_amount, current_amount, created_at)
-dowry(id, user_id, type, description, value, proof_url, created_at)
-souvenirs(id, user_id, name, vendor_id, quantity, cost, status, created_at)
+-- User Management
+users (id, email, created_at, updated_at)
+user_profiles (user_id, name, phone, avatar_url)
+
+-- Wedding Planning Core
+weddings (id, user_id, partner_name, wedding_date, venue, status)
+wedding_collaborators (wedding_id, user_id, role) -- for shared planning
+
+-- Planning Modules
+paperwork (id, wedding_id, title, type, status, deadline, file_url)
+budget_categories (id, wedding_id, name, allocated_amount, spent_amount)
+budget_items (id, category_id, description, planned_cost, actual_cost, vendor_id)
+tasks (id, wedding_id, title, description, status, due_date, assigned_to)
+vendors (id, wedding_id, name, category, contact_info, status, rating)
+rundown_events (id, wedding_id, time, title, description, responsible_person)
+savings_goals (id, wedding_id, target_amount, current_amount, deadline)
+dowry_items (id, wedding_id, type, amount, description, proof_url)
+souvenirs (id, wedding_id, type, quantity, cost, vendor_id, distributed_count)
+
+-- Invitation System
+invitations (id, wedding_id, template_id, custom_domain, is_published)
+invitation_guests (id, invitation_id, name, email, phone, rsvp_status, plus_one)
+invitation_gallery (id, invitation_id, media_url, media_type, caption)
+love_story_timeline (id, invitation_id, date, title, description, image_url)
+digital_gifts (id, invitation_id, gift_type, amount, message, guest_name)
 ```
 
-### Invitations Modules
+### Key Relationships
+- **One-to-Many**: User → Weddings, Wedding → All planning modules
+- **Many-to-Many**: Users ↔ Weddings (via collaborators table)
+- **Hierarchical**: Budget Categories → Budget Items, Tasks → Subtasks
 
-```sql
-invitations(id, user_id, slug, template, status, expired_at)
-couple_details(id, invitation_id, bride_name, groom_name, parents, event_date, location, maps_url, greeting)
-rsvp(id, invitation_id, guest_id, status, plus_one, meal_pref, qr_code, created_at)
-gallery(id, invitation_id, type, key, url, sort_order, created_at)
-gifts(id, invitation_id, type, provider, account_info, created_at)
-love_story(id, invitation_id, title, content, media_url, sort_order, created_at)
-guests(id, invitation_id, name, phone, token, created_at)
-messages(id, guest_id, invitation_id, name, content, created_at)
-parents(id, invitation_id, side, role, name, created_at)
+---
+
+## 8. Development Workflow & Commands
+
+### Common Commands
+```bash
+# Development
+bun run dev          # Start dev server with Doppler
+bun run build        # Production build
+bun run preview      # Preview production build
+
+# Code Quality
+bun run format       # Format code with Prettier
+bun run lint         # Lint and format check
+bun run check        # Type checking with svelte-check
+
+# Database
+bun run db:push      # Push schema changes
+bun run db:generate  # Generate migrations
+bun run db:migrate   # Run migrations
+bun run db:studio    # Open Drizzle Studio
 ```
+
+### Environment Setup
+- All commands use `doppler run --` prefix for environment variable injection
+- Database schema located at `./src/lib/server/db/schema.ts`
+- UnoCSS safelist classes defined in `./src/lib/styles/safelist`
+
+---
+
+## 9. Current Status & Recommendations
+
+### Implementation Priority (MVP)
+1. **Authentication System** - Supabase Auth integration
+2. **Core Dashboard** - Basic wedding creation and management
+3. **Essential Modules** - Paperwork, Budget, Tasks, Vendors
+4. **Database Schema** - Complete Drizzle schema implementation
+5. **UI Foundation** - Shadcn-svelte component library setup
+
+### Technical Recommendations
+- **Database First**: Implement complete schema with Drizzle before building UI
+- **Component Library**: Establish consistent Shadcn-svelte patterns early
+- **Form Validation**: Use Superforms + Zod for all data input
+- **State Management**: Leverage SvelteKit's built-in stores and page data
+- **Testing Strategy**: Focus on integration tests for critical user flows
+
+### Business Recommendations  
+- **MVP Focus**: Launch with core planning tools, add invitations as premium feature
+- **User Onboarding**: Create guided setup flow for new weddings
+- **Data Export**: Provide PDF/CSV exports for vendor presentations
+- **Mobile Optimization**: Ensure responsive design for on-the-go planning
+- **Collaboration**: Implement real-time updates for shared planning
+
+### Next Steps
+1. Complete database schema implementation
+2. Set up authentication and user management
+3. Build core dashboard with wedding creation
+4. Implement paperwork and budget modules
+5. Add task management and vendor coordination

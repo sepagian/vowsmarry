@@ -8,16 +8,7 @@
 	import { docTypeOptions } from '$lib/constants/constants';
 	import DialogDocument from '../dialog/dialog-document.svelte';
 
-	let {
-		docsCards,
-	}: {
-		docsCards: {
-			description: string;
-			type: DocType;
-			action?: string;
-			footer: string;
-		}[];
-	} = $props();
+	let { docsCards, data } = $props();
 
 	const dropdownItem: {
 		label: string;
@@ -63,7 +54,7 @@
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Upload New Document</span>
 				</Dialog.Trigger>
-				<DialogDocument />
+				<DialogDocument {data} />
 			</Dialog.Root>
 		</div>
 	</div>

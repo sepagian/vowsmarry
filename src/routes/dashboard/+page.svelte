@@ -9,41 +9,45 @@
 
 	const overviewTitle = 'Project Overview';
 
+	let { data } = $props();
+
 	// Reactive overviewCards based on stores
-	$: overviewCards = [
-		{
-			title: $tasksStore.length.toString(),
-			description: 'Tasks',
-			action: 'Total',
-			footer: 'Updated just now',
-		},
-		{
-			title: `${$expensesStore
-				.filter((e) => e['payment-status'] === 'paid')
-				.reduce((sum, e) => sum + e.amount, 0)
-				.toLocaleString('id-ID', {
-					style: 'currency',
-					currency: 'IDR',
-					minimumFractionDigits: 0,
-					maximumFractionDigits: 0,
-				})}`,
-			description: 'Budget Spent',
-			action: 'Total',
-			footer: 'Updated just now',
-		},
-		{
-			title: $documentsStore.length.toString(),
-			description: 'Documents',
-			action: 'Total',
-			footer: 'Updated just now',
-		},
-		{
-			title: $vendorsStore.length.toString(),
-			description: 'Vendors',
-			action: 'Total',
-			footer: 'Updated just now',
-		},
-	];
+	let overviewCards = $derived(() => {
+		return [
+			{
+				title: $tasksStore.length.toString(),
+				description: 'Tasks',
+				action: 'Total',
+				footer: 'Updated just now',
+			},
+			{
+				title: `${$expensesStore
+					.filter((e) => e['payment-status'] === 'paid')
+					.reduce((sum, e) => sum + e.amount, 0)
+					.toLocaleString('id-ID', {
+						style: 'currency',
+						currency: 'IDR',
+						minimumFractionDigits: 0,
+						maximumFractionDigits: 0,
+					})}`,
+				description: 'Budget Spent',
+				action: 'Total',
+				footer: 'Updated just now',
+			},
+			{
+				title: $documentsStore.length.toString(),
+				description: 'Documents',
+				action: 'Total',
+				footer: 'Updated just now',
+			},
+			{
+				title: $vendorsStore.length.toString(),
+				description: 'Vendors',
+				action: 'Total',
+				footer: 'Updated just now',
+			},
+		];
+	});
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
@@ -52,6 +56,6 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<SectionTodo />
-	<SectionBudget />
+	<SectionTodo {data} />
+	<SectionBudget {data} />
 </div>

@@ -3,12 +3,15 @@
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
 	import { documentsStore } from '$lib/stores/documents';
 	import type { DocType } from '$lib/types';
+	import { Toaster } from 'svelte-sonner';
+
 	import { docTypeOptions } from '$lib/constants/constants';
 
 	const overviewTitle = 'Document Overview';
+	let { data } = $props();
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const documents = $documentsStore;
 		const typeCounts = documents.reduce(
 			(acc, doc) => {
@@ -43,10 +46,9 @@
 				footer: 'Updated just now',
 			};
 		});
-	})();
+	});
 
-	// Reactive docsCards
-	$: docsCards = $documentsStore.map((doc) => ({
+	let docsCards = $documentsStore.map((doc) => ({
 		description: doc.description,
 		type: doc.type,
 		action: doc.action,
@@ -60,5 +62,14 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<SectionDocs {docsCards} />
+	<SectionDocs
+		{data}
+		{docsCards}
+	/>
+	<Toaster
+		position="top-right"
+		expand={true}
+		richColors
+		closeButton
+	/>
 </div>

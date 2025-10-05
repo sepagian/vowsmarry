@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { active } from '$lib/actions/active.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
 	let {
@@ -25,21 +25,16 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton tooltipContent={item.title}>
 					{#if item.url}
-						<a href={item.url}>
-							<div class="flex flex-1 gap-2 items-center">
-								{#if item.icon}
-									<div class="{item.icon} h-4 w-4"></div>
-								{/if}
-								<span class="text-sm">{item.title}</span>
-							</div>
-						</a>
-					{:else}
-						<div class="flex flex-1 gap-2 items-center">
+						<a
+							href={item.url}
+							use:active
+							class="flex flex-1 py-2 rounded-r-xl gap-2 items-center data-[active=true]:bg-neutral-200"
+						>
 							{#if item.icon}
 								<div class="{item.icon} h-4 w-4"></div>
 							{/if}
 							<span class="text-sm">{item.title}</span>
-						</div>
+						</a>
 					{/if}
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>

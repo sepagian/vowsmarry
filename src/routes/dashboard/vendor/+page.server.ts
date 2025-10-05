@@ -1,0 +1,16 @@
+import type { PageServerLoad, Actions } from './$types';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { vendorFormSchema, vendorSchema } from '$lib/validation/index';
+
+export const load: PageServerLoad = async () => {
+	const vendorForm = await superValidate(zod4(vendorFormSchema as any));
+
+	return { vendorForm };
+};
+
+export const actions: Actions = {
+	default: async ({ request }) => {
+		const vendorForm = await superValidate(request, zod4(vendorFormSchema as any));
+	},
+};

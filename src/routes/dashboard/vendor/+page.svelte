@@ -1,12 +1,14 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionVendor from '$lib/components/section/section-vendor.svelte';
+	import { Toaster } from 'svelte-sonner';
 	import { vendorsStore } from '$lib/stores/vendors';
 
+	let { data } = $props();
 	const overviewTitle = 'Vendors Overview';
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const vendors = $vendorsStore;
 		const researching = vendors.filter((vendor) => vendor.vendorStatus === 'researching').length;
 		const contacted = vendors.filter((vendor) => vendor.vendorStatus === 'contacted').length;
@@ -43,7 +45,7 @@
 				footer: 'Updated just now',
 			},
 		];
-	})();
+	});
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
@@ -52,5 +54,11 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<SectionVendor />
+	<SectionVendor {data} />
+	<Toaster
+		position="top-right"
+		expand={true}
+		richColors
+		closeButton
+	/>
 </div>

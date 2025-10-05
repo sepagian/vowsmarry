@@ -1,12 +1,14 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import TaskTable from '$lib/components/table/task-table.svelte';
+	import { Toaster } from 'svelte-sonner';
 	import { tasksStore } from '$lib/stores/tasks';
 
 	const overviewTitle = 'Task Overview';
+	let { data } = $props();
 
 	// Reactive overviewCards based on the store
-	$: overviewCards = (() => {
+	let overviewCards = $derived(() => {
 		const tasks = $tasksStore;
 		const completed = tasks.filter((task) => task.status === 'completed').length;
 		const pending = tasks.filter((task) => task.status === 'pending').length;
@@ -43,7 +45,7 @@
 				footer: 'Updated just now',
 			},
 		];
-	})();
+	});
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
@@ -52,5 +54,11 @@
 		{overviewTitle}
 		columns={4}
 	/>
-	<TaskTable />
+	<TaskTable {data} />
+	<Toaster
+		position="top-right"
+		expand={true}
+		richColors
+		closeButton
+	/>
 </div>
