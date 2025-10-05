@@ -11,6 +11,6 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		const vendorForm = await superValidate(request, zod4(vendorSchema as any));
+		const vendorForm = await superValidate(request, zod4(vendorFormSchema as any));
 	},
 };
