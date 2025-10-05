@@ -1,8 +1,15 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
 	import 'uno.css';
+	import favicon from '$lib/assets/favicon.svg';
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	let { children } = $props();
+	import { invalidate } from '$app/navigation';
+	import { Toaster } from 'svelte-sonner';
+	import { Progress } from '@friendofsvelte/progress';
+
+	let { data, children } = $props();
+	let { supabase } = $derived(data);
+
 	const title = $derived(
 		(() => {
 			const pathname = page.url.pathname;
@@ -35,6 +42,14 @@
 			return 'vowsmarry';
 		})(),
 	);
+
+	onMount(() => {
+		const { data } = supabase.auth.onAuthStateChange(() => {
+			invalidate('supabase:auth');
+		});
+
+		return () => data.subscription.unsubscribe();
+	});
 </script>
 
 <svelte:head>
@@ -45,4 +60,12 @@
 	<title>{title}</title>
 </svelte:head>
 
-{@render children?.()}
+<Progress
+	size="md"
+	color="blue"
+/>
+{@render children()}
+<Toaster
+	richColors
+	position="top-right"
+/>
