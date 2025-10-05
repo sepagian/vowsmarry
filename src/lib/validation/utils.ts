@@ -64,7 +64,7 @@ export const textLengthValidator = (
 	maxLength: number = 1000,
 ) =>
 	z
-		.string()
+		.string({ error: `${fieldName} is required` })
 		.min(minLength, {
 			error:
 				minLength === 1
@@ -117,14 +117,14 @@ export const createEnumValidator = (
 export const createExpenseAmountValidator = (
 	category?: string,
 	customMin?: number,
-	customMax?: number
+	customMax?: number,
 ) => {
 	const baseValidator = currencyValidator(customMin || 0.01, customMax || 1_000_000_000);
-	
+
 	if (!category) {
 		return baseValidator;
 	}
-	
+
 	// Category-specific amount validation
 	const categoryLimits: Record<string, { min: number; max: number; name: string }> = {
 		venue: { min: 100_000, max: 100_000_000, name: 'Venue' },
@@ -135,19 +135,16 @@ export const createExpenseAmountValidator = (
 		paperwork: { min: 10_000, max: 5_000_000, name: 'Paperwork' },
 		'photo-video': { min: 500_000, max: 25_000_000, name: 'Photo & Video' },
 		accommodation: { min: 200_000, max: 50_000_000, name: 'Accommodation' },
-		miscellaneous: { min: 1_000, max: 10_000_000, name: 'Miscellaneous' }
+		miscellaneous: { min: 1_000, max: 10_000_000, name: 'Miscellaneous' },
 	};
-	
+
 	const limit = categoryLimits[category];
 	if (limit) {
-		return baseValidator.refine(
-			(amount) => amount >= limit.min && amount <= limit.max,
-			{
-				message: `${limit.name} expenses typically range from ${limit.min.toLocaleString()} to ${limit.max.toLocaleString()}. Please verify this amount is correct.`
-			}
-		);
+		return baseValidator.refine((amount) => amount >= limit.min && amount <= limit.max, {
+			message: `${limit.name} expenses typically range from ${limit.min.toLocaleString()} to ${limit.max.toLocaleString()}. Please verify this amount is correct.`,
+		});
 	}
-	
+
 	return baseValidator;
 };
 
@@ -157,36 +154,39 @@ export const createExpenseAmountValidator = (
  * @param allowPast - Whether to allow past dates (default: true, up to 2 years)
  */
 export const expenseDateValidator = (allowFuture: boolean = true, allowPast: boolean = true) => {
-	return z.coerce.date({
-		message: 'Please select a valid expense date'
-	}).refine(
-		(date) => {
-			const today = new Date();
-			
-			if (!allowPast && date < today) {
-				return false;
-			}
-			
-			if (!allowFuture && date > today) {
-				return false;
-			}
-			
-			// Default range: 2 years ago to 1 year in the future
-			const twoYearsAgo = new Date();
-			twoYearsAgo.setFullYear(today.getFullYear() - 2);
-			const oneYearFromNow = new Date();
-			oneYearFromNow.setFullYear(today.getFullYear() + 1);
-			
-			return date >= twoYearsAgo && date <= oneYearFromNow;
-		},
-		{
-			message: allowFuture && allowPast 
-				? 'Expense date must be within the last 2 years or up to 1 year in the future'
-				: allowFuture 
-					? 'Expense date cannot be in the past'
-					: 'Expense date cannot be in the future'
-		}
-	);
+	return z.coerce
+		.date({
+			message: 'Please select a valid expense date',
+		})
+		.refine(
+			(date) => {
+				const today = new Date();
+
+				if (!allowPast && date < today) {
+					return false;
+				}
+
+				if (!allowFuture && date > today) {
+					return false;
+				}
+
+				// Default range: 2 years ago to 1 year in the future
+				const twoYearsAgo = new Date();
+				twoYearsAgo.setFullYear(today.getFullYear() - 2);
+				const oneYearFromNow = new Date();
+				oneYearFromNow.setFullYear(today.getFullYear() + 1);
+
+				return date >= twoYearsAgo && date <= oneYearFromNow;
+			},
+			{
+				message:
+					allowFuture && allowPast
+						? 'Expense date must be within the last 2 years or up to 1 year in the future'
+						: allowFuture
+							? 'Expense date cannot be in the past'
+							: 'Expense date cannot be in the future',
+			},
+		);
 };
 
 /**
@@ -204,11 +204,12 @@ export const expenseDescriptionValidator = z
 			return uniqueChars >= 3; // At least 3 different characters
 		},
 		{
-			message: 'Please provide a more descriptive expense description'
-		}
+			message: 'Please provide a more descriptive expense description',
+		},
 	)
 	.transform((desc) => {
 		// Capitalize first letter and clean up spacing
 		const cleaned = desc.trim().replace(/\s+/g, ' ');
 		return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 	});
+
