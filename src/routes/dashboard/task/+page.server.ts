@@ -11,6 +11,7 @@ export const load: PageServerLoad = async () => {
 
 export const actions: Actions = {
 	default: async ({ request }) => {
-		const taskForm = await superValidate(request, zod4(taskSchema as any));
+		const taskForm = await superValidate(request, zod4(taskFormSchema as any));
+		return { taskForm };
 	},
 };
