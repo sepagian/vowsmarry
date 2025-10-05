@@ -1,5 +1,5 @@
 import { z } from 'zod/v4';
-import { emailValidator, passwordValidator, textLengthValidator } from './utils';
+import { passwordValidator } from './utils';
 import { sanitizeEmail, sanitizeText } from './sanitization';
 import { getErrorMessage, createStringValidator } from './messages';
 
@@ -8,11 +8,10 @@ import { getErrorMessage, createStringValidator } from './messages';
  * Validates email and password for login forms
  */
 export const loginSchema = z.object({
-	email: createStringValidator('auth', 'email', {
-		required: true,
-		email: true,
-		transform: sanitizeEmail,
-	}),
+	email: z
+		.email({ message: 'Please enter a valid email address' })
+		.min(1, { message: 'Email address is required' })
+		.transform(sanitizeEmail),
 
 	password: createStringValidator('auth', 'password', {
 		required: true,
@@ -25,34 +24,31 @@ export const loginSchema = z.object({
  */
 export const registrationSchema = z
 	.object({
-		email: createStringValidator('auth', 'email', {
-			required: true,
-			email: true,
-			transform: sanitizeEmail,
-		}),
+		email: z
+			.email({ message: 'Please enter a valid email address' })
+			.min(1, { message: 'Email address is required' })
+			.transform(sanitizeEmail),
 
 		password: passwordValidator,
 
-		confirmPassword: createStringValidator('auth', 'confirmPassword', {
-			required: true,
-		}),
+		confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
 
-		firstName: createStringValidator('auth', 'firstName', {
-			required: true,
-			minLength: 2,
-			maxLength: 50,
-			transform: sanitizeText,
-		}),
+		firstName: z
+			.string()
+			.min(1, { message: 'First name is required' })
+			.min(2, { message: 'First name must be at least 2 characters' })
+			.max(50, { message: 'First name must be less than 50 characters' })
+			.transform(sanitizeText),
 
-		lastName: createStringValidator('auth', 'lastName', {
-			required: true,
-			minLength: 2,
-			maxLength: 50,
-			transform: sanitizeText,
-		}),
+		lastName: z
+			.string()
+			.min(1, { message: 'Last name is required' })
+			.min(2, { message: 'Last name must be at least 2 characters' })
+			.max(50, { message: 'Last name must be less than 50 characters' })
+			.transform(sanitizeText),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		message: getErrorMessage('auth', 'confirmPassword', 'match'),
+		message: "Passwords don't match",
 		path: ['confirmPassword'],
 	});
 
@@ -61,11 +57,10 @@ export const registrationSchema = z
  * For requesting password reset via email
  */
 export const passwordResetRequestSchema = z.object({
-	email: createStringValidator('auth', 'email', {
-		required: true,
-		email: true,
-		transform: sanitizeEmail,
-	}),
+	email: z
+		.email({ message: 'Please enter a valid email address' })
+		.min(1, { message: 'Email address is required' })
+		.transform(sanitizeEmail),
 });
 
 /**
@@ -127,11 +122,10 @@ export const profileUpdateSchema = z.object({
 		transform: sanitizeText,
 	}),
 
-	email: createStringValidator('auth', 'email', {
-		required: true,
-		email: true,
-		transform: sanitizeEmail,
-	}),
+	email: z
+		.email({ message: 'Please enter a valid email address' })
+		.min(1, { message: 'Email address is required' })
+		.transform(sanitizeEmail),
 });
 
 /**
@@ -141,11 +135,10 @@ export const profileUpdateSchema = z.object({
 export const emailVerificationSchema = z.object({
 	token: z.string().min(1, { message: 'Verification token is required' }),
 
-	email: createStringValidator('auth', 'email', {
-		required: true,
-		email: true,
-		transform: sanitizeEmail,
-	}),
+	email: z
+		.email({ message: 'Please enter a valid email address' })
+		.min(1, { message: 'Email address is required' })
+		.transform(sanitizeEmail),
 });
 
 // Type exports for use in components
@@ -156,4 +149,3 @@ export type PasswordResetData = z.infer<typeof passwordResetSchema>;
 export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
 export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
 export type EmailVerificationData = z.infer<typeof emailVerificationSchema>;
-
