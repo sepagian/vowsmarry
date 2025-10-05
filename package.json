@@ -4,9 +4,9 @@
 	"version": "0.3.1",
 	"type": "module",
 	"scripts": {
-		"dev": "doppler run -- vite dev",
-		"build": "doppler run -- vite build",
-		"preview": "doppler run -- vite preview",
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -15,10 +15,10 @@
 		"test": "vitest",
 		"test:run": "vitest --run",
 		"release": "release-it",
-		"db:push": "doppler run -- drizzle-kit push",
-		"db:generate": "doppler run -- drizzle-kit generate",
-		"db:migrate": "doppler run -- drizzle-kit migrate",
-		"db:studio": "doppler run -- drizzle-kit studio"
+		"db:push": "drizzle-kit push",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -63,10 +63,14 @@
 		"zod": "^4.1.11"
 	},
 	"dependencies": {
+		"@friendofsvelte/progress": "^0.0.8",
+		"@supabase/ssr": "^0.7.0",
+		"@supabase/supabase-js": "^2.58.0",
 		"@unocss/reset": "^66.5.0",
 		"clsx": "^2.1.1",
 		"d3-array": "^3.2.4",
 		"d3-scale": "^4.0.2",
+		"dotenv": "^17.2.3",
 		"drizzle-orm": "^0.44.5",
 		"layerchart": "2.0.0-next.27",
 		"postgres": "^3.4.5",
