@@ -259,10 +259,7 @@
 				<div class="i-lucide:plus p-2"></div>
 				<span class="hidden lg:inline">Add Task</span>
 			</Dialog.Trigger>
-			<DialogTask
-				{data}
-				on:toast={(e) => dispatch('toast', e.detail)}
-			/>
+			<DialogTask {data} />
 		</Dialog.Root>
 	</div>
 	<div class="rounded-md border">
