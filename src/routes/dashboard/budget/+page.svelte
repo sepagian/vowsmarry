@@ -87,6 +87,5 @@
 		position="top-right"
 		expand={true}
 		richColors
-		closeButton
 	/>
 </div>
