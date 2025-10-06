@@ -32,9 +32,7 @@ export default defineConfig({
 		presetWebFonts({
 			provider: 'google',
 			fonts: {
-				sans: 'Rethink Sans',
-				serif: 'Instrument Serif',
-				mono: 'Fira Code',
+				sans: 'Manrope',
 			},
 		}),
 		presetAnimations(),
