@@ -8,10 +8,7 @@ import { getErrorMessage, createStringValidator } from './messages';
  * Validates email and password for login forms
  */
 export const loginSchema = z.object({
-	email: z
-		.email({ message: 'Please enter a valid email address' })
-		.min(1, { message: 'Email address is required' })
-		.transform(sanitizeEmail),
+	email: z.email({ message: 'Email address is required' }).transform(sanitizeEmail),
 
 	password: createStringValidator('auth', 'password', {
 		required: true,
@@ -34,7 +31,7 @@ export const registrationSchema = z
 		confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
 
 		firstName: z
-			.string()
+			.string({ message: 'Please enter your first name' })
 			.min(1, { message: 'First name is required' })
 			.min(2, { message: 'First name must be at least 2 characters' })
 			.max(50, { message: 'First name must be less than 50 characters' })
@@ -45,7 +42,8 @@ export const registrationSchema = z
 			.min(1, { message: 'Last name is required' })
 			.min(2, { message: 'Last name must be at least 2 characters' })
 			.max(50, { message: 'Last name must be less than 50 characters' })
-			.transform(sanitizeText),
+			.transform(sanitizeText)
+			.optional(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		message: "Passwords don't match",
