@@ -9,8 +9,6 @@
 	import { registrationSchema } from '$lib/validation/auth';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
-	const SCORE_NAMING = ['Poor', 'Weak', 'Average', 'Strong', 'Secure'];
-
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
@@ -40,11 +38,11 @@
 	let strength = $state<ZxcvbnResult>();
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-8">
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Create account</h1>
+		<h1 class="text-2xl font-bold">Let’s begin your story ✨</h1>
 		<p class="text-muted-foreground text-balance text-sm">
-			Create an account to access your wedding dashboard
+			Create your account and start planning your wedding with ease and joy.
 		</p>
 	</div>
 	<form
