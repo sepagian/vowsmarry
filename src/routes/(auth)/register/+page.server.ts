@@ -15,12 +15,6 @@ export const load: PageServerLoad = async ({ locals: { user } }) => {
 
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase } }) => {
-		const registrationForm = await superValidate(request, zod4(registrationSchema as any));
-
-		if (!registrationForm.valid) {
-			return fail(400, { registrationForm });
-		}
-
 		const formData = await request.formData();
 		const firstName = formData.get('firstName') as string;
 		const lastName = formData.get('lastName') as string;
@@ -37,7 +31,34 @@ export const actions: Actions = {
 			});
 		}
 
-		const { data } = await supabase.auth.signUp({
+		if (!firstName || !lastName || !email || !password || !confirmPassword) {
+			return fail(400, {
+				error: 'All fields are required',
+				firstName,
+				lastName,
+				email,
+			});
+		}
+
+		if (password !== confirmPassword) {
+			return fail(400, {
+				error: 'Passwords do not match',
+				firstName,
+				lastName,
+				email,
+			});
+		}
+
+		if (password.length < 8) {
+			return fail(400, {
+				error: 'Password must be at least 8 characters long',
+				firstName,
+				lastName,
+				email,
+			});
+		}
+
+		const { error } = await supabase.auth.signUp({
 			email,
 			password,
 			options: {
@@ -48,7 +69,15 @@ export const actions: Actions = {
 			},
 		});
 
-		console.log('Login successful:', data.user?.email);
+		if (error) {
+			return fail(400, {
+				error: error.message,
+				firstName,
+				lastName,
+				email,
+			});
+		}
+
 		redirect(302, '/dashboard');
 	},
 };
