@@ -8,7 +8,8 @@
 	const routeTitles = [
 		{ path: '/login', title: 'Login to vowsmarry' },
 		{ path: '/register', title: 'Register to vowsmarry' },
-		{ path: '/forgot-password', title: 'Reset Password - vowsmarry' },
+		{ path: '/forgot-password', title: 'Forgot Password - vowsmarry' },
+		{ path: '/reset-password', title: 'Reset Password - vowsmarry' },
 	];
 
 	const title = $derived(
