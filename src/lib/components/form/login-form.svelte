@@ -18,7 +18,7 @@
 				if (f.message) {
 					toast.success(f.message);
 				} else {
-					toast.success('Task created successfully!');
+					toast.success('Logged in successfully!');
 				}
 			} else {
 				toast.error('Please fix the errors in the form.');
@@ -27,7 +27,7 @@
 		onError: ({ result }) => {
 			// Handle server validation errors
 			if (result.type === 'error') {
-				toast.error('An error occurred while saving the task.');
+				toast.error('An error occurred when login in. Please try again');
 			}
 		},
 	});
@@ -35,14 +35,18 @@
 	const { form: formData, enhance } = form;
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-8">
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Hi, welcome back</h1>
-		<p class="text-muted-foreground text-balance text-sm">Login to access your wedding dashboard</p>
+		<h1 class="text-2xl font-bold">
+			Welcome back! Let’s get you back to planning something beautiful
+		</h1>
+		<p class="text-muted-foreground text-balance text-sm">
+			Log in to continue where you left off — your journey together awaits.
+		</p>
 	</div>
 	<form
 		method="POST"
-		class="flex flex-col gap-4"
+		class="flex flex-col gap-2"
 		use:enhance
 	>
 		<Form.Field
