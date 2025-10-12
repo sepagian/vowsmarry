@@ -7,8 +7,16 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/validation/auth';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
+
+	// Show success message from URL parameter if present
+	onMount(() => {
+		if (data.message) {
+			toast.success(data.message);
+		}
+	});
 
 	const form = superForm(data.loginForm, {
 		validators: zodClient(loginSchema as any),
