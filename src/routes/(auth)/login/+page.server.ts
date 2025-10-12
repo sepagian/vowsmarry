@@ -4,13 +4,18 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { loginSchema } from '$lib/validation/auth';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals: { user } }) => {
+export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 	if (user) {
 		redirect(302, '/dashboard');
 	}
 
 	const loginForm = await superValidate(zod4(loginSchema as any));
-	return { loginForm };
+	const message = url.searchParams.get('message');
+	
+	return { 
+		loginForm,
+		message 
+	};
 };
 
 export const actions: Actions = {
