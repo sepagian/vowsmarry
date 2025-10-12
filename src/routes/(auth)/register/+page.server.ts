@@ -78,6 +78,6 @@ export const actions: Actions = {
 			});
 		}
 
-		redirect(302, '/dashboard');
+		redirect(302, '/');
 	},
 };
