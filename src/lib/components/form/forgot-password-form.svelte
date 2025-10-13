@@ -6,6 +6,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { passwordResetRequestSchema } from '$lib/validation/auth';
+	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -13,19 +14,32 @@
 	const form = superForm(data.forgotPasswordForm, {
 		validators: zodClient(passwordResetRequestSchema as any),
 		onResult: ({ result }) => {
-			if (result.type === 'failure') {
-				// Handle server validation errors
+			if (result.type === 'success') {
+				// Success handled by redirect, but show toast for immediate feedback
+				handleFormSuccess('passwordResetRequest');
+			} else if (result.type === 'failure') {
+				// Handle server validation errors with specific error messages
 				const error = result.data?.error;
+				const errorType = result.data?.errorType;
+				
 				if (error) {
-					toast.error(error);
+					// Use specific error handling based on error type
+					if (errorType === 'rate_limit') {
+						authToasts.error.tooManyRequests();
+					} else if (errorType === 'invalid_email') {
+						authToasts.error.invalidEmail();
+					} else {
+						// Handle other Supabase errors
+						handleSupabaseAuthError({ message: error, status: result.status });
+					}
 				} else {
-					toast.error('Please fix the errors in the form.');
+					handleFormValidationError();
 				}
 			}
 		},
 		onError: ({ result }) => {
 			// Handle unexpected errors
-			toast.error('An unexpected error occurred. Please try again.');
+			authToasts.error.unexpectedError();
 		},
 	});
 
