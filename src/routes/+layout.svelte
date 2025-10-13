@@ -6,9 +6,10 @@
 	import { invalidate } from '$app/navigation';
 	import { Toaster } from 'svelte-sonner';
 	import { Progress } from '@friendofsvelte/progress';
+	import { authStore } from '$lib/stores/auth';
 
 	let { data, children } = $props();
-	let { supabase } = $derived(data);
+	let { supabase, user, session } = $derived(data);
 
 	const title = $derived(
 		(() => {
@@ -44,11 +45,23 @@
 	);
 
 	onMount(() => {
-		const { data } = supabase.auth.onAuthStateChange(() => {
+		// Initialize auth store with server-side data
+		authStore.initialize(user, session);
+
+		const { data } = supabase.auth.onAuthStateChange((event, session) => {
+			// Update auth store when auth state changes
+			authStore.setAuth(session?.user || null, session);
 			invalidate('supabase:auth');
 		});
 
 		return () => data.subscription.unsubscribe();
+	});
+
+	// Reactive update when server data changes (for SSR/hydration)
+	$effect(() => {
+		if (authStore.getState().initialized) {
+			authStore.setAuth(user, session);
+		}
 	});
 </script>
 
