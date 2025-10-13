@@ -70,14 +70,54 @@ export const actions: Actions = {
 		});
 
 		if (error) {
-			return fail(400, {
-				error: error.message,
-				firstName,
-				lastName,
-				email,
-			});
+			console.error('Registration error:', error);
+
+			// Handle specific registration errors
+			if (error.message.includes('already registered') || error.message.includes('already exists')) {
+				return fail(400, {
+					error: 'An account with this email already exists. Try logging in instead.',
+					errorType: 'email_already_exists',
+					firstName,
+					lastName,
+					email,
+				});
+			} else if (error.message.includes('password') && (error.message.includes('weak') || error.message.includes('strength'))) {
+				return fail(400, {
+					error: 'Password is too weak. Please choose a stronger password.',
+					errorType: 'weak_password',
+					firstName,
+					lastName,
+					email,
+				});
+			} else if (error.message.includes('email') && error.message.includes('invalid')) {
+				return fail(400, {
+					error: 'Please enter a valid email address.',
+					errorType: 'invalid_email',
+					firstName,
+					lastName,
+					email,
+				});
+			} else if (error.message.includes('Too many requests')) {
+				return fail(429, {
+					error: 'Too many registration attempts. Please wait a moment before trying again.',
+					errorType: 'rate_limit',
+					firstName,
+					lastName,
+					email,
+				});
+			} else {
+				// Generic error message for other registration issues
+				return fail(400, {
+					error: error.message || 'Registration failed. Please try again.',
+					errorType: 'registration_error',
+					firstName,
+					lastName,
+					email,
+				});
+			}
 		}
 
-		redirect(302, '/');
+		// Redirect to login with registration success message
+		redirect(302, '/login?messageType=registration_success');
 	},
 };

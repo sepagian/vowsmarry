@@ -11,10 +11,16 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 
 	const loginForm = await superValidate(zod4(loginSchema as any));
 	const message = url.searchParams.get('message');
-	
-	return { 
+	const messageType = url.searchParams.get('messageType');
+	const error = url.searchParams.get('error');
+	const errorType = url.searchParams.get('errorType');
+
+	return {
 		loginForm,
-		message 
+		message,
+		messageType,
+		error,
+		errorType
 	};
 };
 
@@ -65,6 +71,7 @@ export const actions: Actions = {
 			}
 		}
 
+		// Redirect to dashboard with login success message
 		redirect(302, '/dashboard');
 	},
 };
