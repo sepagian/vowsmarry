@@ -4,9 +4,23 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import { useSidebar } from '$lib/components/ui/sidebar/index';
 	import { enhance } from '$app/forms';
+	import { currentUser, userEmail } from '$lib/stores/auth';
 
-	let { user }: { user: { name: string; email: string } } = $props();
 	const sidebar = useSidebar();
+	
+	// Get user data from auth store, with fallback for display name
+	const displayName = $derived($currentUser?.user_metadata?.name || $currentUser?.email?.split('@')[0] || 'User');
+	const displayEmail = $derived($userEmail || '');
+	
+	// Get initials for avatar
+	const initials = $derived(
+		displayName
+			.split(' ')
+			.map(n => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2) || 'U'
+	);
 </script>
 
 <Sidebar.Menu>
@@ -20,11 +34,11 @@
 						{...props}
 					>
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Fallback class="rounded-lg">MM</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate font-medium">{displayName}</span>
+							<span class="truncate text-xs">{displayEmail}</span>
 						</div>
 						<div class="i-lucide:chevron-down ml-auto h-5 w-5"></div>
 					</Sidebar.MenuButton>
@@ -39,11 +53,11 @@
 				<DropdownMenu.Label class="p-0 font-normal">
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Fallback class="rounded-lg">MM</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{user.name}</span>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate font-medium">{displayName}</span>
+							<span class="truncate text-xs">{displayEmail}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>
@@ -62,7 +76,12 @@
 				<form
 					method="POST"
 					action="/logout"
-					use:enhance
+					use:enhance={() => {
+						// Show loading toast while logout is processing
+						return async ({ update }) => {
+							await update();
+						};
+					}}
 				>
 					<DropdownMenu.Item
 						onclick={(e) => {
