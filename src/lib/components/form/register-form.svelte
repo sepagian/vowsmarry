@@ -7,29 +7,44 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { registrationSchema } from '$lib/validation/auth';
+	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
 		validators: zodClient(registrationSchema as any),
-		onUpdate: ({ form: f }) => {
-			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
+		onResult: ({ result }) => {
+			if (result.type === 'success') {
+				// Success handled by redirect, show enhanced success message
+				handleFormSuccess('register');
+			} else if (result.type === 'failure') {
+				// Handle server validation errors with specific error messages
+				const error = result.data?.error;
+				const errorType = result.data?.errorType;
+				
+				if (error) {
+					// Use specific error handling based on error type or message
+					if (error.includes('already registered') || error.includes('already exists')) {
+						authToasts.error.emailAlreadyExists();
+					} else if (error.includes('password') && (error.includes('weak') || error.includes('strength'))) {
+						authToasts.error.weakPassword();
+					} else if (error.includes('email') && error.includes('invalid')) {
+						authToasts.error.invalidEmail();
+					} else if (errorType === 'rate_limit') {
+						authToasts.error.tooManyRequests();
+					} else {
+						// Handle other Supabase errors
+						handleSupabaseAuthError({ message: error, status: result.status });
+					}
 				} else {
-					toast.success('Account created successfully!');
+					handleFormValidationError();
 				}
-			} else {
-				toast.error('Please fix the errors in the form.');
 			}
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while creating your account');
-			}
+			// Handle unexpected errors
+			authToasts.error.unexpectedError();
 		},
 	});
 
