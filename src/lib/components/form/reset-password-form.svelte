@@ -6,8 +6,8 @@
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { z } from 'zod/v4'
-	import {passwordResetSchema} from '$lib/validation/auth'
+	import { passwordResetSchema } from '$lib/validation/auth';
+	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
@@ -15,24 +15,32 @@
 
 	const form = superForm(data.resetPasswordForm, {
 		validators: zodClient(passwordResetSchema as any),
-		onUpdate: ({ form: f }) => {
-			if (f.valid) {
-				// Success case is handled by redirect, so this shouldn't normally be reached
-				toast.success('Your password has been updated successfully');
-			} else {
-				// Show server error message if available
-				if (f.message) {
-					toast.error(f.message);
+		onResult: ({ result }) => {
+			if (result.type === 'success') {
+				// Success handled by redirect, show enhanced success message
+				handleFormSuccess('passwordResetSuccess');
+			} else if (result.type === 'failure') {
+				// Handle server validation errors with specific error messages
+				const error = result.data?.message || result.data?.error;
+				
+				if (error) {
+					// Use specific error handling for password reset errors
+					if (error.includes('token') || error.includes('expired') || error.includes('invalid')) {
+						authToasts.error.invalidResetToken();
+					} else if (error.includes('too many')) {
+						authToasts.error.tooManyRequests();
+					} else {
+						// Handle other Supabase errors
+						handleSupabaseAuthError({ message: error, status: result.status });
+					}
 				} else {
-					toast.error('Please fix the errors in the form.');
+					handleFormValidationError();
 				}
 			}
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred when updating your password. Please try again');
-			}
+			// Handle unexpected errors
+			authToasts.error.unexpectedError();
 		},
 	});
 
@@ -104,4 +112,10 @@
 			class="w-full cursor-pointer">Update password</Button
 		>
 	</form>
+	
+	<div class="text-center">
+		<a href="/login" class="text-sm text-muted-foreground hover:text-primary underline">
+			Back to Login
+		</a>
+	</div>
 </div>
