@@ -14,6 +14,8 @@ export const actions: Actions = {
 		const documentForm = await superValidate(request, zod4(documentFormSchema as any));
 
 		if (!documentForm.valid) {
+			// Clear file data before returning to avoid serialization issues
+			(documentForm.data as any).file = [];
 			return { documentForm };
 		}
 
@@ -21,7 +23,11 @@ export const actions: Actions = {
 		const file = (documentForm.data as any).file?.[0];
 
 		// TODO: Implement file upload logic (e.g., save to storage, database)
+		// For now, just log the file information
+		console.log('File uploaded:', file.name, file.type, file.size, 'bytes');
 
+		// Clear file data before returning to avoid serialization issues
+		(documentForm.data as any).file = [];
 		return { documentForm };
 	},
 };
