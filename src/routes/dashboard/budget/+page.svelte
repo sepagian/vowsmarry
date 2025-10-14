@@ -4,7 +4,7 @@
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
 	import ExpenseCategories from '$lib/components/chart/expense-categories.svelte';
 	import ExpenseChart from '$lib/components/chart/expense-chart.svelte';
-	import { Toaster } from 'svelte-sonner';
+
 	import { expensesStore } from '$lib/stores/expenses';
 
 	let { data } = $props();
@@ -83,9 +83,5 @@
 			</Card.Root>
 		</div>
 	</div>
-	<Toaster
-		position="top-right"
-		expand={true}
-		richColors
-	/>
+
 </div>
