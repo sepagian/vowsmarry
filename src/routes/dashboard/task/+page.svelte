@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import TaskTable from '$lib/components/table/task-table.svelte';
-	import { Toaster } from 'svelte-sonner';
+
 	import { tasksStore } from '$lib/stores/tasks';
 
 	const overviewTitle = 'Task Overview';
@@ -55,9 +55,5 @@
 		columns={4}
 	/>
 	<TaskTable {data} />
-	<Toaster
-		position="top-right"
-		expand={true}
-		richColors
-	/>
+
 </div>
