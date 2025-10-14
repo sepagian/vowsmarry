@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { invalidate } from '$app/navigation';
-	import { Toaster } from 'svelte-sonner';
+	import { Toaster } from '$lib/components/ui/sonner';
 	import { Progress } from '@friendofsvelte/progress';
 	import { authStore } from '$lib/stores/auth';
 
@@ -81,4 +81,8 @@
 <Toaster
 	richColors
 	position="top-right"
+	expand={true}
+	visibleToasts={3}
+	closeButton={true}
+	duration={4000}
 />
