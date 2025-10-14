@@ -20,9 +20,7 @@
 	</div>
 
 	<div
-		class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth sm:grid md:grid"
-		class:lg-grid-cols-dynamic={columns > 0}
-		style:--cols={columns}
+		class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth sm:grid md:grid-cols-2 lg:grid-cols-4"
 	>
 		{#each overviewCards() as data (data.description)}
 			<Card.Root
@@ -60,9 +58,3 @@
 		{/each}
 	</div>
 </div>
-
-<style>
-	.lg-grid-cols-dynamic {
-		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-	}
-</style>

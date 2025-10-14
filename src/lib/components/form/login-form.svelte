@@ -7,7 +7,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
+	import { authToasts, handleSupabaseAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -52,12 +52,30 @@
 		}
 	});
 
+	// Track loading state for toast management
+	let isSubmitting = false;
+	let loadingToastId: string | number | undefined;
+
 	const form = superForm(data.loginForm, {
 		validators: zodClient(loginSchema as any),
+		onSubmit: () => {
+			// Show loading toast and track its ID
+			isSubmitting = true;
+			loadingToastId = toast.loading('Signing you in...');
+		},
 		onResult: ({ result }) => {
+			// Always dismiss the loading toast first
+			if (loadingToastId) {
+				toast.dismiss(loadingToastId);
+				loadingToastId = undefined;
+			}
+			isSubmitting = false;
+
 			if (result.type === 'success') {
-				// Success handled by redirect, but show toast for immediate feedback
-				handleFormSuccess('login');
+				// Show success toast briefly before redirect
+				toast.success('Welcome back! Redirecting to your dashboard...', {
+					duration: 2000
+				});
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.error;
@@ -80,7 +98,14 @@
 				}
 			}
 		},
-		onError: ({ result }) => {
+		onError: () => {
+			// Always dismiss the loading toast first
+			if (loadingToastId) {
+				toast.dismiss(loadingToastId);
+				loadingToastId = undefined;
+			}
+			isSubmitting = false;
+			
 			// Handle unexpected errors
 			authToasts.error.unexpectedError();
 		},

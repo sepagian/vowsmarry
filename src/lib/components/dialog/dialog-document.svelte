@@ -10,30 +10,83 @@
 	} from '$lib/components/ui/file-drop-zone';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
-	import { toast } from 'svelte-sonner';
-	import SuperDebug, { superForm, filesProxy } from 'sveltekit-superforms';
+	import { superForm, filesProxy } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import FormToasts from '$lib/utils/form-toasts';
+	import { toastService } from '$lib/utils/toast-service';
 	import { documentFormSchema, categorySchema } from '$lib/validation/index';
 
 	let { data } = $props();
 
+	// Create form submission promise for toast integration
+	let formSubmissionPromise: Promise<any> | null = null;
+
 	const form = superForm(data.documentForm, {
 		validators: zod4(documentFormSchema as any),
+		onSubmit: ({ formData, cancel }) => {
+			// Get file information for enhanced toast messaging from the form data
+			const file = formData.get('file') as File;
+			const documentName = (formData.get('name') as string) || (file ? file.name : 'Document');
+
+			// Create a promise for the form submission to use with toast.promise()
+			formSubmissionPromise = new Promise((resolve, reject) => {
+				// Store resolve/reject functions to call them in onUpdate/onError
+				(window as any).__documentFormResolve = resolve;
+				(window as any).__documentFormReject = reject;
+			});
+
+			// Use promise-based toast for document upload with file information
+			if (file && file.size > 0) {
+				toastService.form.promise(formSubmissionPromise, {
+					loading: `Uploading ${file.name}...`,
+					success: `${documentName} uploaded successfully!`,
+					error: `Failed to upload ${file.name}`,
+				});
+			} else {
+				toastService.form.promise(formSubmissionPromise, {
+					loading: 'Creating document...',
+					success: `${documentName} created successfully!`,
+					error: 'Failed to create document',
+				});
+			}
+		},
 		onUpdate: ({ form: f }) => {
+			const resolve = (window as any).__documentFormResolve;
+			const reject = (window as any).__documentFormReject;
+
 			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
-				} else {
-					toast.success('Document uploaded successfully!');
+				// Success - resolve promise for toast
+				if (resolve) {
+					resolve({ success: true, data: f.data });
+					delete (window as any).__documentFormResolve;
+					delete (window as any).__documentFormReject;
+				}
+			} else {
+				// Validation errors - show form validation error and reject promise
+				FormToasts.emptyFormError({
+					formName: 'document',
+					requiredFields: ['name', 'category', 'date'],
+				});
+
+				if (reject) {
+					reject(new Error('Form validation failed'));
+					delete (window as any).__documentFormResolve;
+					delete (window as any).__documentFormReject;
 				}
 			}
-			// Zod validation errors are now displayed in Form.FieldErrors
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while uploading the document.');
+			const reject = (window as any).__documentFormReject;
+
+			// Use CRUD toast for server errors
+			CrudToasts.error('create', 'An error occurred while uploading the document', 'document');
+
+			// Reject promise for toast
+			if (reject) {
+				reject(new Error('Server error occurred'));
+				delete (window as any).__documentFormResolve;
+				delete (window as any).__documentFormReject;
 			}
 		},
 	});
@@ -51,16 +104,14 @@
 	};
 
 	const onFileRejected: FileDropZoneProps['onFileRejected'] = async ({ reason, file }) => {
-		toast.error(`${file.name} failed to upload!`, { description: reason });
+		// Use form toast for file rejection with enhanced messaging
+		FormToasts.submitError(reason, {
+			formName: 'document upload',
+			duration: 6000,
+		});
 	};
 
 	const files = filesProxy(form, 'file');
-
-	$effect(() => {
-		if (!open) {
-			form.reset();
-		}
-	});
 </script>
 
 <Dialog.Content class="w-full sm:w-[120rem] bg-neutral-100">
@@ -195,7 +246,9 @@
 								<h2 class="text-base font-bold text-neutral-500">
 									Drag 'n' drop files here, or click to select files
 								</h2>
-								<span class="text-sm text-neutral-500">You can upload PDF, JPEG, or PNG files up to 10 MB</span>
+								<span class="text-sm text-neutral-500"
+									>You can upload PDF, JPEG, or PNG files up to 10 MB</span
+								>
 							</div>
 						</div>
 					</FileDropZone>
@@ -238,4 +291,3 @@
 		</Dialog.Footer>
 	</form>
 </Dialog.Content>
-<SuperDebug data={formData} />

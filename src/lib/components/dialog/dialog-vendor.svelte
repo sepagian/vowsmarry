@@ -3,9 +3,10 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import FormToasts from '$lib/utils/form-toasts';
 	import {
 		vendorFormSchema,
 		categorySchema,
@@ -19,21 +20,16 @@
 		validators: zod4(vendorFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
-				} else {
-					toast.success('Vendor added successfully!');
-				}
+				// Use CRUD toast for successful vendor creation
+				const vendorName = f.data.name || 'Vendor';
+				CrudToasts.success('create', 'vendor', { itemName: vendorName });
 			} else {
-				toast.error('Please fix the errors in the form.');
+				FormToasts.emptyFormError();
 			}
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while saving the vendor.');
-			}
+			// Use CRUD toast for server errors
+			CrudToasts.error('create', 'An error occurred while saving the vendor', 'vendor');
 		},
 	});
 	const { form: formData, enhance } = form;

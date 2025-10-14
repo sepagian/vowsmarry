@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionVendor from '$lib/components/section/section-vendor.svelte';
-	import { Toaster } from 'svelte-sonner';
+
 	import { vendorsStore } from '$lib/stores/vendors';
 
 	let { data } = $props();
@@ -55,9 +55,5 @@
 		columns={4}
 	/>
 	<SectionVendor {data} />
-	<Toaster
-		position="top-right"
-		expand={true}
-		richColors
-	/>
+
 </div>

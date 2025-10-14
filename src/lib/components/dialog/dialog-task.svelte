@@ -3,9 +3,10 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import * as Select from '$lib/components/ui/select/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import FormToasts from '$lib/utils/form-toasts';
 	import {
 		taskFormSchema,
 		categorySchema,
@@ -19,21 +20,16 @@
 		validators: zod4(taskFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
-				} else {
-					toast.success('Task created successfully!');
-				}
+				// Use CRUD toast for successful task creation
+				const taskName = f.data.description || 'Task';
+				CrudToasts.success('create', 'task', { itemName: taskName });
 			} else {
-				toast.error('Please fix the errors in the form.');
+				FormToasts.emptyFormError();
 			}
 		},
-		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while saving the task.');
-			}
+		onError: () => {
+			// Use CRUD toast for server errors
+			CrudToasts.error('create', 'An error occurred while saving the task', 'task');
 		},
 	});
 	const { form: formData, enhance } = form;

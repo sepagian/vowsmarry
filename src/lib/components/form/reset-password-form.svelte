@@ -7,18 +7,36 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { passwordResetSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
+	import { authToasts, handleSupabaseAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
 	let strength = $state<ZxcvbnResult>();
 
+	// Track loading state for toast management
+	let isSubmitting = false;
+	let loadingToastId: string | number | undefined;
+
 	const form = superForm(data.resetPasswordForm, {
 		validators: zodClient(passwordResetSchema as any),
+		onSubmit: () => {
+			// Show loading toast and track its ID
+			isSubmitting = true;
+			loadingToastId = toast.loading('Updating your password...');
+		},
 		onResult: ({ result }) => {
+			// Always dismiss the loading toast first
+			if (loadingToastId) {
+				toast.dismiss(loadingToastId);
+				loadingToastId = undefined;
+			}
+			isSubmitting = false;
+
 			if (result.type === 'success') {
-				// Success handled by redirect, show enhanced success message
-				handleFormSuccess('passwordResetSuccess');
+				// Show success toast briefly before redirect
+				toast.success('Password updated successfully! You can now log in with your new password.', {
+					duration: 4000
+				});
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.message || result.data?.error;
@@ -38,7 +56,14 @@
 				}
 			}
 		},
-		onError: ({ result }) => {
+		onError: () => {
+			// Always dismiss the loading toast first
+			if (loadingToastId) {
+				toast.dismiss(loadingToastId);
+				loadingToastId = undefined;
+			}
+			isSubmitting = false;
+			
 			// Handle unexpected errors
 			authToasts.error.unexpectedError();
 		},
