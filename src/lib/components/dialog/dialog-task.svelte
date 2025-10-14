@@ -53,7 +53,7 @@
 	);
 </script>
 
-<Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
+<Dialog.Content class="sm:max-w-[425px]">
 	<form
 		use:enhance
 		method="POST"

@@ -114,7 +114,7 @@
 	const files = filesProxy(form, 'file');
 </script>
 
-<Dialog.Content class="w-full sm:w-[120rem] bg-neutral-100">
+<Dialog.Content class="w-full sm:w-[120rem]">
 	<Dialog.Header>
 		<Dialog.Title>Add New Document</Dialog.Title>
 		<Dialog.Description>
