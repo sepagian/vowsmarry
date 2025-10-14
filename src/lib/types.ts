@@ -122,3 +122,105 @@ export type ColumnType = {
 	name: string;
 	items: Item[];
 };
+
+// Toast System Types
+export type CrudOperation = 'create' | 'update' | 'delete' | 'fetch';
+
+export type ToastType = 'message' | 'success' | 'error' | 'warning' | 'info' | 'loading' | 'promise';
+
+export interface ToastOptions {
+	duration?: number;
+	dismissible?: boolean;
+	action?: {
+		label: string;
+		onClick: (event: MouseEvent) => void;
+	};
+	description?: string;
+	id?: string;
+	cancel?: {
+		label: string;
+		onClick?: (event: MouseEvent) => void;
+	};
+	onAutoClose?: (toast: any) => void;
+	onDismiss?: (toast: any) => void;
+}
+
+export interface ToastMessage {
+	type: ToastType;
+	message: string;
+	options?: ToastOptions;
+}
+
+export interface PromiseToastMessages<T = any> {
+	loading: string;
+	success: string | ((data: T) => string);
+	error: string;
+}
+
+export interface EntityConfig {
+	name: string;
+	displayName: string;
+	operations: {
+		create: string;
+		update: string;
+		delete: string;
+		fetch: string;
+	};
+}
+
+export enum ErrorType {
+	VALIDATION = 'validation',
+	NETWORK = 'network',
+	SERVER = 'server',
+	AUTHENTICATION = 'authentication',
+	BUSINESS_LOGIC = 'business_logic',
+	UNKNOWN = 'unknown'
+}
+
+export interface CrudToastMethods {
+	success: (operation: CrudOperation, entity?: string) => void;
+	error: (operation: CrudOperation, error: string, entity?: string) => void;
+	promise: <T>(
+		promise: Promise<T>,
+		operation: CrudOperation,
+		entity?: string,
+		messages?: PromiseToastMessages<T>
+	) => void;
+}
+
+export interface FormToastMethods {
+	success: (message?: string) => void;
+	validationError: (errors: string[] | { field: string; message: string; displayName?: string }[]) => void;
+	submitError: (error: string) => void;
+	emptyFormError: (options?: { formName?: string; requiredFields?: string[]; scrollToFirstField?: () => void }) => void;
+	promise: <T>(
+		promise: Promise<T>,
+		messages?: PromiseToastMessages<T>
+	) => void;
+}
+
+export interface ToastService {
+	// Auth methods (delegate to existing auth-toasts)
+	auth: any; // Will be typed properly when integrating auth-toasts
+	
+	// CRUD operations with promise support
+	crud: CrudToastMethods;
+	
+	// Form operations with promise support
+	form: FormToastMethods;
+	
+	// Core svelte-sonner methods
+	message: (message: string) => void;
+	success: (message: string) => void;
+	error: (message: string) => void;
+	warning: (message: string) => void;
+	info: (message: string) => void;
+	promise: <T>(
+		promise: Promise<T>,
+		messages: PromiseToastMessages<T>
+	) => void;
+	
+	// Utility methods
+	dismiss: (toastId?: string) => void;
+	dismissAll: () => void;
+}
