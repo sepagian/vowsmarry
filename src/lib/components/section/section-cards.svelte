@@ -38,7 +38,7 @@
 							{/if}
 							{#if data.actionClass}
 								<Badge
-									class="flex items-center justify-center rounded-full px-0 font-mono tabular-nums"
+									class="flex items-center justify-center rounded-full px-0 font-mono tabular-nums bg-base"
 								>
 									<div class="{data.actionClass} {data.actionColor} h-4 w-4"></div>
 								</Badge>
