@@ -28,7 +28,7 @@
 						<a
 							href={item.url}
 							use:active
-							class="flex flex-1 py-2 rounded-r-xl gap-2 items-center data-[active=true]:bg-neutral-200"
+							class="flex flex-1 py-2 rounded-r-xl gap-2 items-center data-[active=true]:bg-ctp-mantle"
 						>
 							{#if item.icon}
 								<div class="{item.icon} h-4 w-4"></div>

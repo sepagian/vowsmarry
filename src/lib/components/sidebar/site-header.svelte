@@ -19,7 +19,7 @@
 </script>
 
 <header
-	class="sticky top-0 z-50 flex items-center border-b flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear"
+	class="sticky top-0 z-50 flex items-center border-b flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear bg-background"
 >
 	<div class="h-14 flex w-full items-center gap-2 justify-between px-4">
 		<div class="flex items-center gap-2">
