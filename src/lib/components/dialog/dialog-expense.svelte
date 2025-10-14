@@ -3,9 +3,10 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import FormToasts from '$lib/utils/form-toasts';
 	import { expenseFormSchema, categorySchema, paymentStatusSchema } from '$lib/validation/index';
 
 	let { data } = $props();
@@ -14,21 +15,16 @@
 		validators: zod4(expenseFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
-				} else {
-					toast.success('Expense added successfully!');
-				}
+				// Use CRUD toast for successful expense creation
+				const expenseDescription = f.data.description || 'Expense';
+				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
 			} else {
-				toast.error('Please fix the errors in the form.');
+				FormToasts.emptyFormError();
 			}
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while saving the expense.');
-			}
+			// Use CRUD toast for server errors
+			CrudToasts.error('create', 'An error occurred while saving the expense', 'expense');
 		},
 	});
 	const { form: formData, enhance } = form;

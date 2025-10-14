@@ -4,11 +4,11 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import FormToasts from '$lib/utils/form-toasts';
 	import { scheduleEventFormSchema, rundownCategorySchema } from '$lib/validation/index';
-	import { rundownCategoryOptions } from '$lib/constants/constants';
 
 	let { data } = $props();
 
@@ -16,21 +16,16 @@
 		validators: zod4(scheduleEventFormSchema as any),
 		onUpdate: ({ form: f }) => {
 			if (f.valid) {
-				// Check if there's a success message from server
-				if (f.message) {
-					toast.success(f.message);
-				} else {
-					toast.success('Schedule event added successfully!');
-				}
+				// Use CRUD toast for successful rundown item creation
+				const eventTitle = f.data.title || 'Rundown item';
+				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
 			} else {
-				toast.error('Please fix the errors in the form.');
+				FormToasts.emptyFormError();
 			}
 		},
 		onError: ({ result }) => {
-			// Handle server validation errors
-			if (result.type === 'error') {
-				toast.error('An error occurred while saving the schedule event.');
-			}
+			// Use CRUD toast for server errors
+			CrudToasts.error('create', 'An error occurred while saving the schedule event', 'rundown');
 		},
 	});
 	const { form: formData, enhance } = form;
