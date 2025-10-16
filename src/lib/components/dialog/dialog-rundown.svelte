@@ -37,7 +37,7 @@
 	);
 </script>
 
-<Dialog.Content class="sm:max-w-[425px] bg-neutral-100">
+<Dialog.Content class="sm:max-w-[425px]">
 	<Dialog.Header>
 		<Dialog.Title>Add Timeline Event</Dialog.Title>
 		<Dialog.Description>

@@ -32,11 +32,11 @@ export default defineConfig({
 		presetWebFonts({
 			provider: 'google',
 			fonts: {
-				sans: 'Manrope',
+				sans: 'Geist',
 			},
 		}),
 		presetAnimations(),
-		presetShadcn(builtinColors.map((c) => ({ color: c }))),
+		presetShadcn(),
 		presetScrollbar(),
 	],
 	transformers: [transformerDirectives(), transformerVariantGroup(), transformerCompileClass()],
