@@ -4,7 +4,6 @@
 	import { documentsStore } from '$lib/stores/documents';
 	import type { DocType } from '$lib/types';
 
-
 	import { docTypeOptions } from '$lib/constants/constants';
 
 	const overviewTitle = 'Document Overview';
@@ -60,11 +59,9 @@
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={4}
 	/>
 	<SectionDocs
 		{data}
 		{docsCards}
 	/>
-
 </div>

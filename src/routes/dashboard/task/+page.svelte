@@ -52,8 +52,10 @@
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={4}
 	/>
-	<TaskTable {data} />
-
+	<div class="grid grid-cols-3 gap-4 flex flex-col">
+		<div class="flex flex-col col-span-3 gap-2">
+			<TaskTable {data} />
+		</div>
+	</div>
 </div>
