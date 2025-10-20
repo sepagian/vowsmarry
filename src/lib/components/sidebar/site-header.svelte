@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
+	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import AppearanceSwitcher from '../appearance-switcher.svelte';
 	import { page } from '$app/state';
@@ -23,7 +24,7 @@
 >
 	<div class="h-14 flex w-full items-center gap-2 justify-between px-4">
 		<div class="flex items-center gap-2">
-			<Sidebar.Trigger class="h-4 w-4" />
+			<Sidebar.Trigger />
 			<Separator
 				orientation="vertical"
 				class="mr-2 h-14"
