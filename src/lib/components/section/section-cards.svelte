@@ -6,11 +6,9 @@
 	let {
 		overviewCards,
 		overviewTitle,
-		columns = 3,
 	}: {
 		overviewCards: () => OverviewCard[];
 		overviewTitle: string;
-		columns?: number;
 	} = $props();
 </script>
 
@@ -20,15 +18,15 @@
 	</div>
 
 	<div
-		class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth sm:grid md:grid-cols-2 lg:grid-cols-4"
+		class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth grid-flow-row-dense sm:grid md:grid-cols-2 lg:grid-cols-4"
 	>
 		{#each overviewCards() as data (data.description)}
 			<Card.Root
-				class="@container/card shrink-0 w-64 h-32 sm:w-auto gap-2 flex flex-col py-4 shadow-none"
+				class="@container/card shrink-0 w-68 h-32 sm:w-auto gap-2 flex flex-col py-4 px-0 shadow-none"
 			>
-				<Card.Header class="flex flex-col gap-2">
+				<Card.Header class="flex flex-col gap-2 px-4">
 					<div class="flex flex-1 justify-between align-center w-full">
-						<Card.Description>{data.description}</Card.Description>
+						<Card.Description class="px-0">{data.description}</Card.Description>
 						<Card.Action>
 							{#if data.action}
 								<Badge
@@ -49,7 +47,7 @@
 						{data.title}
 					</Card.Title>
 				</Card.Header>
-				<Card.Footer class="flex-col items-start text-sm">
+				<Card.Footer class="flex-col items-start text-sm px-4">
 					<div class="line-clamp-1 flex font-medium">
 						{data.footer}
 					</div>
