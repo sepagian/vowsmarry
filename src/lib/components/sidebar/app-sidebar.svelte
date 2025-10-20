@@ -31,16 +31,16 @@
 </script>
 
 <Sidebar.Root
-	class=""
+	class="bg-background"
 	{collapsible}
 	{variant}
 	{...restProps}
 >
 	<Sidebar.Header class="h-13.75"></Sidebar.Header>
-	<Sidebar.Content class="align-center">
+	<Sidebar.Content class="align-center bg-background">
 		<NavMain items={navMainItems} />
 	</Sidebar.Content>
-	<Sidebar.Footer>
+	<Sidebar.Footer class="bg-background">
 		{#if $isAuthenticated}
 			<NavUser />
 		{/if}
