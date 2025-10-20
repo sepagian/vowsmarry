@@ -15,6 +15,9 @@
 		const totalspent = expenses
 			.filter((e) => e['payment-status'] === 'paid')
 			.reduce((sum, e) => sum + e.amount, 0);
+		const pendingSpent = expenses
+			.filter((e) => e['payment-status'] === 'pending')
+			.reduce((sum, e) => sum + e.amount, 0);
 		const remainingbudget = totalbudget - totalspent;
 
 		return [
@@ -43,6 +46,18 @@
 				footer: 'Updated just now',
 			},
 			{
+				title: pendingSpent.toLocaleString('id-ID', {
+					style: 'currency',
+					currency: 'IDR',
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0,
+				}),
+				description: 'Pending Payment',
+				actionClass: 'i-lucide:book-x',
+				actionColor: 'bg-gray-500 text-white',
+				footer: 'Updated just now',
+			},
+			{
 				title: remainingbudget.toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
@@ -60,21 +75,20 @@
 	const overviewTitle = 'Budget Overview';
 </script>
 
-<div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
+<div class="flex flex-1 flex-col gap-3 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={3}
 	/>
 	<div class="flex px-4">
 		<ExpenseChart />
 	</div>
-	<div class="sm:grid sm:grid-cols-3 gap-4 flex flex-col px-4">
-		<div class="flex flex-col col-span-2 gap-2">
+	<div class="grid grid-cols-3 gap-4 flex flex-col px-4">
+		<div class="flex flex-col col-span-3 lg:col-span-2 gap-2">
 			<h2 class="text-base font-bold text-neutral-600">Recent Expenses</h2>
 			<ExpenseTable {data} />
 		</div>
-		<div class="flex flex-col col-span-1 row-span-3 gap-2 pb-4">
+		<div class="flex flex-col col-span-3 lg:col-span-1 row-span-3 gap-2 pb-4">
 			<h2 class="text-base font-bold text-neutral-600">Expense by Category</h2>
 			<Card.Root class="@container/card p-6 h-full gap-2 shadow-none">
 				<Card.Content class="p-0">
@@ -83,5 +97,4 @@
 			</Card.Root>
 		</div>
 	</div>
-
 </div>
