@@ -68,7 +68,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-4 px-4">
+<div class="flex flex-col gap-2 px-4">
 	<div class="flex inline-flex items-center gap-4 justify-between">
 		<div class="flex flex-col">
 			<h2 class="text-base font-bold text-neutral-600">Schedule Breakdown</h2>
