@@ -27,6 +27,13 @@ export const categorySchema = {
 	miscellaneous: 'Miscellaneous',
 } as const;
 
+export const documentCategorySchema = {
+	"legal-formal": "Legal & Formal",
+	"vendor-finance": "Vendor & Finance",
+	"guest-ceremony": "Guest & Ceremony",
+	"personal-keepsake": "Personal & Keepsake",
+} as const;
+
 /** Task completion status options */
 export const taskStatusSchema = {
 	pending: 'Pending',
@@ -76,6 +83,12 @@ type TaskStatus = keyof typeof taskStatusSchema;
  */
 export const documentFormSchema = z
 	.object({
+		weddingId: createNumberValidator('document', 'weddingId', {
+			required: true,
+			min: 1,
+			coerce: true,
+		}),
+
 		name: createStringValidator('document', 'name', {
 			required: true,
 			minLength: 2,
@@ -86,7 +99,7 @@ export const documentFormSchema = z
 		category: createEnumValidator(
 			'document',
 			'category',
-			Object.keys(categorySchema) as [Category, ...Category[]],
+			Object.keys(documentCategorySchema) as [Category, ...Category[]],
 		),
 
 		file: z
@@ -378,6 +391,11 @@ export type ExpenseSchema = typeof expenseSchema;
  * Handles wedding planning to-do items with priority levels and due date validation
  */
 export const taskFormSchema = z.object({
+	weddingId: createNumberValidator('task', 'weddingId', {
+		required: true,
+		min: 1,
+		coerce: true,
+	}),
 	description: z
 		.string()
 		.min(5, applyValidationMessage('task', 'description', 'minLength'))
@@ -431,6 +449,12 @@ export type TaskSchema = typeof taskSchema;
  * Handles wedding service providers with contact info, pricing, and relationship status tracking
  */
 export const vendorFormSchema = z.object({
+	weddingId: createNumberValidator('vendor', 'weddingId', {
+		required: true,
+		min: 1,
+		coerce: true,
+	}),
+
 	name: createStringValidator('vendor', 'name', {
 		required: true,
 		minLength: 2,
@@ -459,7 +483,7 @@ export const vendorFormSchema = z.object({
 		.string()
 		.optional()
 		.refine(
-			(val) => !val || val === '' || /^[\+]?[1-9][\d\s\-\(\)]{7,15}$/.test(val),
+			(val) => !val || val === '' || /^[+]?[1-9][\d\s\-()]{7,15}$/.test(val),
 			getErrorMessage('vendor', 'phone', 'format'),
 		),
 
@@ -617,7 +641,7 @@ export const scheduleEventFormSchema = z
 			.optional()
 			.or(z.literal('')),
 
-		responsible: createStringValidator('schedule', 'responsible', {
+		attendees: createStringValidator('schedule', 'attendees', {
 			maxLength: 100,
 			transform: sanitizeText,
 		})
@@ -764,7 +788,7 @@ export const scheduleEventFormSchema = z
 			// Check required responsible person
 			if (
 				requirements.requiresResponsible &&
-				(!data.responsible || data.responsible.trim() === '')
+				(!data.attendees || data.attendees.trim() === '')
 			) {
 				ctx.addIssue({
 					code: 'custom',
@@ -922,7 +946,7 @@ export const scheduleEventSchema = z.discriminatedUnion('action', [
 				// Check required responsible person
 				if (
 					requirements.requiresResponsible &&
-					(!data.responsible || data.responsible.trim() === '')
+					(!data.attendees || data.attendees.trim() === '')
 				) {
 					ctx.addIssue({
 						code: 'custom',
@@ -1037,6 +1061,12 @@ type BudgetStatus = keyof typeof budgetStatusSchema;
  */
 export const budgetCategoryFormSchema = z
 	.object({
+		weddingId: createNumberValidator('budget', 'weddingId', {
+			required: true,
+			min: 1,
+			coerce: true,
+		}),
+
 		name: createStringValidator('budget', 'categoryName', {
 			required: true,
 			minLength: 2,
@@ -1109,6 +1139,12 @@ export const budgetCategorySchema = z.discriminatedUnion('action', [
  */
 export const budgetItemFormSchema = z
 	.object({
+		weddingId: createNumberValidator('budget', 'weddingId', {
+			required: true,
+			min: 1,
+			coerce: true,
+		}),
+
 		name: createStringValidator('budget', 'categoryName', {
 			required: true,
 			minLength: 2,
@@ -1411,7 +1447,7 @@ export const guestFormSchema = z.object({
 	phone: z
 		.string()
 		.optional()
-		.refine((val) => !val || val === '' || /^[\+]?[1-9][\d\s\-\(\)]{7,15}$/.test(val), {
+		.refine((val) => !val || val === '' || /^[+]?[1-9][\d\s\-()]{7,15}$/.test(val), {
 			message: getErrorMessage('guest', 'phone', 'format'),
 		}),
 
@@ -1437,4 +1473,96 @@ export const guestSchema = z.discriminatedUnion('action', [
 ]);
 
 export type GuestSchema = typeof guestSchema;
+
+// =============================================================================
+// WEDDING MANAGEMENT SCHEMAS
+// =============================================================================
+
+/** Wedding status options for tracking wedding planning progress */
+export const weddingStatusSchema = {
+	planning: 'Planning',
+	confirmed: 'Confirmed',
+	completed: 'Completed',
+	cancelled: 'Cancelled',
+} as const;
+
+type WeddingStatus = keyof typeof weddingStatusSchema;
+
+/**
+ * Wedding form validation schema
+ * Handles core wedding information including partner details, date, and venue
+ */
+export const weddingFormSchema = z.object({
+	partnerName: createStringValidator('wedding', 'partnerName', {
+		required: true,
+		minLength: 2,
+		maxLength: 100,
+		transform: sanitizeText,
+	}),
+
+	weddingDate: createDateValidator('wedding', 'weddingDate', {
+		required: true,
+		customValidation: (dateString) => {
+			const date = new Date(dateString);
+			const today = new Date();
+			const twoYearsFromNow = new Date();
+			twoYearsFromNow.setFullYear(today.getFullYear() + 2);
+			return date >= today && date <= twoYearsFromNow;
+		},
+		customErrorType: 'range',
+	}),
+
+	venue: createStringValidator('wedding', 'venue', {
+		required: true,
+		minLength: 2,
+		maxLength: 200,
+		transform: sanitizeText,
+	}),
+
+	status: createEnumValidator(
+		'wedding',
+		'status',
+		Object.keys(weddingStatusSchema) as [WeddingStatus, ...WeddingStatus[]],
+	).default('planning'),
+});
+
+/** Main wedding schema with action discrimination for form handling */
+export const weddingSchema = z.discriminatedUnion('action', [
+	weddingFormSchema.extend({ action: z.literal('default') }),
+]);
+
+export type WeddingSchema = typeof weddingSchema;
+
+// =============================================================================
+// USER PROFILE SCHEMAS
+// =============================================================================
+
+/**
+ * User profile form validation schema
+ * Handles user profile information including name, phone, and avatar for userProfiles table
+ */
+export const userProfileFormSchema = z.object({
+	name: createStringValidator('profile', 'name', {
+		required: true,
+		minLength: 2,
+		maxLength: 100,
+		transform: sanitizeText,
+	}),
+
+	phone: z
+		.string()
+		.optional()
+		.refine((val) => !val || val === '' || /^[+]?[1-9][\d\s\-()]{7,15}$/.test(val), {
+			message: getErrorMessage('profile', 'phone', 'format'),
+		}),
+
+	avatarUrl: z
+		.string()
+		.optional()
+		.refine((val) => !val || val === '' || z.string().url().safeParse(val).success, {
+			message: getErrorMessage('profile', 'avatarUrl', 'format'),
+		}),
+});
+
+export type UserProfileFormSchema = typeof userProfileFormSchema;
 

@@ -246,9 +246,9 @@ export const validationMessages: ValidationMessages = {
 			maxLength: 'Location must be less than 200 characters',
 			optional: 'Location is optional',
 		},
-		responsible: {
-			maxLength: 'Responsible person must be less than 100 characters',
-			optional: 'Responsible person is optional',
+		attendees: {
+			maxLength: 'Attendees must be less than 100 characters',
+			optional: 'Attendees is optional',
 		},
 	},
 };
