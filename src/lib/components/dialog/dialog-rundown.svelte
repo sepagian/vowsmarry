@@ -176,16 +176,16 @@
 				</Form.Field>
 				<Form.Field
 					{form}
-					name="responsible"
+					name="attendees"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label>Responsible Person</Form.Label>
+							<Form.Label>Attendees</Form.Label>
 							<Input
 								{...props}
 								placeholder="e.g. Wedding Planner, Best Man"
-								bind:value={$formData.responsible}
+								bind:value={$formData.attendees}
 							/>
 						{/snippet}
 					</Form.Control>

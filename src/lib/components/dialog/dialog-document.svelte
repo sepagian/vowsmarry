@@ -15,7 +15,7 @@
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { toastService } from '$lib/utils/toast-service';
-	import { documentFormSchema, categorySchema } from '$lib/validation/index';
+	import { documentFormSchema, documentCategorySchema } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -94,7 +94,7 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? categorySchema[$formData.category as keyof typeof categorySchema]
+			? documentCategorySchema[$formData.category as keyof typeof documentCategorySchema]
 			: 'Choose category',
 	);
 
@@ -162,7 +162,7 @@
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(categorySchema) as [value, label] (label)}
+							{#each Object.entries(documentCategorySchema) as [value, label] (label)}
 								<Select.Item {value}>
 									{label}
 								</Select.Item>
