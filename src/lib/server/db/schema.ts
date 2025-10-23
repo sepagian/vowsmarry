@@ -1,29 +1,18 @@
 import {
 	pgTable,
-	serial,
+	jsonb,
 	uuid,
-	text,
 	timestamp,
 	varchar,
 	decimal,
 	boolean,
 	integer,
 	pgEnum,
+	index,
+	uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// Assuming Supabase Auth users table is referenced via uuid
-// Define enums for statuses where applicable
-export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved']);
-export const taskStatusEnum = pgEnum('task_status', ['pending', 'in_progress', 'completed']);
-export const vendorStatusEnum = pgEnum('vendor_status', [
-	'booked',
-	'contacted',
-	'negotiating',
-	'completed',
-]);
-export const invitationStatusEnum = pgEnum('invitation_status', ['draft', 'published', 'expired']);
-export const rsvpStatusEnum = pgEnum('rsvp_status', ['pending', 'attending', 'declined']);
 export const categoryEnum = pgEnum('category', [
 	'accommodation',
 	'catering',
@@ -36,183 +25,323 @@ export const categoryEnum = pgEnum('category', [
 	'miscellaneous',
 ]);
 
-// Planner Modules Tables
+export const taskStatusEnum = pgEnum('task_status', ['pending', 'on_progress', 'completed']);
+export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high']);
 
-export const documents = pgTable('documents', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(), // references auth.users(id)
-	title: text('title').notNull(),
-	type: text('type').notNull(),
-	dueDate: timestamp('due_date'),
-	fileUrl: text('file_url'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
+export const documentCategoryEnum = pgEnum('document_category', [
+	'legal_formal',
+	'vendor_finance',
+	'guest-ceremony',
+	'personal-keepsake',
+]);
+
+export const expensePaymentStatusEnum = pgEnum('expense_payment_status', ['paid', 'unpaid']);
+
+export const vendorStatusEnum = pgEnum('vendor_status', [
+	'researching',
+	'contacted',
+	'quoted',
+	'booked',
+]);
+
+export const invitationStatusEnum = pgEnum('invitation_status', ['draft', 'published', 'expired']);
+
+export const rsvpStatusEnum = pgEnum('rsvp_status', ['pending', 'attending', 'declined']);
+
+// CORE TABLES
+
+export const weddings = pgTable(
+	'weddings',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		userId: uuid('user_id').notNull(),
+		partnerName: varchar('partner_name', { length: 200 }),
+		weddingDate: timestamp('wedding_date'),
+		venue: varchar('venue'),
+		budget: decimal('budget', { precision: 12, scale: 2 }),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		userIdIdx: index('weddings_user_id_idx').on(table.userId),
+	}),
+);
+
+// TASK MODULE
+
+export const tasks = pgTable(
+	'tasks',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		description: varchar('description', { length: 255 }).notNull(),
+		status: taskStatusEnum('status').default('pending').notNull(),
+		priority: taskPriorityEnum('priority').default('low').notNull(),
+		dueDate: timestamp('due_date').notNull(),
+		completedAt: timestamp('completed_at'),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('tasks_wedding_id_idx').on(table.weddingId),
+		statusIdx: index('tasks_status_idx').on(table.status),
+		priorityIdx: index('tasks_priority_idx').on(table.priority),
+		dueDateIdx: index('tasks_due_date_idx').on(table.dueDate),
+	}),
+);
+
+// PAPERWORK MODULE
+
+export const documents = pgTable(
+	'documents',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 255 }).notNull(),
+		documentCategory: documentCategoryEnum('document_category').notNull(),
+		documentDate: timestamp('document_date'),
+		fileUrl: varchar('file_url'),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('documents_wedding_id_idx').on(table.weddingId),
+		documentCategoryIdx: index('documents_type_idx').on(table.documentCategory),
+	}),
+);
+
+// FINANCE MODULE
+
+export const expenseCategories = pgTable(
+	'expense_categories',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		name: categoryEnum('name'),
+		allocatedAmount: decimal('allocated_amount', { precision: 12, scale: 2 })
+			.default('0')
+			.notNull(),
+		spentAmount: decimal('spent_amount', { precision: 12, scale: 2 }).default('0').notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('expense_categories_wedding_id_idx').on(table.weddingId),
+	}),
+);
+
+export const expenseItems = pgTable(
+	'expense_categories',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		description: varchar('description', { length: 255 }).notNull(),
+		categoryId: uuid('category_id').references(() => expenseCategories.id, {
+			onDelete: 'set null',
+		}),
+		category: categoryEnum('expense_category'),
+		vendorId: uuid('vendor_id').references(() => vendors.id, { onDelete: 'set null' }),
+		paymentStatus: expensePaymentStatusEnum('payment_status').default('unpaid'),
+		dueDate: timestamp('due_date'),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('expense_items_wedding_id_idx').on(table.weddingId),
+		categoryIdIdx: index('expense_items_category_id_idx').on(table.categoryId),
+		categoryIdx: index('expense_items_category_idx').on(table.category),
+		vendorIdIdx: index('expense_items_vendor_id_idx').on(table.vendorId),
+		paymentStatusIdx: index('expense_items_payment_status_idx').on(table.paymentStatus),
+		dueDateIdx: index('expense_items_due_date_idx').on(table.dueDate),
+	}),
+);
+
+export const savingsSummaries = pgTable(
+	'savings_summary',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		totalSaved: decimal('total_saved', { precision: 12, scale: 2 }).default('0').notNull(),
+		totalTarget: decimal('total_target', { precision: 12, scale: 2 }).default('0').notNull(),
+		targetAmount: decimal('target_amount', { precision: 12, scale: 2 }).default('0').notNull(), // alias for totalTarget
+		currentAmount: decimal('current_amount', { precision: 12, scale: 2 }).default('0').notNull(), // alias for totalSaved
+		monthlyAverage: decimal('monthly_average', { precision: 12, scale: 2 }).default('0').notNull(),
+		lastUpdated: timestamp('last_updated').defaultNow().notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: uniqueIndex('savings_summaries_wedding_id_idx').on(table.weddingId),
+	}),
+);
+
+export const savingsEntries = pgTable(
+	'savings_entry',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		savingTargetId: uuid('saving_target_id').references(() => savingsSummaries.id, {
+			onDelete: 'cascade',
+		}),
+		savingsId: uuid('savings_id').references(() => savingsSummaries.id, { onDelete: 'cascade' }), // for compatibility
+		amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+		description: varchar('description', { length: 255 }),
+		date: timestamp('date').defaultNow().notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('savings_entries_wedding_id_idx').on(table.weddingId),
+		savingTargetIdIdx: index('savings_entries_goal_id_idx').on(table.savingTargetId),
+		savingsIdIdx: index('savings_entries_savings_id_idx').on(table.savingsId),
+		dateIdx: index('savings_entries_date_idx').on(table.date),
+	}),
+);
+
+// VENDOR MODULE
+
+export const vendors = pgTable(
+	'vendors',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 200 }).notNull(),
+		category: categoryEnum('category'),
+		status: vendorStatusEnum('status').default('researching'),
+		rating: integer('rating'), // 1-5 stars
+		totalCost: decimal('total_cost', { precision: 12, scale: 2 }),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('vendors_wedding_id_idx').on(table.weddingId),
+		categoryIdx: index('vendors_category_idx').on(table.category),
+		statusIdx: index('vendors_status_idx').on(table.status),
+		ratingIdx: index('vendors_rating_idx').on(table.rating),
+	}),
+);
+
+// RUNDOWN / SCHEDULE MODULE
+
+export const rundowns = pgTable(
+	'rundowns',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		weddingId: uuid('wedding_id')
+			.notNull()
+			.references(() => weddings.id, { onDelete: 'cascade' }),
+		eventName: varchar('event_name', { length: 200 }).notNull(),
+		eventType: varchar('event_type', { length: 50 }), // ceremony, reception, party, etc.
+		startTime: timestamp('start_time').notNull(),
+		endTime: timestamp('end_time').notNull(),
+		location: varchar('location', { length: 255 }),
+		venue: varchar('venue', { length: 255 }),
+		attendees: varchar('attendees', { length: 255 }),
+		assignedTo: jsonb('assigned_to'), // array of person names/roles
+		vendorIds: jsonb('vendor_ids'), // array of vendor UUIDs
+		isPublic: boolean('is_public').default(false).notNull(), // visible to guests
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+	},
+	(table) => ({
+		weddingIdIdx: index('rundown_events_wedding_id_idx').on(table.weddingId),
+		startTimeIdx: index('rundown_events_start_time_idx').on(table.startTime),
+	}),
+);
+
+// DOWRY MODULE
+
+export const dowryItems = pgTable('dowry_items', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	weddingId: uuid('wedding_id')
+		.notNull()
+		.references(() => weddings.id, { onDelete: 'cascade' }),
+	description: varchar('description', { length: 255 }),
 });
 
-export const budgets = pgTable('budgets', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(),
-	category: categoryEnum('category').notNull(),
-	plannedAmount: decimal('planned_amount', { precision: 10, scale: 2 }).notNull(),
-	actualAmount: decimal('actual_amount', { precision: 10, scale: 2 }).default('0.00'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+// RELATIONS
 
-export const tasks = pgTable('tasks', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(),
-	title: text('title').notNull(),
-	description: text('description'),
-	status: taskStatusEnum('status').default('pending').notNull(),
-	dueDate: timestamp('due_date'),
-	assignedTo: text('assigned_to'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const vendors = pgTable('vendors', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(),
-	name: text('name').notNull(),
-	category: categoryEnum('category').notNull(),
-	contactInfo: text('contact_info'),
-	status: vendorStatusEnum('status').default('contacted').notNull(),
-	contractUrl: text('contract_url'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const schedules = pgTable('schedules', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(),
-	eventName: text('event_name').notNull(),
-	startTime: timestamp('start_time').notNull(),
-	endTime: timestamp('end_time').notNull(),
-	description: text('description'),
-	assignedTo: text('assigned_to'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// Invitations Modules Tables
-
-export const invitations = pgTable('invitations', {
-	id: serial('id').primaryKey(),
-	userId: uuid('user_id').notNull(),
-	slug: varchar('slug', { length: 255 }).unique().notNull(),
-	template: text('template').notNull(),
-	status: invitationStatusEnum('status').default('draft').notNull(),
-	expiredAt: timestamp('expired_at'),
-});
-
-export const coupleDetails = pgTable('couple_details', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	brideName: text('bride_name').notNull(),
-	groomName: text('groom_name').notNull(),
-	eventDate: timestamp('event_date').notNull(),
-	location: text('location').notNull(),
-	mapsUrl: text('maps_url'),
-	greeting: text('greeting'),
-});
-
-export const parents = pgTable('parents', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	side: text('side').notNull(), // e.g., 'bride', 'groom'
-	role: text('role').notNull(), // e.g., 'father', 'mother'
-	name: text('name').notNull(),
-});
-
-export const loveStories = pgTable('love_story', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	title: text('title').notNull(),
-	content: text('content').notNull(),
-	mediaUrl: text('media_url'),
-	sortOrder: integer('sort_order').default(0),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const guests = pgTable('guests', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	name: text('name').notNull(),
-	phone: varchar('phone', { length: 20 }),
-	token: uuid('token').defaultRandom(),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const rsvps = pgTable('rsvp', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	guestId: integer('guest_id')
-		.references(() => guests.id, { onDelete: 'cascade' })
-		.notNull(),
-	status: rsvpStatusEnum('status').default('pending').notNull(),
-	plusOne: boolean('plus_one').default(false),
-	mealPref: text('meal_pref'),
-	qrCode: text('qr_code'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const messages = pgTable('messages', {
-	id: serial('id').primaryKey(),
-	guestId: integer('guest_id')
-		.references(() => guests.id, { onDelete: 'cascade' })
-		.notNull(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	name: text('name').notNull(),
-	content: text('content').notNull(),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const galleries = pgTable('gallery', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	type: text('type').notNull(), // e.g., 'photo', 'video'
-	key: text('key').notNull(),
-	url: text('url').notNull(),
-	sortOrder: integer('sort_order').default(0),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const gifts = pgTable('gifts', {
-	id: serial('id').primaryKey(),
-	invitationId: integer('invitation_id')
-		.references(() => invitations.id, { onDelete: 'cascade' })
-		.notNull(),
-	type: text('type').notNull(), // e.g., 'bank_transfer', 'qris'
-	provider: text('provider'),
-	accountInfo: text('account_info'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// Relations (optional, for Drizzle queries)
-export const invitationsRelations = relations(invitations, ({ many }) => ({
-	coupleDetails: many(coupleDetails),
-	parents: many(parents),
-	loveStories: many(loveStories),
-	guests: many(guests),
-	galleries: many(galleries),
-	gifts: many(gifts),
+export const weddingsRelations = relations(weddings, ({ many }) => ({
+	tasks: many(tasks),
+	documents: many(documents),
+	expenseCategories: many(expenseCategories),
+	expenseItems: many(expenseItems),
+	savingsSummaries: many(savingsSummaries),
+	savingsEntries: many(savingsEntries),
+	vendors: many(vendors),
+	rundowns: many(rundowns),
+	dowryItems: many(dowryItems),
 }));
 
-export const coupleDetailsRelations = relations(coupleDetails, ({ one }) => ({
-	invitation: one(invitations, {
-		fields: [coupleDetails.invitationId],
-		references: [invitations.id],
+export const tasksRelations = relations(tasks, ({ one }) => ({
+	weddings: one(weddings, {
+		fields: [tasks.weddingId],
+		references: [weddings.id],
 	}),
 }));
 
-// Add similar relations for other tables as needed
+export const documentsRelations = relations(documents, ({ one }) => ({
+	weddings: one(weddings, {
+		fields: [documents.weddingId],
+		references: [weddings.id],
+	}),
+}));
+
+export const expenseCategoriesRelations = relations(expenseCategories, ({ one, many }) => ({
+	weddings: one(weddings, {
+		fields: [expenseCategories.weddingId],
+		references: [weddings.id],
+	}),
+	expenseItems: many(expenseItems),
+}));
+
+export const expenseItemsRelations = relations(expenseItems, ({ one }) => ({
+	wedding: one(weddings, {
+		fields: [expenseItems.weddingId],
+		references: [weddings.id],
+	}),
+	category: one(expenseCategories, {
+		fields: [expenseItems.weddingId],
+		references: [expenseCategories.id],
+	}),
+	vendor: one(vendors, {
+		fields: [expenseItems.vendorId],
+		references: [vendors.id],
+	}),
+}));
+
+export const savingsSummariesRelations = relations(savingsSummaries, ({ one, many }) => ({
+	wedding: one(weddings, {
+		fields: [savingsSummaries.weddingId],
+		references: [weddings.id],
+	}),
+	entries: many(savingsEntries),
+}));
+
+export const savingsEntriesRelations = relations(savingsEntries, ({ one }) => ({
+	wedding: one(weddings, {
+		fields: [savingsEntries.weddingId],
+		references: [weddings.id],
+	}),
+	goal: one(savingsSummaries, {
+		fields: [savingsEntries.savingTargetId],
+		references: [savingsSummaries.id],
+	}),
+	summary: one(savingsSummaries, {
+		fields: [savingsEntries.savingsId],
+		references: [savingsSummaries.id],
+	}),
+}));
