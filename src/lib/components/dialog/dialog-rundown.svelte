@@ -8,7 +8,7 @@
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { scheduleEventFormSchema, rundownCategorySchema } from '$lib/validation/index';
+	import { scheduleEventFormSchema, rundownCategoryEnum } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -23,7 +23,7 @@
 				FormToasts.emptyFormError();
 			}
 		},
-		onError: ({ result }) => {
+		onError: () => {
 			// Use CRUD toast for server errors
 			CrudToasts.error('create', 'An error occurred while saving the schedule event', 'rundown');
 		},
@@ -32,7 +32,7 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? rundownCategorySchema[$formData.category as keyof typeof rundownCategorySchema]
+			? rundownCategoryEnum[$formData.category as keyof typeof rundownCategoryEnum]
 			: 'Choose category',
 	);
 </script>
@@ -91,7 +91,7 @@
 								</Select.Trigger>
 								<Select.Content>
 									<Select.Group>
-										{#each Object.entries(rundownCategorySchema) as [value, label] (label)}
+										{#each Object.entries(rundownCategoryEnum) as [value, label] (label)}
 											<Select.Item {value}>
 												{label}
 											</Select.Item>

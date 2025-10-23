@@ -108,45 +108,6 @@ export const createEnumValidator = (
 	z.enum(enumValues, {
 		message: `Please select a valid ${fieldName.toLowerCase()}`,
 	});
-/**
- * Creates a validator for expense amounts with category-specific ranges
- * @param category - The expense category
- * @param customMin - Optional custom minimum amount
- * @param customMax - Optional custom maximum amount
- */
-export const createExpenseAmountValidator = (
-	category?: string,
-	customMin?: number,
-	customMax?: number,
-) => {
-	const baseValidator = currencyValidator(customMin || 0.01, customMax || 1_000_000_000);
-
-	if (!category) {
-		return baseValidator;
-	}
-
-	// Category-specific amount validation
-	const categoryLimits: Record<string, { min: number; max: number; name: string }> = {
-		venue: { min: 100_000, max: 100_000_000, name: 'Venue' },
-		catering: { min: 50_000, max: 50_000_000, name: 'Catering' },
-		decoration: { min: 10_000, max: 20_000_000, name: 'Decoration' },
-		entertainment: { min: 50_000, max: 10_000_000, name: 'Entertainment' },
-		'makeup-attire': { min: 100_000, max: 15_000_000, name: 'Makeup & Attire' },
-		paperwork: { min: 10_000, max: 5_000_000, name: 'Paperwork' },
-		'photo-video': { min: 500_000, max: 25_000_000, name: 'Photo & Video' },
-		accommodation: { min: 200_000, max: 50_000_000, name: 'Accommodation' },
-		miscellaneous: { min: 1_000, max: 10_000_000, name: 'Miscellaneous' },
-	};
-
-	const limit = categoryLimits[category];
-	if (limit) {
-		return baseValidator.refine((amount) => amount >= limit.min && amount <= limit.max, {
-			message: `${limit.name} expenses typically range from ${limit.min.toLocaleString()} to ${limit.max.toLocaleString()}. Please verify this amount is correct.`,
-		});
-	}
-
-	return baseValidator;
-};
 
 /**
  * Validates expense dates to ensure they're within reasonable range
@@ -188,28 +149,3 @@ export const expenseDateValidator = (allowFuture: boolean = true, allowPast: boo
 			},
 		);
 };
-
-/**
- * Creates a validator for expense descriptions with category-specific requirements
- */
-export const expenseDescriptionValidator = z
-	.string()
-	.min(5, { message: 'Expense description must be at least 5 characters long' })
-	.max(500, { message: 'Expense description must be less than 500 characters' })
-	.refine(
-		(desc) => {
-			// Ensure description is meaningful (not just spaces or repeated characters)
-			const trimmed = desc.trim();
-			const uniqueChars = new Set(trimmed.toLowerCase().replace(/\s/g, '')).size;
-			return uniqueChars >= 3; // At least 3 different characters
-		},
-		{
-			message: 'Please provide a more descriptive expense description',
-		},
-	)
-	.transform((desc) => {
-		// Capitalize first letter and clean up spacing
-		const cleaned = desc.trim().replace(/\s+/g, ' ');
-		return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-	});
-

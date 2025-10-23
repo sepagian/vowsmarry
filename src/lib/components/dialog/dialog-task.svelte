@@ -9,9 +9,9 @@
 	import FormToasts from '$lib/utils/form-toasts';
 	import {
 		taskFormSchema,
-		categorySchema,
-		taskPrioritySchema,
-		taskStatusSchema,
+		categoryEnum,
+		taskPriorityEnum,
+		taskStatusEnum,
 	} from '$lib/validation/index';
 
 	let { data } = $props();
@@ -36,19 +36,19 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? categorySchema[$formData.category as keyof typeof categorySchema]
+			? categoryEnum[$formData.category as keyof typeof categoryEnum]
 			: 'Choose category',
 	);
 
 	const selectedPriority = $derived(
 		$formData.priority
-			? taskPrioritySchema[$formData.priority as keyof typeof taskPrioritySchema]
+			? taskPriorityEnum[$formData.priority as keyof typeof taskPriorityEnum]
 			: 'Select priority',
 	);
 
 	const selectedStatus = $derived(
 		$formData.status
-			? taskStatusSchema[$formData.status as keyof typeof taskStatusSchema]
+			? taskStatusEnum[$formData.status as keyof typeof taskStatusEnum]
 			: 'Select task status',
 	);
 </script>
@@ -100,7 +100,7 @@
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(categorySchema) as [value, label] (label)}
+							{#each Object.entries(categoryEnum) as [value, label] (label)}
 								<Select.Item {value}>
 									{label}
 								</Select.Item>
@@ -132,7 +132,7 @@
 								{selectedPriority}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(taskPrioritySchema) as [value, label] (label)}
+								{#each Object.entries(taskPriorityEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>
@@ -163,7 +163,7 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(taskStatusSchema) as [value, label] (label)}
+								{#each Object.entries(taskStatusEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>
