@@ -1,42 +1,10 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
-	import { Label } from '$lib/components/ui/label/index';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
-	import { Checkbox } from '$lib/components/ui/checkbox/index';
 	import DialogTask from '../dialog/dialog-task.svelte';
-	import { tasksStore } from '$lib/stores/tasks';
-	import type { SimpleTask, Task } from '$lib/types';
 
 	let { data } = $props();
-
-	// Show 3 most recent tasks as SimpleTask
-	let filteredTasks = $tasksStore
-		.sort((a, b) => {
-			const dateA = a.date ? new Date(a.date) : new Date(0);
-			const dateB = b.date ? new Date(b.date) : new Date(0);
-			return dateB.getTime() - dateA.getTime();
-		})
-		.slice(0, 3)
-		.map(
-			(t): SimpleTask => ({
-				id: t.id,
-				title: t.title,
-				description: t.description,
-				done: t.status === 'completed',
-			}),
-		);
-
-	function toggleTask(t: SimpleTask) {
-		const newStatus: Task['status'] = t.done ? 'pending' : 'completed';
-		tasksStore.update((ts) => {
-			const taskIndex = ts.findIndex((task) => task.id === t.id);
-			if (taskIndex !== -1) {
-				ts[taskIndex] = { ...ts[taskIndex], status: newStatus };
-			}
-			return [...ts];
-		});
-	}
 </script>
 
 <div class="flex flex-col px-4 gap-2">

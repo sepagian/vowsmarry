@@ -52,7 +52,6 @@
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={4}
 	/>
 	<SectionVendor {data} />
 

@@ -63,8 +63,10 @@
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={4}
 	/>
 	<SectionRundown />
-	<TimelineDnd {items} {data} />
+	<TimelineDnd
+		{items}
+		{data}
+	/>
 </div>
