@@ -15,7 +15,7 @@
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { toastService } from '$lib/utils/toast-service';
-	import { documentFormSchema, documentCategorySchema } from '$lib/validation/index';
+	import { documentFormSchema, documentCategoryEnum } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -94,7 +94,7 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? documentCategorySchema[$formData.category as keyof typeof documentCategorySchema]
+			? documentCategoryEnum[$formData.category as keyof typeof documentCategoryEnum]
 			: 'Choose category',
 	);
 
@@ -162,7 +162,7 @@
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(documentCategorySchema) as [value, label] (label)}
+							{#each Object.entries(documentCategoryEnum) as [value, label] (label)}
 								<Select.Item {value}>
 									{label}
 								</Select.Item>
@@ -184,41 +184,6 @@
 						{...props}
 						type="date"
 						bind:value={$formData.date}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
-		</Form.Field>
-
-		<Form.Field
-			{form}
-			name="expiryDate"
-		>
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Expiry Date (Optional)</Form.Label>
-					<Input
-						{...props}
-						type="date"
-						bind:value={$formData.expiryDate}
-					/>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
-		</Form.Field>
-
-		<Form.Field
-			{form}
-			name="description"
-		>
-			<Form.Control>
-				{#snippet children({ props })}
-					<Form.Label>Description (Optional)</Form.Label>
-					<Input
-						{...props}
-						type="text"
-						placeholder="Additional notes about this document..."
-						bind:value={$formData.description}
 					/>
 				{/snippet}
 			</Form.Control>

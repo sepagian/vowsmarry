@@ -3,11 +3,11 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { superForm } from 'sveltekit-superforms';
+	import SuperDebug, { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { expenseFormSchema, categorySchema, paymentStatusSchema } from '$lib/validation/index';
+	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
 
 	let { data } = $props();
 
@@ -22,8 +22,7 @@
 				FormToasts.emptyFormError();
 			}
 		},
-		onError: ({ result }) => {
-			// Use CRUD toast for server errors
+		onError: () => {
 			CrudToasts.error('create', 'An error occurred while saving the expense', 'expense');
 		},
 	});
@@ -31,13 +30,13 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? categorySchema[$formData.category as keyof typeof categorySchema]
+			? categoryEnum[$formData.category as keyof typeof categoryEnum]
 			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
 		$formData.status
-			? paymentStatusSchema[$formData.status as keyof typeof paymentStatusSchema]
+			? paymentStatusEnum[$formData.status as keyof typeof paymentStatusEnum]
 			: 'Select task status',
 	);
 </script>
@@ -108,7 +107,7 @@
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(categorySchema) as [value, label] (label)}
+								{#each Object.entries(categoryEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>
@@ -139,7 +138,7 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(paymentStatusSchema) as [value, label] (label)}
+								{#each Object.entries(paymentStatusEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>

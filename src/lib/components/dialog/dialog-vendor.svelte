@@ -9,9 +9,9 @@
 	import FormToasts from '$lib/utils/form-toasts';
 	import {
 		vendorFormSchema,
-		categorySchema,
-		vendorStatusSchema,
-		vendorRatingSchema,
+		categoryEnum,
+		vendorStatusEnum,
+		vendorRatingEnum,
 	} from '$lib/validation/index';
 
 	let { data } = $props();
@@ -27,7 +27,7 @@
 				FormToasts.emptyFormError();
 			}
 		},
-		onError: ({ result }) => {
+		onError: () => {
 			// Use CRUD toast for server errors
 			CrudToasts.error('create', 'An error occurred while saving the vendor', 'vendor');
 		},
@@ -36,19 +36,19 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? categorySchema[$formData.category as keyof typeof categorySchema]
+			? categoryEnum[$formData.category as keyof typeof categoryEnum]
 			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
 		$formData.status
-			? vendorStatusSchema[$formData.status as keyof typeof vendorStatusSchema]
+			? vendorStatusEnum[$formData.status as keyof typeof vendorStatusEnum]
 			: 'Select progress status',
 	);
 
 	const selectedRating = $derived(
 		$formData.rating
-			? vendorRatingSchema[$formData.rating as keyof typeof vendorRatingSchema]
+			? vendorRatingEnum[$formData.rating as keyof typeof vendorRatingEnum]
 			: 'Select vendor rating',
 	);
 </script>
@@ -102,7 +102,7 @@
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(categorySchema) as [value, label] (label)}
+								{#each Object.entries(categoryEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>
@@ -170,7 +170,7 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(vendorStatusSchema) as [value, label] (label)}
+								{#each Object.entries(vendorStatusEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label}
 									</Select.Item>
@@ -203,7 +203,7 @@
 								{selectedRating} stars
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(vendorRatingSchema) as [value, label] (label)}
+								{#each Object.entries(vendorRatingEnum) as [value, label] (label)}
 									<Select.Item {value}>
 										{label} stars
 									</Select.Item>
