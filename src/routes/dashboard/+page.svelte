@@ -19,7 +19,7 @@
 		if (data.message) {
 			// Handle different message types with appropriate toast styling
 			const messageType = new URLSearchParams(window.location.search).get('messageType');
-			
+
 			switch (messageType) {
 				case 'login_success':
 					authToasts.success.login();
@@ -77,7 +77,6 @@
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
-		columns={4}
 	/>
 	<SectionTodo {data} />
 	<SectionBudget {data} />
