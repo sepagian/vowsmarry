@@ -3,15 +3,15 @@
 	module
 >
 	const navMainItems = [
-		{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // dashboard
-		{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // could include paperwork
-		{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // contracts, receipts, inspo
-		{ title: 'Budget', url: '/dashboard/budget', icon: 'i-lucide:dollar-sign' }, // quick link to finance
-		{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' },
-		{ title: 'Schedule', url: '/dashboard/schedule', icon: 'i-lucide:calendar-1' }, // could include dresscode
-		{ title: 'Setup', url: '/dashboard/invitation', icon: 'i-lucide:settings' }, // overview, templates, couple details
-		{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // love story, gallery
-		{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // guests, RSVP, gifts
+		{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // DASHBOARD
+		{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // TASKS
+		{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // DOCUMENTS & PAPERWORK
+		{ title: 'Finance', url: '/dashboard/finance', icon: 'i-lucide:dollar-sign' }, // EXPENSES AND SAVINGS
+		{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' }, // VENDORS
+		{ title: 'Rundown', url: '/dashboard/rundown', icon: 'i-lucide:calendar-1' }, // RUNDOWN & DRESSCODE
+		{ title: 'Setup', url: '/dashboard/invitation', icon: 'i-lucide:settings' }, // OVERVIEW, TEMPLATES, COUPLES DETAILS
+		{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // LOVE STORY & GALLERY
+		{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // RSVPS
 	];
 </script>
 
