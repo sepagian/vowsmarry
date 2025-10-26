@@ -1,25 +1,26 @@
 # 🧩 VowsMarry Development Task List
 
 ## 1. Migrate Database Schema
-- [ ] **1.1.** Migrate `db/schema.ts` to new repo
-- [ ] **1.2.** Update `validation/index.ts` with new schema
-- [ ] **1.3.** Update RLS (Row-Level Security) policies
-- [ ] **1.4.** Refine schema: Add `weddings` table for wedding grouping, `expenses` table linked to budgets for detailed tracking
+- [x] **1.1.** Migrate `db/schema.ts` to new repo
+- [x] **1.2.** Update `validation/index.ts` with new schema
+- [x] **1.3.** Update RLS (Row-Level Security) policies
+- [x] **1.4.** Refine schema: Add `weddings` table for wedding grouping, `expenses` table linked to budgets for detailed tracking
+
 
 ---
 
-## 2. Update `(modules)/+page.server.ts`
-- [ ] Refactor server routes and actions to align with updated schema
-- [ ] Adjust validation and data loading logic
-- [ ] Implement CRUD operations (create, read, update, delete) for all modules
-- [ ] Ensure data loading from Supabase using Drizzle ORM
+## 2. Push `db/schema` to Database
+- [x] Run migration commands via Supabase CLI or Prisma Migrate
+- [x] Verify schema structure and relationships
+- [x] Test database integrity before production deployment
 
 ---
 
-## 3. Push `db/schema` to Database
-- [ ] Run migration commands via Supabase CLI or Prisma Migrate
-- [ ] Verify schema structure and relationships
-- [ ] Test database integrity before production deployment
+## 3. Complete Full CRUD Logic and Error Handling for Each Module
+- [ ] Implement full CRUD (create, read, update, delete) operations in each module's +page.server.ts (document, finance, rundown, task, vendor)
+- [ ] Add error handling for database operations, form submissions, and validation failures
+- [ ] Ensure data loading from Supabase using Drizzle ORM for read operations (load existing data)
+- [ ] Add proper error messages, toasts, and user feedback for all actions
 
 ---
 
@@ -133,21 +134,3 @@
 
 ---
 
-## 🔁 Recommended Order
-1️⃣ Migrate schema (1.1–1.4)
-2️⃣ Update `(modules)/+page.server.ts`
-3️⃣ Push schema to DB
-4️⃣ Configure Cloudflare R2
-5️⃣ Build setup page
-6️⃣ Add wedding-data alert
-7️⃣ Update auth/reset-password
-8️⃣ Build account page
-9️⃣ Connect frontend with backend (9.1–9.6)
-10 Build missing modules (10.1–10.4)
-1️⃣1️⃣ Validation, testing & user flow
-1️⃣2️⃣ Build souvenirs module
-1️⃣3️⃣ Add data export features
-1️⃣4️⃣ Implement wedding collaboration
-1️⃣5️⃣ Enhance rundown with drag-and-drop
-1️⃣6️⃣ Add reminders/notifications
-1️⃣7️⃣ Polish onboarding flow
