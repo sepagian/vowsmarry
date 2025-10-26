@@ -7,7 +7,11 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
+	import {
+		authToasts,
+		handleSupabaseAuthError,
+		handleFormValidationError,
+	} from '$lib/utils/auth-toasts';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -17,7 +21,7 @@
 		if (data.message) {
 			// Handle different message types with appropriate toast styling
 			const messageType = new URLSearchParams(window.location.search).get('messageType');
-			
+
 			switch (messageType) {
 				case 'logout_success':
 					authToasts.success.logout();
@@ -41,7 +45,7 @@
 		}
 		if (data.error) {
 			const errorType = new URLSearchParams(window.location.search).get('errorType');
-			
+
 			switch (errorType) {
 				case 'server_error':
 					authToasts.error.serverError();
@@ -52,35 +56,19 @@
 		}
 	});
 
-	// Track loading state for toast management
-	let isSubmitting = false;
-	let loadingToastId: string | number | undefined;
-
 	const form = superForm(data.loginForm, {
 		validators: zodClient(loginSchema as any),
-		onSubmit: () => {
-			// Show loading toast and track its ID
-			isSubmitting = true;
-			loadingToastId = toast.loading('Signing you in...');
-		},
 		onResult: ({ result }) => {
-			// Always dismiss the loading toast first
-			if (loadingToastId) {
-				toast.dismiss(loadingToastId);
-				loadingToastId = undefined;
-			}
-			isSubmitting = false;
-
 			if (result.type === 'success') {
 				// Show success toast briefly before redirect
 				toast.success('Welcome back! Redirecting to your dashboard...', {
-					duration: 2000
+					duration: 2000,
 				});
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.error;
 				const errorType = result.data?.errorType;
-				
+
 				if (error) {
 					// Use specific error handling based on error type
 					if (errorType === 'invalid_credentials') {
@@ -99,14 +87,6 @@
 			}
 		},
 		onError: () => {
-			// Always dismiss the loading toast first
-			if (loadingToastId) {
-				toast.dismiss(loadingToastId);
-				loadingToastId = undefined;
-			}
-			isSubmitting = false;
-			
-			// Handle unexpected errors
 			authToasts.error.unexpectedError();
 		},
 	});

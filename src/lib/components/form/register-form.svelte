@@ -7,45 +7,41 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { registrationSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
+	import {
+		authToasts,
+		handleSupabaseAuthError,
+		handleFormValidationError,
+	} from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
 
-	// Track loading state for toast management
-	let isSubmitting = false;
-	let loadingToastId: string | number | undefined;
-
 	const form = superForm(data.registrationForm, {
 		validators: zodClient(registrationSchema as any),
-		onSubmit: () => {
-			// Show loading toast and track its ID
-			isSubmitting = true;
-			loadingToastId = toast.loading('Creating your account...');
-		},
 		onResult: ({ result }) => {
 			// Always dismiss the loading toast first
-			if (loadingToastId) {
-				toast.dismiss(loadingToastId);
-				loadingToastId = undefined;
-			}
-			isSubmitting = false;
 
 			if (result.type === 'success') {
 				// Show success toast briefly before redirect
-				toast.success('Account created successfully! Please check your email to verify your account.', {
-					duration: 4000
-				});
+				toast.success(
+					'Account created successfully! Please check your email to verify your account.',
+					{
+						duration: 4000,
+					},
+				);
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.error;
 				const errorType = result.data?.errorType;
-				
+
 				if (error) {
 					// Use specific error handling based on error type or message
 					if (error.includes('already registered') || error.includes('already exists')) {
 						authToasts.error.emailAlreadyExists();
-					} else if (error.includes('password') && (error.includes('weak') || error.includes('strength'))) {
+					} else if (
+						error.includes('password') &&
+						(error.includes('weak') || error.includes('strength'))
+					) {
 						authToasts.error.weakPassword();
 					} else if (error.includes('email') && error.includes('invalid')) {
 						authToasts.error.invalidEmail();
@@ -61,13 +57,6 @@
 			}
 		},
 		onError: () => {
-			// Always dismiss the loading toast first
-			if (loadingToastId) {
-				toast.dismiss(loadingToastId);
-				loadingToastId = undefined;
-			}
-			isSubmitting = false;
-			
 			// Handle unexpected errors
 			authToasts.error.unexpectedError();
 		},

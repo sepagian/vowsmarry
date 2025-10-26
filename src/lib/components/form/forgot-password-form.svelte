@@ -2,12 +2,15 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import { passwordResetRequestSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError, handleFormSuccess } from '$lib/utils/auth-toasts';
-	import { onMount } from 'svelte';
+	import {
+		authToasts,
+		handleSupabaseAuthError,
+		handleFormValidationError,
+		handleFormSuccess,
+	} from '$lib/utils/auth-toasts';
 
 	let { data } = $props();
 
@@ -21,7 +24,7 @@
 				// Handle server validation errors with specific error messages
 				const error = result.data?.error;
 				const errorType = result.data?.errorType;
-				
+
 				if (error) {
 					// Use specific error handling based on error type
 					if (errorType === 'rate_limit') {
