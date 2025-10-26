@@ -75,7 +75,7 @@
 	const overviewTitle = 'Budget Overview';
 </script>
 
-<div class="flex flex-1 flex-col gap-3 py-4 max-w-screen-xl mx-auto">
+<div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
@@ -85,11 +85,9 @@
 	</div>
 	<div class="grid grid-cols-3 gap-4 flex flex-col px-4">
 		<div class="flex flex-col col-span-3 lg:col-span-2 gap-2">
-			<h2 class="text-base font-bold text-neutral-600">Recent Expenses</h2>
 			<ExpenseTable {data} />
 		</div>
 		<div class="flex flex-col col-span-3 lg:col-span-1 row-span-3 gap-2 pb-4">
-			<h2 class="text-base font-bold text-neutral-600">Expense by Category</h2>
 			<Card.Root class="@container/card p-6 h-full gap-2 shadow-none">
 				<Card.Content class="p-0">
 					<ExpenseCategories />
