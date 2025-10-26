@@ -668,8 +668,8 @@ export const invitationsRelations = relations(invitations, ({ one, many }) => ({
 	guests: many(guests),
 	gallery: many(gallery),
 	love_story: many(love_story),
-	// gifts: many(gifts),
-	// gift_contributions: many(gift_contributions),
+	gifts: many(gifts),
+	gift_contributions: many(gift_contributions),
 }));
 
 export const guestsRelations = relations(guests, ({ one, many }) => ({
