@@ -6,35 +6,11 @@
 	import { vendorsStore } from '$lib/stores/vendors';
 	import { documentsStore } from '$lib/stores/documents';
 	import { expensesStore } from '$lib/stores/expenses';
-	import { toast } from 'svelte-sonner';
-	import { onMount } from 'svelte';
-	import { authToasts } from '$lib/utils/auth-toasts';
 
 	const overviewTitle = 'Project Overview';
 
 	let { data } = $props();
 
-	// Show success message from URL parameter if present (e.g., from email verification)
-	onMount(() => {
-		if (data.message) {
-			// Handle different message types with appropriate toast styling
-			const messageType = new URLSearchParams(window.location.search).get('messageType');
-
-			switch (messageType) {
-				case 'login_success':
-					authToasts.success.login();
-					break;
-				case 'email_verification_success':
-				case 'signup_verification_success':
-					authToasts.success.emailVerification();
-					break;
-				default:
-					toast.success(data.message);
-			}
-		}
-	});
-
-	// Reactive overviewCards based on stores
 	let overviewCards = $derived(() => {
 		return [
 			{
