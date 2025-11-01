@@ -23,17 +23,14 @@ DROP POLICY IF EXISTS "Users can read RSVPs for their invitations" ON rsvps;
 DROP POLICY IF EXISTS "Users can manage gallery items for their invitations" ON gallery;
 DROP POLICY IF EXISTS "Users can manage love story items for their invitations" ON love_story;
 DROP POLICY IF EXISTS "Users can manage gift options for their invitations" ON gifts;
-DROP POLICY IF EXISTS "Users can manage gift contributions for their invitations" ON gift_contributions;
 
 -- PUBLIC POLICIES
 DROP POLICY IF EXISTS "Public can read published invitations" ON invitations;
 DROP POLICY IF EXISTS "Guests can read their own data via token" ON guests;
 DROP POLICY IF EXISTS "Guests can manage their own RSVPs" ON rsvps;
 DROP POLICY IF EXISTS "Public can read gallery items for published invitations" ON gallery;
-DROP POLICY IF EXISTS "Guests can upload gallery items" ON gallery;
 DROP POLICY IF EXISTS "Public can read love story items for published invitations" ON love_story;
 DROP POLICY IF EXISTS "Public can read active gift options for published invitations" ON gifts;
-DROP POLICY IF EXISTS "Public can contribute to gifts for published invitations" ON gift_contributions;
 
 -- Enable RLS on all tables
 ALTER TABLE weddings ENABLE ROW LEVEL SECURITY;
@@ -54,7 +51,7 @@ ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE love_story ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gifts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE gift_contributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- USER-SPECIFIC TABLE POLICIES
@@ -232,18 +229,6 @@ CREATE POLICY "Public can read gallery items for published invitations" ON galle
         )
     );
 
-CREATE POLICY "Guests can upload gallery items" ON gallery
-    FOR INSERT WITH CHECK (
-        invitation_id IN (
-            SELECT id FROM invitations 
-            WHERE status = 'published' AND is_public = true AND (expired_at IS NULL OR expired_at > NOW())
-        ) AND
-        uploaded_by_guest_id IN (
-            SELECT g.id FROM guests g
-            WHERE g.invitation_id = gallery.invitation_id
-        )
-    );
-
 -- Love Story Items: Owner can manage, public can read for published invitations
 CREATE POLICY "Users can manage love story items for their invitations" ON love_story
     FOR ALL USING (
@@ -282,36 +267,6 @@ CREATE POLICY "Public can read active gift options for published invitations" ON
         )
     );
 
--- Gift Contributions: Owner can read, public can create contributions
-CREATE POLICY "Users can read gift contributions for their invitations" ON gift_contributions
-    FOR SELECT USING (
-        gift_id IN (
-            SELECT go.id FROM gifts go
-            JOIN invitations i ON go.invitation_id = i.id
-            JOIN weddings w ON i.wedding_id = w.id
-            WHERE w.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can update gift contributions for their invitations" ON gift_contributions
-    FOR UPDATE USING (
-        gift_id IN (
-            SELECT go.id FROM gifts go
-            JOIN invitations i ON go.invitation_id = i.id
-            JOIN weddings w ON i.wedding_id = w.id
-            WHERE w.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Public can create gift contributions" ON gift_contributions
-    FOR INSERT WITH CHECK (
-        gift_id IN (
-            SELECT go.id FROM gifts go
-            JOIN invitations i ON go.invitation_id = i.id
-            WHERE i.status = 'published' AND i.is_public = true AND (i.expired_at IS NULL OR i.expired_at > NOW())
-            AND go.is_active = true
-        )
-    );
 
 -- ============================================================================
 -- SECURITY FUNCTIONS FOR GUEST TOKEN VALIDATION
