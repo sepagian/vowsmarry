@@ -80,7 +80,7 @@ export const statusOptions: Option<NonNullable<Task['status']>>[] = [
 		color: 'bg-gray-200 text-gray-800',
 	},
 	{
-		value: 'on-progress',
+		value: 'on_progress',
 		label: 'On Progress',
 		icon: 'i-lucide:alarm-clock',
 		color: 'bg-yellow-100 text-yellow-800',
