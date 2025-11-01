@@ -74,7 +74,7 @@
 				}),
 		},
 		{
-			accessorKey: 'date',
+			accessorKey: 'dueDate',
 			header: () => {
 				const dateHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -92,7 +92,7 @@
 					};
 				});
 
-				return renderSnippet(taskSnippet, row.getValue('date'));
+				return renderSnippet(taskSnippet, row.getValue('dueDate'));
 			},
 		},
 		{
