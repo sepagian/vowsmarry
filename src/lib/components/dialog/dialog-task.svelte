@@ -57,6 +57,7 @@
 	<form
 		use:enhance
 		method="POST"
+		action="?/create"
 		class="flex flex-col gap-4 py-4"
 	>
 		<Dialog.Header>
