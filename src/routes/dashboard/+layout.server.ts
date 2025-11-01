@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { db } from '$lib/server/db';
-import { weddings } from '$lib/server/db/schema';
+import { plannerDb } from '$lib/server/db/';
+import { weddings } from '$lib/server/db/schema/planner';
 import { eq } from 'drizzle-orm';
 
 export const load: LayoutServerLoad = async ({ locals: { supabase } }) => {
@@ -14,7 +14,7 @@ export const load: LayoutServerLoad = async ({ locals: { supabase } }) => {
 		redirect(302, '/login');
 	}
 
-	const userWedding = await db.query.weddings.findFirst({
+	const userWedding = await plannerDb.query.weddings.findFirst({
 		where: eq(weddings.userId, user.id),
 	});
 
