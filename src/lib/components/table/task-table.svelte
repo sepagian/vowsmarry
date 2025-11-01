@@ -28,11 +28,85 @@
 	import TaskTableActions from './task-table-actions.svelte';
 	import TaskTableDesc from './task-table-desc.svelte';
 	import TaskTablePriority from './task-table-priority.svelte';
+	import TaskTableDelete from './task-table-delete.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data } = $props();
+
+	// Server action functions
+	async function updateTaskStatus(taskId: string, newStatus: Task['status']) {
+		try {
+			// Optimistic update
+			const originalTask = $tasksStore.find(task => task.id === taskId);
+			tasksStore.update((tasks) => {
+				const taskIndex = tasks.findIndex((task) => task.id === taskId);
+				if (taskIndex !== -1) {
+					tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
+				}
+				return [...tasks];
+			});
+
+			const formData = new FormData();
+			formData.append('id', taskId);
+			formData.append('status', newStatus);
+
+			const response = await fetch('?/updateStatus', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+			
+			if (result.type === 'success') {
+				CrudToasts.success('update', 'task');
+				await invalidateAll();
+			} else {
+				// Revert optimistic update on error
+				if (originalTask) {
+					tasksStore.update((tasks) => {
+						const taskIndex = tasks.findIndex((task) => task.id === taskId);
+						if (taskIndex !== -1) {
+							tasks[taskIndex] = originalTask;
+						}
+						return [...tasks];
+					});
+				}
+				CrudToasts.error('update', result.error || 'Failed to update task status', 'task');
+			}
+		} catch (error) {
+			console.error('Status update error:', error);
+			CrudToasts.error('update', 'Network error occurred', 'task');
+		}
+	}
+
+	async function deleteTask(taskId: string) {
+		try {
+			const formData = new FormData();
+			formData.append('id', taskId);
+
+			const response = await fetch('?/delete', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+			
+			if (result.type === 'success') {
+				CrudToasts.success('delete', 'task');
+				await invalidateAll();
+			} else {
+				CrudToasts.error('delete', result.error || 'Failed to delete task', 'task');
+			}
+		} catch (error) {
+			console.error('Delete error:', error);
+			CrudToasts.error('delete', 'Network error occurred', 'task');
+		}
+	}
 
 	const columns: ColumnDef<Task>[] = [
 		{
@@ -40,16 +114,10 @@
 			cell: ({ row }) =>
 				renderComponent(TaskTableCheckbox, {
 					checked: row.original.status === 'completed',
-					onCheckedChange: (value: unknown) => {
+					onCheckedChange: async (value: unknown) => {
 						const isCompleted = !!value;
 						const newStatus: Task['status'] = isCompleted ? 'completed' : 'pending';
-						tasksStore.update((tasks) => {
-							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
-							if (taskIndex !== -1) {
-								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
-							}
-							return [...tasks];
-						});
+						await updateTaskStatus(row.original.id, newStatus);
 					},
 					'aria-label': 'Mark as completed',
 				}),
@@ -112,29 +180,41 @@
 		},
 
 		{
-			id: 'actions',
+			id: 'status',
 			accessorKey: 'status',
+			header: () => {
+				const statusHeaderSnippet = createRawSnippet(() => {
+					return {
+						render: () => `<div class="font-semibold w-38">Status</div>`,
+					};
+				});
+				return renderSnippet(statusHeaderSnippet, '');
+			},
+			enableHiding: false,
+			cell: ({ row }) =>
+				renderComponent(TaskTableActions, {
+					status: row.original.status,
+					onChange: async (newStatus: Task['status']) => {
+						await updateTaskStatus(row.original.id, newStatus);
+					},
+				}),
+		},
+		{
+			id: 'actions',
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-38">Status</div>`,
+						render: () => `<div class="font-semibold">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
 			},
 			enableHiding: false,
 			cell: ({ row }) =>
-				renderComponent(TaskTableActions, {
-					status: row.original.status,
-					onChange: (newStatus: Task['status']) => {
-						tasksStore.update((tasks) => {
-							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
-							if (taskIndex !== -1) {
-								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
-							}
-							return [...tasks];
-						});
-					},
+				renderComponent(TaskTableDelete, {
+					taskId: row.original.id,
+					taskDescription: row.original.description,
+					onDelete: deleteTask,
 				}),
 		},
 	];
