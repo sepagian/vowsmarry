@@ -22,6 +22,41 @@
 - [ ] Ensure data loading from Supabase using Drizzle ORM for read operations (load existing data)
 - [ ] Add proper error messages, toasts, and user feedback for all actions
 
+### 3.1 Priority CRUD Implementation Tasks (from CRUD.MD analysis)
+- [ ] **Phase 2: Server Actions Implementation**
+  - [ ] Replace stubbed server actions with real database operations using Drizzle ORM
+  - [ ] Implement wedding-scoped data access with proper authorization (filter by weddingId)
+  - [ ] Add proper error handling and validation in all server actions
+  - [ ] Implement bulk operations support for efficiency
+  - [ ] Use transactions for multi-table operations
+  - [ ] Add cache invalidation after mutations
+
+- [ ] **Phase 3: State Management Integration**
+  - [ ] Connect stores to server data instead of mock data (tasks, vendors, expenses, etc.)
+  - [ ] Implement optimistic updates for better UX
+  - [ ] Add cache invalidation after mutations
+  - [ ] Sync client and server state properly
+  - [ ] Replace mock data with real database data in all stores
+
+- [ ] **Budget Module Integration**
+  - [ ] Add budget calculation schemas to main validation index (src/lib/validation/index.ts)
+  - [ ] Implement budget CRUD operations (create, read, update, delete)
+  - [ ] Add budget UI components and forms
+  - [ ] Connect budget data to expense tracking
+
+- [ ] **Form Response Handling**
+  - [ ] Implement proper form response handling in page components (+page.svelte)
+  - [ ] Add loading states during operations
+  - [ ] Handle success/error responses with appropriate toasts
+  - [ ] Add invalidateAll() calls after successful mutations
+
+- [ ] **Implementation Order by Module**
+  - [ ] Tasks Module (start here - simplest entity)
+  - [ ] Vendors Module (next - has relationships)
+  - [ ] Expenses Module (complex - has categories)
+  - [ ] Documents Module (special - file uploads)
+  - [ ] Other Modules (Rundowns, etc.)
+
 ---
 
 ## 4. Create Cloudflare R2 File Upload Config
