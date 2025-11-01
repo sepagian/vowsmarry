@@ -46,7 +46,7 @@ export const documentCategoryEnum = {
 
 export const taskStatusEnum = {
 	pending: 'Pending',
-	'on-progress': 'On Progress',
+	on_progress: 'On Progress',
 	completed: 'Completed',
 } as const;
 
@@ -323,7 +323,7 @@ export const vendorFormSchema = z.object({
 		),
 
 	website: z
-		.string()
+		.url()
 		.optional()
 		.refine(
 			(val) => !val || val === '' || z.string().url().safeParse(val).success,
@@ -331,6 +331,13 @@ export const vendorFormSchema = z.object({
 		),
 
 	price: createNumberValidator('vendor', 'price', {
+		required: true,
+		min: 0.01,
+		max: 1_000_000_000,
+		coerce: true,
+	}),
+
+	totalCost: createNumberValidator('vendor', 'total_cost', {
 		required: true,
 		min: 0.01,
 		max: 1_000_000_000,
@@ -376,45 +383,13 @@ export const scheduleEventFormSchema = z
 			Object.keys(rundownCategoryEnum) as [RundownCategory, ...RundownCategory[]],
 		),
 
-		startTime: z
-			.string()
-			.min(1, applyValidationMessage('schedule', 'startTime', 'required'))
-			.regex(
-				/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-				applyValidationMessage('schedule', 'startTime', 'format'),
-			)
-			.refine(
-				(time: string) => {
-					// Additional validation for reasonable times (not too early/late)
-					const [hours, minutes] = time.split(':').map(Number);
-					const totalMinutes = hours * 60 + minutes;
-					// Wedding events typically happen between 6:00 AM and 11:59 PM
-					return totalMinutes >= 360 && totalMinutes <= 1439; // 6:00 AM to 11:59 PM
-				},
-				{
-					message: 'Event time should be between 06:00 and 23:59 for typical wedding schedules',
-				},
-			),
+		startTime: z.iso
+			.time(applyValidationMessage('schedule', 'startTime', 'required'))
+			.min(1, applyValidationMessage('schedule', 'startTime', 'required')),
 
-		endTime: z
-			.string()
-			.min(1, applyValidationMessage('schedule', 'endTime', 'required'))
-			.regex(
-				/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-				applyValidationMessage('schedule', 'endTime', 'format'),
-			)
-			.refine(
-				(time: string) => {
-					// Additional validation for reasonable times (not too early/late)
-					const [hours, minutes] = time.split(':').map(Number);
-					const totalMinutes = hours * 60 + minutes;
-					// Wedding events typically happen between 6:00 AM and 11:59 PM
-					return totalMinutes >= 360 && totalMinutes <= 1439; // 6:00 AM to 11:59 PM
-				},
-				{
-					message: 'Event time should be between 06:00 and 23:59 for typical wedding schedules',
-				},
-			),
+		endTime: z.iso
+			.time(applyValidationMessage('schedule', 'endTime', 'required'))
+			.min(1, applyValidationMessage('schedule', 'endTime', 'required')),
 
 		description: createStringValidator('schedule', 'description', {
 			maxLength: 500,
@@ -430,7 +405,7 @@ export const scheduleEventFormSchema = z
 			.optional()
 			.or(z.literal('')),
 
-		responsible: createStringValidator('schedule', 'responsible', {
+		attendees: createStringValidator('schedule', 'attendees', {
 			maxLength: 100,
 			transform: sanitizeText,
 		})
