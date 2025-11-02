@@ -47,11 +47,11 @@
 				renderComponent(ExpenseTableDesc, {
 					category: row.original.category,
 					description: row.original.description,
-					status: row.original['payment-status'],
+					status: row.original['paymentStatus'],
 				}),
 		},
 		{
-			accessorKey: 'date',
+			accessorKey: 'dueDate',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -61,14 +61,21 @@
 				return renderSnippet(amountHeaderSnippet, '');
 			},
 			cell: ({ row }) => {
-				const emailSnippet = createRawSnippet<[string]>((getDate) => {
+				const dateSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
 						render: () => `<div class="">${date}</div>`,
 					};
 				});
 
-				return renderSnippet(emailSnippet, row.getValue('date'));
+				const dateValue = row.getValue('dueDate');
+				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'long',
+					year: 'numeric',
+				});
+
+				return renderSnippet(dateSnippet, formattedDate);
 			},
 		},
 		{
@@ -115,12 +122,12 @@
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableActions, {
-					status: row.original['payment-status'],
-					onChange: (newStatus: Expense['payment-status']) => {
+					status: row.original['paymentStatus'],
+					onChange: (newStatus: Expense['paymentStatus']) => {
 						expensesStore.update((expenses) => {
 							const expenseIndex = expenses.findIndex((expense) => expense.id === row.original.id);
 							if (expenseIndex !== -1) {
-								expenses[expenseIndex] = { ...expenses[expenseIndex], 'payment-status': newStatus };
+								expenses[expenseIndex] = { ...expenses[expenseIndex], paymentStatus: newStatus };
 							}
 							return [...expenses];
 						});
