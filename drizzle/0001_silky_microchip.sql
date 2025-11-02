@@ -1,2 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "wedding_id" uuid NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;

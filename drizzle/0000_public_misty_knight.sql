@@ -14,6 +14,7 @@ CREATE TYPE "public"."rundown_type" AS ENUM('preparation', 'ceremony', 'receptio
 CREATE TYPE "public"."souvenir_status" AS ENUM('planned', 'ordered', 'delivered', 'received');--> statement-breakpoint
 CREATE TYPE "public"."task_priority" AS ENUM('low', 'medium', 'high');--> statement-breakpoint
 CREATE TYPE "public"."task_status" AS ENUM('pending', 'on_progress', 'completed');--> statement-breakpoint
+CREATE TYPE "public"."user_role" AS ENUM('owner', 'collaborator');--> statement-breakpoint
 CREATE TYPE "public"."vendor_status" AS ENUM('researching', 'contacted', 'quoted', 'booked');--> statement-breakpoint
 CREATE TABLE "gallery" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -157,11 +158,12 @@ CREATE TABLE "expense_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"wedding_id" uuid NOT NULL,
 	"description" varchar(255) NOT NULL,
-	"category_id" uuid,
+	"expense_category_id" uuid NOT NULL,
+	"category" "category" NOT NULL,
 	"amount" numeric(12, 2) DEFAULT '0' NOT NULL,
 	"vendor_id" uuid,
-	"payment_status" "expense_payment_status" DEFAULT 'unpaid',
-	"due_date" date,
+	"payment_status" "expense_payment_status" DEFAULT 'unpaid' NOT NULL,
+	"due_date" date NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -234,7 +236,15 @@ CREATE TABLE "tasks" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"wedding_id" uuid NOT NULL,
+	"name" varchar(255),
+	"email" varchar(255),
+	"phone" varchar(50),
+	"avatar_url" varchar,
+	"role" "user_role" DEFAULT 'collaborator',
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "vendors" (
@@ -265,7 +275,7 @@ CREATE TABLE "weddings" (
 );
 --> statement-breakpoint
 ALTER TABLE "gallery" ADD CONSTRAINT "gallery_invitation_id_invitations_id_fk" FOREIGN KEY ("invitation_id") REFERENCES "public"."invitations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "gifts" ADD CONSTRAINT "gifts_invitation_id_invitations_id_fk" FOREIGN KEY ("invitation_id") REFERENCES "public"."invitations"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gifts" ADD CONSTRAINT "gifts_invitation_id_invitations_id_fk" FOREIGN KEY ("invitation_id") REFERENCES "public"."invitations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "guests" ADD CONSTRAINT "guests_invitation_id_invitations_id_fk" FOREIGN KEY ("invitation_id") REFERENCES "public"."invitations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "invitations" ADD CONSTRAINT "invitations_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "love_story" ADD CONSTRAINT "love_story_invitation_id_invitations_id_fk" FOREIGN KEY ("invitation_id") REFERENCES "public"."invitations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -276,7 +286,7 @@ ALTER TABLE "dresscodes" ADD CONSTRAINT "dresscodes_wedding_id_weddings_id_fk" F
 ALTER TABLE "dresscodes" ADD CONSTRAINT "dresscodes_rundown_id_rundowns_id_fk" FOREIGN KEY ("rundown_id") REFERENCES "public"."rundowns"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expense_categories" ADD CONSTRAINT "expense_categories_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expense_items" ADD CONSTRAINT "expense_items_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "expense_items" ADD CONSTRAINT "expense_items_category_id_expense_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."expense_categories"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "expense_items" ADD CONSTRAINT "expense_items_expense_category_id_expense_categories_id_fk" FOREIGN KEY ("expense_category_id") REFERENCES "public"."expense_categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "expense_items" ADD CONSTRAINT "expense_items_vendor_id_vendors_id_fk" FOREIGN KEY ("vendor_id") REFERENCES "public"."vendors"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "rundowns" ADD CONSTRAINT "rundowns_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "savings_items" ADD CONSTRAINT "savings_items_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -285,6 +295,7 @@ ALTER TABLE "savings_summary" ADD CONSTRAINT "savings_summary_wedding_id_wedding
 ALTER TABLE "souvenirs" ADD CONSTRAINT "souvenirs_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "souvenirs" ADD CONSTRAINT "souvenirs_vendor_id_vendors_id_fk" FOREIGN KEY ("vendor_id") REFERENCES "public"."vendors"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tasks" ADD CONSTRAINT "tasks_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "vendors" ADD CONSTRAINT "vendors_wedding_id_weddings_id_fk" FOREIGN KEY ("wedding_id") REFERENCES "public"."weddings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "gallery_invitation_id_idx" ON "gallery" USING btree ("invitation_id");--> statement-breakpoint
 CREATE INDEX "gallery_type_idx" ON "gallery" USING btree ("type");--> statement-breakpoint
@@ -313,8 +324,9 @@ CREATE INDEX "dresscodes_wedding_id_idx" ON "dresscodes" USING btree ("wedding_i
 CREATE INDEX "dresscodes_dresscode_role_idx" ON "dresscodes" USING btree ("dresscode_role");--> statement-breakpoint
 CREATE INDEX "dresscodes_rundown_id_idx" ON "dresscodes" USING btree ("rundown_id");--> statement-breakpoint
 CREATE INDEX "expense_categories_wedding_id_idx" ON "expense_categories" USING btree ("wedding_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "expense_categories_wedding_category_idx" ON "expense_categories" USING btree ("wedding_id","category");--> statement-breakpoint
 CREATE INDEX "expense_items_wedding_id_idx" ON "expense_items" USING btree ("wedding_id");--> statement-breakpoint
-CREATE INDEX "expense_items_category_id_idx" ON "expense_items" USING btree ("category_id");--> statement-breakpoint
+CREATE INDEX "expense_items_category_idx" ON "expense_items" USING btree ("category");--> statement-breakpoint
 CREATE INDEX "expense_items_amount_idx" ON "expense_items" USING btree ("amount");--> statement-breakpoint
 CREATE INDEX "expense_items_vendor_id_idx" ON "expense_items" USING btree ("vendor_id");--> statement-breakpoint
 CREATE INDEX "expense_items_payment_status_idx" ON "expense_items" USING btree ("payment_status");--> statement-breakpoint
@@ -334,6 +346,9 @@ CREATE INDEX "tasks_priority_idx" ON "tasks" USING btree ("priority");--> statem
 CREATE INDEX "tasks_due_date_idx" ON "tasks" USING btree ("due_date");--> statement-breakpoint
 CREATE INDEX "tasks_created_by_idx" ON "tasks" USING btree ("created_by");--> statement-breakpoint
 CREATE INDEX "tasks_assigned_to_idx" ON "tasks" USING btree ("assigned_to");--> statement-breakpoint
+CREATE INDEX "users_wedding_id_idx" ON "users" USING btree ("wedding_id");--> statement-breakpoint
+CREATE INDEX "users_email_idx" ON "users" USING btree ("email");--> statement-breakpoint
+CREATE INDEX "users_role_idx" ON "users" USING btree ("role");--> statement-breakpoint
 CREATE INDEX "vendors_wedding_id_idx" ON "vendors" USING btree ("wedding_id");--> statement-breakpoint
 CREATE INDEX "vendors_category_idx" ON "vendors" USING btree ("category");--> statement-breakpoint
 CREATE INDEX "vendors_status_idx" ON "vendors" USING btree ("status");--> statement-breakpoint
