@@ -51,40 +51,69 @@ export type Filter = 'all' | 'active' | 'completed';
 // Docs
 export type Document = {
 	id: string;
-	description: string;
-	date: string;
-	category: DocType;
+	weddingId: string;
+	name: string;
+	documentCategory: DocType;
+	documentDate: string;
+	fileUrl: string;
+	createdAt: Date;
+	updatedAt: Date;
 };
 
-export type DocType = 'legal-formal' | 'vendor-finance' | 'guest-ceremony' | 'personal-keepsake';
+export type DocType =
+	| 'legal_formal'
+	| 'vendor_finance'
+	| 'guest_ceremony'
+	| 'personal_keepsake'
+	| 'miscellaneous'
+	| 'other';
 
 // Expenses
 export type Expense = {
 	id: string;
-	date: string;
-	category: string;
+	weddingId: string;
 	description: string;
-	amount: number;
-	'payment-status': ExpenseStatus;
+	expenseCategoryId: string;
+	category: Category;
+	amount: string;
+	vendorId?: string | null;
+	paymentStatus: ExpenseStatus;
+	dueDate: string;
+	createdAt: Date;
+	updatedAt: Date;
 };
 
-export type ExpenseStatus = 'pending' | 'paid';
+export type ExpenseCategory = {
+	id: string;
+	weddingId: string;
+	category: Category;
+	allocatedAmount: string;
+	spentAmount: string;
+	createdAt: Date;
+	updatedAt: Date;
+};
+
+export type ExpenseStatus = 'unpaid' | 'paid';
 
 // Vendors
 export type Vendor = {
-	vendorName: string;
-	vendorCategory: Category;
-	vendorEmail?: string;
-	vendorPhone?: string;
-	vendorWebsite?: string;
-	vendorPrice?: string;
-	vendorDesc?: string;
-	vendorRating?: VendorRating;
-	vendorStatus: VendorStatus;
+	id: string;
+	weddingId: string;
+	name: string;
+	category: Category;
+	instagram?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	website?: string | null;
+	status: VendorStatus;
+	rating: VendorRating;
+	totalCost: string | null;
+	createdAt: Date;
+	updatedAt: Date;
 };
 
 export type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
-export type VendorRating = 1 | 2 | 3 | 4 | 5;
+export type VendorRating = '1' | '2' | '3' | '4' | '5';
 
 //Rundowns
 export type Rundown = {
