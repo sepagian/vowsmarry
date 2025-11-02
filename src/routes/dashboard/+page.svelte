@@ -2,45 +2,46 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionTodo from '$lib/components/section/section-todo.svelte';
 	import SectionBudget from '$lib/components/section/section-budget.svelte';
-	import { tasksStore } from '$lib/stores/tasks';
-	import { vendorsStore } from '$lib/stores/vendors';
-	import { documentsStore } from '$lib/stores/documents';
 	import { expensesStore } from '$lib/stores/expenses';
+	import { onMount } from 'svelte';
 
 	const overviewTitle = 'Project Overview';
 
 	let { data } = $props();
 
+	onMount(() => {
+		if (data.expenses && data.expenses.length > 0) {
+			expensesStore.set(data.expenses);
+		}
+	});
+
 	let overviewCards = $derived(() => {
 		return [
 			{
-				title: $tasksStore.length.toString(),
+				title: data.stats.taskCount.toString(),
 				description: 'Tasks',
 				action: 'Total',
 				footer: 'Updated just now',
 			},
 			{
-				title: `${$expensesStore
-					.filter((e) => e['payment-status'] === 'paid')
-					.reduce((sum, e) => sum + e.amount, 0)
-					.toLocaleString('id-ID', {
-						style: 'currency',
-						currency: 'IDR',
-						minimumFractionDigits: 0,
-						maximumFractionDigits: 0,
-					})}`,
+				title: parseFloat(data.stats.expensePaidAmount).toLocaleString('id-ID', {
+					style: 'currency',
+					currency: 'IDR',
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0,
+				}),
 				description: 'Budget Spent',
 				action: 'Total',
 				footer: 'Updated just now',
 			},
 			{
-				title: $documentsStore.length.toString(),
+				title: data.stats.documentCount.toString(),
 				description: 'Documents',
 				action: 'Total',
 				footer: 'Updated just now',
 			},
 			{
-				title: $vendorsStore.length.toString(),
+				title: data.stats.vendorCount.toString(),
 				description: 'Vendors',
 				action: 'Total',
 				footer: 'Updated just now',
