@@ -164,7 +164,7 @@ export const gifts = pgTable(
 		id: uuid('id').primaryKey().defaultRandom(),
 		invitationId: uuid('invitation_id')
 			.notNull()
-			.references(() => invitations.id, { onDelete: 'set null' }),
+			.references(() => invitations.id, { onDelete: 'cascade' }),
 		type: giftTypeEnum('type').notNull(),
 		title: varchar('title', { length: 200 }).notNull(),
 		description: text('description'),
@@ -203,13 +203,19 @@ export const guestsRelations = relations(guests, ({ one, many }) => ({
 		references: [invitations.id],
 	}),
 	rsvps: many(rsvps),
-	galleryUploads: many(gallery),
 }));
 
 export const rsvpsRelations = relations(rsvps, ({ one }) => ({
 	guest: one(guests, {
 		fields: [rsvps.guestId],
 		references: [guests.id],
+	}),
+}));
+
+export const giftsRelations = relations(gifts, ({ one }) => ({
+	invitation: one(invitations, {
+		fields: [gifts.invitationId],
+		references: [invitations.id],
 	}),
 }));
 

@@ -21,6 +21,7 @@ import {
 	documentCategoryEnum,
 	expensePaymentStatusEnum,
 	vendorStatusEnum,
+	vendorRatingEnum,
 	rundownTypeEnum,
 	dowryRecipientEnum,
 	dowryStatusEnum,
@@ -112,8 +113,8 @@ export const documents = pgTable(
 			.references(() => weddings.id, { onDelete: 'cascade' }),
 		name: varchar('name', { length: 255 }).notNull(),
 		documentCategory: documentCategoryEnum('document_category').notNull(),
-		documentDate: date('document_date'),
-		fileUrl: varchar('file_url'),
+		documentDate: date('document_date').notNull(),
+		fileUrl: varchar('file_url').notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull(),
 	},
@@ -142,6 +143,10 @@ export const expenseCategories = pgTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_categories_wedding_id_idx').on(table.weddingId),
+		weddingCategoryIdx: uniqueIndex('expense_categories_wedding_category_idx').on(
+			table.weddingId,
+			table.category,
+		),
 	}),
 );
 
@@ -153,19 +158,22 @@ export const expenseItems = pgTable(
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
 		description: varchar('description', { length: 255 }).notNull(),
-		categoryId: uuid('category_id').references(() => expenseCategories.id, {
-			onDelete: 'set null',
-		}),
+		expenseCategoryId: uuid('expense_category_id')
+			.references(() => expenseCategories.id, {
+				onDelete: 'cascade',
+			})
+			.notNull(),
+		category: categoryEnum('category').notNull(),
 		amount: numeric('amount', { precision: 12, scale: 2 }).default('0').notNull(),
 		vendorId: uuid('vendor_id').references(() => vendors.id, { onDelete: 'set null' }),
-		paymentStatus: expensePaymentStatusEnum('payment_status').default('unpaid'),
-		dueDate: date('due_date'),
+		paymentStatus: expensePaymentStatusEnum('payment_status').default('unpaid').notNull(),
+		dueDate: date('due_date').notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_items_wedding_id_idx').on(table.weddingId),
-		categoryIdIdx: index('expense_items_category_id_idx').on(table.categoryId),
+		categoryIdIdx: index('expense_items_category_idx').on(table.category),
 		amountIdx: index('expense_items_amount_idx').on(table.amount),
 		vendorIdIdx: index('expense_items_vendor_id_idx').on(table.vendorId),
 		paymentStatusIdx: index('expense_items_payment_status_idx').on(table.paymentStatus),
@@ -222,13 +230,13 @@ export const vendors = pgTable(
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
 		name: varchar('name', { length: 200 }).notNull(),
-		category: categoryEnum('category'),
+		category: categoryEnum('category').notNull(),
 		instagram: varchar('instagram', { length: 50 }),
 		email: varchar('email', { length: 255 }),
 		phone: varchar('phone', { length: 50 }),
 		website: varchar('website', { length: 50 }),
-		status: vendorStatusEnum('status').default('researching'),
-		rating: integer('rating'), // 1-5 stars
+		status: vendorStatusEnum('status').default('researching').notNull(),
+		rating: vendorRatingEnum('rating').notNull(), // 1-5 stars
 		totalCost: numeric('total_cost', { precision: 12, scale: 2 }),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -405,7 +413,7 @@ export const expenseItemsRelations = relations(expenseItems, ({ one }) => ({
 		references: [weddings.id],
 	}),
 	category: one(expenseCategories, {
-		fields: [expenseItems.categoryId],
+		fields: [expenseItems.expenseCategoryId],
 		references: [expenseCategories.id],
 	}),
 	vendor: one(vendors, {

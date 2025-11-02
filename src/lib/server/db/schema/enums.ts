@@ -19,8 +19,8 @@ export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high'
 export const documentCategoryEnum = pgEnum('document_category', [
 	'legal_formal',
 	'vendor_finance',
-	'guest-ceremony',
-	'personal-keepsake',
+	'guest_ceremony',
+	'personal_keepsake',
 	'miscellaneous',
 	'other',
 ]);
@@ -33,6 +33,8 @@ export const vendorStatusEnum = pgEnum('vendor_status', [
 	'quoted',
 	'booked',
 ]);
+
+export const vendorRatingEnum = pgEnum('vendor_rating', ['1', '2', '3', '4', '5']);
 
 export const rundownTypeEnum = pgEnum('rundown_type', [
 	'preparation',
