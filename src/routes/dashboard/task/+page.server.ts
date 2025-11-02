@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 
 	const taskList = await plannerDb.query.tasks.findMany({
 		where: eq(tasks.weddingId, wedding.id),
-		orderBy: (tasks, { desc }) => [desc(tasks.createdAt)],
+		orderBy: (tasks, { asc }) => [asc(tasks.dueDate)],
 	});
 
 	return { taskForm, tasks: taskList };
