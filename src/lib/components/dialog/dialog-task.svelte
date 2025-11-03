@@ -14,7 +14,11 @@
 		taskStatusEnum,
 	} from '$lib/validation/index';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.taskForm, {
 		validators: zod4(taskFormSchema as any),
@@ -59,6 +63,9 @@
 		method="POST"
 		action="?/create"
 		class="flex flex-col gap-4 py-4"
+		onsubmit={() => {
+			wait(500).then(() => (open = false));
+		}}
 	>
 		<Dialog.Header>
 			<Dialog.Title>Add New Task</Dialog.Title>
