@@ -95,18 +95,20 @@ export const statusOptions: Option<NonNullable<Task['status']>>[] = [
 
 // --- Doc Types ---
 export const docTypeOptions: Option<DocType>[] = [
-	{ value: 'legal-formal', label: 'Legal & Formal', icon: 'i-lucide:scale' },
-	{ value: 'vendor-finance', label: 'Vendor & Finance', icon: 'i-lucide:scroll-text' },
-	{ value: 'guest-ceremony', label: 'Guest & Ceremony', icon: 'i-lucide:book-open-check' },
-	{ value: 'personal-keepsake', label: 'Personal & Keepsake', icon: 'i-lucide:heart' },
+	{ value: 'legal_formal', label: 'Legal & Formal', icon: 'i-lucide:scale' },
+	{ value: 'vendor_finance', label: 'Vendor & Finance', icon: 'i-lucide:scroll-text' },
+	{ value: 'guest_ceremony', label: 'Guest & Ceremony', icon: 'i-lucide:book-open-check' },
+	{ value: 'personal_keepsake', label: 'Personal & Keepsake', icon: 'i-lucide:heart' },
+	{ value: 'miscellaneous', label: 'Miscellaneous', icon: 'i-lucide:more-horizontal' },
+	{ value: 'other', label: 'Other', icon: 'i-lucide:more-horizontal' },
 ];
 
 // --- Expense Status ---
-export const expenseStatusOptions: Option<Expense['payment-status']>[] = [
+export const expenseStatusOptions: Option<Expense['paymentStatus']>[] = [
 	{ value: 'paid', label: 'Paid', icon: 'i-lucide:check', color: 'bg-green-100 text-green-800' },
 	{
-		value: 'pending',
-		label: 'Pending',
+		value: 'unpaid',
+		label: 'Unpaid',
 		icon: 'i-lucide:alarm-clock-minus',
 		color: 'bg-yellow-100 text-yellow-800',
 	},
