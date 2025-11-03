@@ -1,27 +1,84 @@
 import type { PageServerLoad, Actions } from './$types';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { taskFormSchema } from '$lib/validation/index';
 import { plannerDb } from '$lib/server/db';
 import { tasks, weddings } from '$lib/server/db/schema/planner';
-import { eq, and } from 'drizzle-orm';
+import { eq, count, and } from 'drizzle-orm';
 import type { TaskStatus } from '$lib/types';
 
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const taskForm = await superValidate(zod4(taskFormSchema as any));
-	const { wedding } = await parent();
 
-	if (!wedding) {
-		return { taskForm, tasks: [] };
+	const {
+		data: { user },
+		error,
+	} = await supabase.auth.getUser();
+
+	if (error || !user) {
+		redirect(302, '/login');
 	}
 
-	const taskList = await plannerDb.query.tasks.findMany({
-		where: eq(tasks.weddingId, wedding.id),
-		orderBy: (tasks, { asc }) => [asc(tasks.dueDate)],
+	const wedding = await plannerDb.query.weddings.findFirst({
+		where: eq(weddings.userId, user.id),
 	});
 
-	return { taskForm, tasks: taskList };
+	if (!wedding) {
+		return {
+			taskForm,
+			stats: {
+				tasksCount: 0,
+				pendingTasksCount: 0,
+				onProgressTasksCount: 0,
+				completedTasksCount: 0,
+			},
+			tasks: [],
+		};
+	}
+
+	const [tasksCount, pendingTasksCount, onProgressTasksCount, completedTasksCount, tasksList] =
+		await Promise.all([
+			plannerDb
+				.select({ count: count() })
+				.from(tasks)
+				.where(eq(tasks.weddingId, wedding.id))
+				.then((result) => result[0]?.count ?? 0),
+
+			plannerDb
+				.select({ count: count() })
+				.from(tasks)
+				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'pending')))
+				.then((result) => result[0]?.count ?? '0'),
+
+			plannerDb
+				.select({ count: count() })
+				.from(tasks)
+				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'on_progress')))
+				.then((result) => result[0]?.count ?? '0'),
+
+			plannerDb
+				.select({ count: count() })
+				.from(tasks)
+				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'completed')))
+				.then((result) => result[0]?.count ?? '0'),
+
+			plannerDb.query.tasks.findMany({
+				where: eq(tasks.weddingId, wedding.id),
+				orderBy: (tasks, { asc }) => [asc(tasks.dueDate)],
+			}),
+		]);
+
+	return {
+		taskForm,
+		stats: {
+			tasksCount,
+			pendingTasksCount,
+			onProgressTasksCount,
+			completedTasksCount,
+		},
+		tasks: tasksList,
+	};
 };
 
 export const actions: Actions = {
