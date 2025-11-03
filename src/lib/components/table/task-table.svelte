@@ -32,17 +32,17 @@
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
-	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data } = $props();
+	let open = $state(false);
 
 	// Server action functions
 	async function updateTaskStatus(taskId: string, newStatus: Task['status']) {
 		try {
 			// Optimistic update
-			const originalTask = $tasksStore.find(task => task.id === taskId);
+			const originalTask = $tasksStore.find((task) => task.id === taskId);
 			tasksStore.update((tasks) => {
 				const taskIndex = tasks.findIndex((task) => task.id === taskId);
 				if (taskIndex !== -1) {
@@ -57,11 +57,11 @@
 
 			const response = await fetch('?/updateStatus', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			const result = await response.json();
-			
+
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'task');
 				await invalidateAll();
@@ -91,11 +91,11 @@
 
 			const response = await fetch('?/delete', {
 				method: 'POST',
-				body: formData
+				body: formData,
 			});
 
 			const result = await response.json();
-			
+
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'task');
 				await invalidateAll();
@@ -152,7 +152,7 @@
 				return renderSnippet(dateHeaderSnippet, '');
 			},
 			cell: ({ row }) => {
-				const taskSnippet = createRawSnippet<[string]>((getDate) => {
+				const dateSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
 						render: () =>
@@ -160,7 +160,14 @@
 					};
 				});
 
-				return renderSnippet(taskSnippet, row.getValue('dueDate'));
+				const dateValue = row.getValue('dueDate');
+				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'long',
+					year: 'numeric',
+				});
+
+				return renderSnippet(dateSnippet, formattedDate);
 			},
 		},
 		{
@@ -185,7 +192,7 @@
 			header: () => {
 				const statusHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-38">Status</div>`,
+						render: () => `<div class="font-semibold w-36">Status</div>`,
 					};
 				});
 				return renderSnippet(statusHeaderSnippet, '');
@@ -204,7 +211,7 @@
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold">Actions</div>`,
+						render: () => `<div class="font-semibold w-8">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
@@ -334,12 +341,15 @@
 					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
-			<Dialog.Root>
+			<Dialog.Root bind:open>
 				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Add Task</span>
 				</Dialog.Trigger>
-				<DialogTask {data} />
+				<DialogTask
+					{data}
+					bind:open
+				/>
 			</Dialog.Root>
 		</ButtonGroup.Root>
 	</div>
