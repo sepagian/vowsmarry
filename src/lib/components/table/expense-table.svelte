@@ -29,8 +29,57 @@
 	import DialogExpense from '../dialog/dialog-expense.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
 	import type { Expense } from '$lib/types';
+	import { invalidateAll } from '$app/navigation';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data } = $props();
+
+	async function updatePaymentStatus(
+		expenseId: string,
+		newPaymentStatus: Expense['paymentStatus'],
+	) {
+		try {
+			// Optimistic update
+			const originalExpense = $expensesStore.find((expense) => expense.id === expenseId);
+			expensesStore.update((expenses) => {
+				const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
+				if (expenseIndex !== -1) {
+					expenses[expenseIndex] = { ...expenses[expenseIndex], paymentStatus: newPaymentStatus };
+				}
+				return [...expenses];
+			});
+
+			const formData = new FormData();
+			formData.append('id', expenseId);
+			formData.append('paymentStatus', newPaymentStatus);
+
+			const response = await fetch('?/updatePaymentStatus', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				CrudToasts.success('update', 'expense');
+				await invalidateAll();
+			} else {
+				// Revert optimistic update on error
+				if (originalExpense) {
+					expensesStore.update((expenses) => {
+						const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
+						if (expenseIndex !== -1) {
+							expenses[expenseIndex] = originalExpense;
+						}
+						return [...expenses];
+					});
+				}
+				CrudToasts.error('update', result.error || 'Failed to update payment status', 'expense');
+			}
+		} catch (error) {
+			CrudToasts.error('update', 'Network error occurred', 'expense');
+		}
+	}
 
 	const columns: ColumnDef<Expense>[] = [
 		{
@@ -109,28 +158,22 @@
 			},
 		},
 		{
-			id: 'actions',
+			id: 'status',
 			accessorKey: 'status',
 			header: () => {
-				const actionsHeaderSnippet = createRawSnippet(() => {
+				const statusHeaderSnippet = createRawSnippet(() => {
 					return {
 						render: () => `<div class="font-semibold w-32">Payment Status</div>`,
 					};
 				});
-				return renderSnippet(actionsHeaderSnippet, '');
+				return renderSnippet(statusHeaderSnippet, '');
 			},
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableActions, {
-					status: row.original['paymentStatus'],
-					onChange: (newStatus: Expense['paymentStatus']) => {
-						expensesStore.update((expenses) => {
-							const expenseIndex = expenses.findIndex((expense) => expense.id === row.original.id);
-							if (expenseIndex !== -1) {
-								expenses[expenseIndex] = { ...expenses[expenseIndex], paymentStatus: newStatus };
-							}
-							return [...expenses];
-						});
+					status: row.original.paymentStatus,
+					onChange: async (newPaymentStatus: Expense['paymentStatus']) => {
+						await updatePaymentStatus(row.original.id, newPaymentStatus);
 					},
 				}),
 		},
