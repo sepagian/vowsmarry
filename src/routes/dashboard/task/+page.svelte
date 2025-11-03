@@ -14,38 +14,31 @@
 		}
 	});
 
-	// Reactive overviewCards based on the store
 	let overviewCards = $derived(() => {
-		const tasks = $tasksStore;
-		const completed = tasks.filter((task) => task.status === 'completed').length;
-		const pending = tasks.filter((task) => task.status === 'pending').length;
-		const onprogress = tasks.filter((task) => task.status === 'on_progress').length;
-		const total = tasks.length;
-
 		return [
 			{
-				title: total.toString(),
+				title: data.stats.tasksCount.toString(),
 				description: 'Total',
 				actionClass: 'i-lucide:badge-info',
 				actionColor: 'bg-blue-500 text-white',
 				footer: 'Updated just now',
 			},
 			{
-				title: pending.toString(),
+				title: data.stats.pendingTasksCount.toString(),
 				description: 'Pending',
 				actionClass: 'i-lucide:badge-minus',
 				actionColor: 'bg-gray-500 text-white',
 				footer: 'Updated just now',
 			},
 			{
-				title: onprogress.toString(),
+				title: data.stats.onProgressTasksCount.toString(),
 				description: 'On Progress',
 				actionClass: 'i-lucide:badge-alert',
 				actionColor: 'bg-yellow-500 text-white',
 				footer: 'Updated just now',
 			},
 			{
-				title: completed.toString(),
+				title: data.stats.completedTasksCount.toString(),
 				description: 'Completed',
 				actionClass: 'i-lucide:badge-check',
 				actionColor: 'bg-green-500 text-white',
