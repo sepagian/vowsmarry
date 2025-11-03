@@ -3,7 +3,7 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import SuperDebug, { superForm } from 'sveltekit-superforms';
+	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
@@ -35,9 +35,9 @@
 	);
 
 	const selectedStatus = $derived(
-		$formData.status
-			? paymentStatusEnum[$formData.status as keyof typeof paymentStatusEnum]
-			: 'Select task status',
+		$formData.paymentStatus
+			? paymentStatusEnum[$formData.paymentStatus as keyof typeof paymentStatusEnum]
+			: 'Select payment status',
 	);
 </script>
 
@@ -51,6 +51,7 @@
 	<form
 		method="POST"
 		use:enhance
+		action="?/createExpenseItem"
 		class="flex flex-col gap-4 py-4"
 	>
 		<Form.Field
@@ -120,7 +121,7 @@
 			</Form.Field>
 			<Form.Field
 				{form}
-				name="status"
+				name="paymentStatus"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -128,7 +129,7 @@
 						<Form.Label>Payment Status</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.status}
+							bind:value={$formData.paymentStatus}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -167,7 +168,7 @@
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Dialog.Footer>
-			<Form.Button type="submit">Add New Expense</Form.Button>
+			<Form.Button>Add New Expense</Form.Button>
 		</Dialog.Footer>
 	</form>
 </Dialog.Content>
