@@ -5,9 +5,13 @@
 	import { expensesStore } from '$lib/stores/expenses';
 	import { onMount } from 'svelte';
 
-	const overviewTitle = 'Project Overview';
+	const overviewTitle = 'Wedding Overview';
 
 	let { data } = $props();
+	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
+	const daysUntilWedding = weddingDate
+		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
+		: null;
 
 	onMount(() => {
 		if (data.expenses && data.expenses.length > 0) {
@@ -51,6 +55,19 @@
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
+	<div class="flex flex-col gap-2 px-4">
+		<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
+		<p class="text-muted-foreground">
+			{#if data.wedding}
+				Plan your wedding with {data.wedding.partnerName || 'your partner'}
+				{#if weddingDate}
+					- {daysUntilWedding} days to go!
+				{/if}
+			{:else}
+				Let's start planning your perfect wedding!
+			{/if}
+		</p>
+	</div>
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
