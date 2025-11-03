@@ -14,11 +14,11 @@
 
 	async function handleDelete() {
 		isDeleting = true;
-		
+
 		// Optimistic update - remove from store immediately
 		const originalTasks = $tasksStore;
-		tasksStore.update(tasks => tasks.filter(task => task.id !== taskId));
-		
+		tasksStore.update((tasks) => tasks.filter((task) => task.id !== taskId));
+
 		try {
 			await onDelete(taskId);
 			// Close dialog on success
@@ -26,7 +26,6 @@
 		} catch (error) {
 			// Revert optimistic update on error
 			tasksStore.set(originalTasks);
-			console.error('Delete failed:', error);
 		} finally {
 			isDeleting = false;
 		}
@@ -66,3 +65,4 @@
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>
+
