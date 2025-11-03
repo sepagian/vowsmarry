@@ -53,7 +53,7 @@ export const taskStatusEnum = {
 export const taskPriorityEnum = { low: 'Low', medium: 'Medium', high: 'High' } as const;
 
 export const paymentStatusEnum = {
-	pending: 'Pending',
+	unpaid: 'Unpaid',
 	paid: 'Paid',
 } as const;
 
@@ -260,11 +260,11 @@ export const expenseFormSchema = z.object({
 		Object.keys(categoryEnum) as [Category, ...Category[]],
 	),
 
-	status: createEnumValidator(
+	paymentStatus: createEnumValidator(
 		'expense',
 		'status',
 		Object.keys(paymentStatusEnum) as [PaymentStatus, ...PaymentStatus[]],
-	).default('pending'),
+	).default('unpaid'),
 
 	date: createDateValidator('expense', 'date', {
 		required: true,
