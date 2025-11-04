@@ -165,6 +165,55 @@ export const actions: Actions = {
 		}
 	},
 
+	update: async ({ request, locals: { supabase } }) => {
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		const wedding = await plannerDb.query.weddings.findFirst({
+			where: eq(weddings.userId, user.id),
+		});
+
+		if (!wedding) return fail(403, { error: 'No wedding data found' });
+
+		const data = await request.formData();
+		const taskId = data.get('id') as string;
+		const description = data.get('description') as string;
+		const category = data.get('category');
+		const priority = data.get('priority');
+		const status = data.get('status') as TaskStatus;
+		const date = data.get('date') as string;
+
+		try {
+			const updatedTask = await plannerDb
+				.update(tasks)
+				.set({
+					description,
+					category: category as any,
+					priority: priority as any,
+					status,
+					dueDate: date,
+					completedAt: status === 'completed' ? new Date() : null,
+					updatedAt: new Date(),
+				})
+				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
+				.returning();
+
+			if (updatedTask.length === 0) {
+				return fail(404, { error: 'Task not found' });
+			}
+
+			return { success: true, task: updatedTask[0] };
+		} catch (error) {
+			console.error('Task update error:', error);
+			return fail(500, {
+				error: 'Failed to update task. Please try again.',
+			});
+		}
+	},
+
 	delete: async ({ request, locals: { supabase } }) => {
 		const {
 			data: { user },
