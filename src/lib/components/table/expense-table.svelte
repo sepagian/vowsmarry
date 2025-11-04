@@ -100,6 +100,7 @@
 				}),
 		},
 		{
+			id: 'dueDate',
 			accessorKey: 'dueDate',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
@@ -113,14 +114,15 @@
 				const dateSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
-						render: () => `<div class="">${date}</div>`,
+						render: () =>
+							`<div class="flex flex-row gap-2 items-center"><div class="i-lucide:calendar"></div>${date}</div>`,
 					};
 				});
 
 				const dateValue = row.getValue('dueDate');
 				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
 					day: '2-digit',
-					month: 'long',
+					month: 'short',
 					year: 'numeric',
 				});
 
@@ -344,8 +346,7 @@
 	</div>
 	<div class="flex items-center justify-end space-x-2 pt-4">
 		<div class="text-muted-foreground flex-1 text-sm">
-			{table.getFilteredSelectedRowModel().rows.length} of
-			{table.getFilteredRowModel().rows.length} row(s) selected.
+			{table.getFilteredRowModel().rows.length} row(s) displayed.
 		</div>
 		<div class="space-x-2">
 			<Button
