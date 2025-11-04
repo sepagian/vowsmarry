@@ -68,6 +68,7 @@
 		"zod": "^4.1.11"
 	},
 	"dependencies": {
+		"@canutin/svelte-currency-input": "^0.13.0",
 		"@friendofsvelte/progress": "^0.0.8",
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.58.0",

@@ -4,6 +4,7 @@
     "": {
       "name": "vowsmarry-v2",
       "dependencies": {
+        "@canutin/svelte-currency-input": "^0.13.0",
         "@friendofsvelte/progress": "^0.0.8",
         "@supabase/ssr": "^0.7.0",
         "@supabase/supabase-js": "^2.58.0",
@@ -99,6 +100,10 @@
     "@babel/traverse": ["@babel/traverse@7.27.7", "", { "dependencies": { "@babel/code-frame": "^7.27.1", "@babel/generator": "^7.27.5", "@babel/parser": "^7.27.7", "@babel/template": "^7.27.2", "@babel/types": "^7.27.7", "debug": "^4.3.1", "globals": "^11.1.0" } }, "sha512-X6ZlfR/O/s5EQ/SnUSLzr+6kGnkg8HXGMzpgsMsrJVcfDtH1vIp6ctCN4eZ1LS5c0+te5Cb6Y514fASjMRJ1nw=="],
 
     "@babel/types": ["@babel/types@7.28.2", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.27.1" } }, "sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ=="],
+
+    "@canutin/svelte-currency-input": ["@canutin/svelte-currency-input@0.13.0", "", { "optionalDependencies": { "@cloudflare/workerd-linux-64": "^1.20240909.0", "@rollup/rollup-linux-x64-gnu": "^4.21.3" } }, "sha512-L4ZM3yO4uFDUnTZCpc88t6Fc8tNYsHC03d+2qHAQEVmzdRqJMHaP+nZVWLqb3j8aEWZgJUyLvuDJEJ2VwnTriQ=="],
+
+    "@cloudflare/workerd-linux-64": ["@cloudflare/workerd-linux-64@1.20251104.0", "", { "os": "linux", "cpu": "x64" }, "sha512-IXPAAYqRGDIlv1k6eSE8vN4Q/aZYiAQ1bCqMBOmbLPFPHySIuEDGUe7xP+oDHz1jPcFElcOdulhL3PWIukxucQ=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@5.1.0", "", {}, "sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA=="],
 
