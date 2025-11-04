@@ -84,15 +84,8 @@ type RundownCategory = keyof typeof rundownCategoryEnum;
 // CORE SCHEMAS
 // =============================================================================
 
-export const weddingSchema = z.object({
-	groomName: createStringValidator('wedding', 'groom', {
-		required: true,
-		minLength: 2,
-		maxLength: 100,
-		transform: sanitizeText,
-	}),
-
-	brideName: createStringValidator('wedding', 'bride', {
+export const weddingFormSchema = z.object({
+	partnerName: createStringValidator('wedding', 'groom', {
 		required: true,
 		minLength: 2,
 		maxLength: 100,
@@ -109,6 +102,12 @@ export const weddingSchema = z.object({
 		minLength: 2,
 		maxLength: 100,
 		transform: sanitizeText,
+	}),
+
+	budget: createNumberValidator('wedding', 'budget', {
+		required: true,
+		min: 0.01,
+		max: 1_000_000_000,
 	}),
 });
 
