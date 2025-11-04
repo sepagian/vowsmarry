@@ -12,11 +12,12 @@ import {
 	weddings,
 } from '$lib/server/db/schema/planner';
 import { eq, count, sum, and } from 'drizzle-orm';
-import { expenseFormSchema } from '$lib/validation/index';
+import { expenseFormSchema, weddingFormSchema } from '$lib/validation/index';
 import type { ExpenseStatus } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 	const expenseForm = await superValidate(zod4(expenseFormSchema as any));
+	const weddingForm = await superValidate(zod4(weddingFormSchema as any));
 
 	const {
 		data: { user },
@@ -40,6 +41,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 				lastName: user.user_metadata?.last_name,
 			},
 			expenseForm,
+			weddingForm,
 			stats: {
 				taskCount: 0,
 				expensePaidAmount: '0',
@@ -92,6 +94,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 		},
 		weddings: wedding,
 		expenseForm,
+		weddingForm,
 		stats: {
 			taskCount,
 			expensePaidAmount,
@@ -103,6 +106,91 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 };
 
 export const actions: Actions = {
+	createWeddingData: async ({ request, locals: { supabase } }) => {
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		const form = await superValidate(request, zod4(weddingFormSchema as any));
+		if (!form.valid) return fail(400, { form });
+
+		const { partnerName, weddingDate, venue, budget } = form.data as any;
+
+		try {
+			// Check if wedding already exists for this user
+			const existingWedding = await plannerDb.query.weddings.findFirst({
+				where: eq(weddings.userId, user.id),
+			});
+
+			if (existingWedding) {
+				return fail(400, {
+					form,
+					error: 'Wedding data already exists. Please update instead.',
+				});
+			}
+
+			const [newWedding] = await plannerDb
+				.insert(weddings)
+				.values({
+					userId: user.id,
+					partnerName,
+					weddingDate,
+					venue,
+					budget,
+				})
+				.returning();
+
+			return { form, success: true, wedding: newWedding };
+		} catch (error) {
+			return fail(500, {
+				form,
+				error: 'Failed to create wedding data. Please try again.',
+			});
+		}
+	},
+
+	updateWeddingData: async ({ request, locals: { supabase } }) => {
+		const {
+			data: { user },
+		} = await supabase.auth.getUser();
+
+		if (!user) return fail(401, { error: 'Unauthorized' });
+
+		const wedding = await plannerDb.query.weddings.findFirst({
+			where: eq(weddings.userId, user.id),
+		});
+
+		if (!wedding) return fail(403, { error: 'No wedding data found' });
+
+		const form = await superValidate(request, zod4(weddingFormSchema as any));
+		if (!form.valid) return fail(400, { form });
+
+		const { partnerName, weddingDate, venue, budget } = form.data as any;
+
+		try {
+			const [updatedWedding] = await plannerDb
+				.update(weddings)
+				.set({
+					partnerName,
+					weddingDate,
+					venue,
+					budget,
+					updatedAt: new Date(),
+				})
+				.where(eq(weddings.id, wedding.id))
+				.returning();
+
+			return { form, success: true, wedding: updatedWedding };
+		} catch (error) {
+			return fail(500, {
+				form,
+				error: 'Failed to update wedding data. Please try again.',
+			});
+		}
+	},
+
 	createExpenseItem: async ({ request, locals: { supabase } }) => {
 		const {
 			data: { user },
