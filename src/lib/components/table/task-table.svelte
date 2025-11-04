@@ -28,7 +28,7 @@
 	import TaskTableActions from './task-table-actions.svelte';
 	import TaskTableDesc from './task-table-desc.svelte';
 	import TaskTablePriority from './task-table-priority.svelte';
-	import TaskTableDelete from './task-table-delete.svelte';
+	import TaskTableActionsGroup from './task-table-actions-group.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
@@ -108,6 +108,34 @@
 		}
 	}
 
+	async function updateTask(taskId: string, updatedData: any) {
+		try {
+			const formData = new FormData();
+			formData.append('id', taskId);
+			formData.append('description', updatedData.description);
+			formData.append('category', updatedData.category);
+			formData.append('priority', updatedData.priority);
+			formData.append('status', updatedData.status);
+			formData.append('date', updatedData.date);
+
+			const response = await fetch('?/update', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				await invalidateAll();
+			} else {
+				throw new Error(result.error || 'Failed to update task');
+			}
+		} catch (error) {
+			console.error('Update error:', error);
+			throw error;
+		}
+	}
+
 	const columns: ColumnDef<Task>[] = [
 		{
 			id: 'select',
@@ -142,6 +170,7 @@
 				}),
 		},
 		{
+			id: 'dueDate',
 			accessorKey: 'dueDate',
 			header: () => {
 				const dateHeaderSnippet = createRawSnippet(() => {
@@ -163,7 +192,7 @@
 				const dateValue = row.getValue('dueDate');
 				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
 					day: '2-digit',
-					month: 'long',
+					month: 'short',
 					year: 'numeric',
 				});
 
@@ -171,7 +200,7 @@
 			},
 		},
 		{
-			accessorKey: 'priority',
+			accessorKey: 'Priority',
 			header: () => {
 				const priorityHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -211,16 +240,17 @@
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-8">Actions</div>`,
+						render: () => `<div class="font-semibold">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
 			},
 			enableHiding: false,
 			cell: ({ row }) =>
-				renderComponent(TaskTableDelete, {
-					taskId: row.original.id,
-					taskDescription: row.original.description,
+				renderComponent(TaskTableActionsGroup, {
+					task: row.original,
+					data,
+					onUpdate: updateTask,
 					onDelete: deleteTask,
 				}),
 		},
@@ -333,7 +363,6 @@
 				<DropdownMenu.Content align="end">
 					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
 						<DropdownMenu.CheckboxItem
-							class="capitalize"
 							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
 						>
 							{column.id}
@@ -396,8 +425,7 @@
 	</div>
 	<div class="flex items-center justify-end space-x-2 pt-4">
 		<div class="text-muted-foreground flex-1 text-sm">
-			{table.getFilteredSelectedRowModel().rows.length} of
-			{table.getFilteredRowModel().rows.length} row(s) selected.
+			{table.getFilteredRowModel().rows.length} row(s) displayed.
 		</div>
 		<div class="space-x-2">
 			<Button
