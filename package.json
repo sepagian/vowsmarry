@@ -74,6 +74,7 @@
 		"@supabase/supabase-js": "^2.58.0",
 		"@unocss/reset": "^66.5.0",
 		"clsx": "^2.1.1",
+		"date-fns": "^4.1.0",
 		"dotenv": "^17.2.3",
 		"drizzle-orm": "^0.44.5",
 		"postgres": "^3.4.5",
