@@ -7,6 +7,7 @@
 	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { expensesStore } from '$lib/stores/expenses';
 	import { onMount } from 'svelte';
+	import { formatDistanceToNow } from 'date-fns';
 
 	const overviewTitle = 'Wedding Overview';
 
@@ -29,7 +30,7 @@
 				title: data.stats.taskCount.toString(),
 				description: 'Tasks',
 				action: 'Total',
-				footer: 'Updated just now',
+				footer: `Last updated ${formatDistanceToNow(new Date(data.update.taskUpdate), { addSuffix: true })}`,
 			},
 			{
 				title: parseFloat(data.stats.expensePaidAmount).toLocaleString('id-ID', {
@@ -40,7 +41,7 @@
 				}),
 				description: 'Budget Spent',
 				action: 'Total',
-				footer: 'Updated just now',
+				footer: `Last updated ${formatDistanceToNow(new Date(data.update.expenseUpdate), { addSuffix: true })}`,
 			},
 			{
 				title: data.stats.documentCount.toString(),
@@ -58,8 +59,8 @@
 	});
 </script>
 
-<div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
-	<div class="flex justify-between px-4 align-center">
+<div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
+	<div class="flex justify-between gap-2 px-4 align-center">
 		<div class="flex flex-col gap-2">
 			<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
 			<p class="text-muted-foreground">
