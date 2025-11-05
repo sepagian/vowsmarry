@@ -11,7 +11,7 @@ import {
 	vendors,
 	weddings,
 } from '$lib/server/db/schema/planner';
-import { eq, count, sum, and } from 'drizzle-orm';
+import { eq, count, sum, and, desc } from 'drizzle-orm';
 import { expenseFormSchema, weddingFormSchema } from '$lib/validation/index';
 import type { ExpenseStatus } from '$lib/types';
 
@@ -47,6 +47,10 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 				expensePaidAmount: '0',
 				documentCount: 0,
 				vendorCount: 0,
+			},
+			update: {
+				taskUpdate: new Date(),
+				expenseUpdate: new Date(),
 			},
 			expenses: [],
 		};
@@ -85,6 +89,24 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 		],
 	);
 
+	const [taskUpdate, expenseUpdate] = await Promise.all([
+		plannerDb
+			.select({ updatedAt: tasks.updatedAt })
+			.from(tasks)
+			.where(eq(tasks.weddingId, wedding.id))
+			.orderBy(desc(tasks.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+
+		plannerDb
+			.select({ updatedAt: expenseItems.updatedAt })
+			.from(expenseItems)
+			.where(eq(expenseItems.weddingId, wedding.id))
+			.orderBy(desc(expenseItems.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+	]);
+
 	return {
 		user: {
 			id: user.id,
@@ -100,6 +122,10 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			expensePaidAmount,
 			documentCount,
 			vendorCount,
+		},
+		update: {
+			taskUpdate,
+			expenseUpdate,
 		},
 		expenses: expenseList,
 	};
