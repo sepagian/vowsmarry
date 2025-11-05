@@ -6,7 +6,6 @@
 - [x] **1.3.** Update RLS (Row-Level Security) policies
 - [x] **1.4.** Refine schema: Add `weddings` table for wedding grouping, `expenses` table linked to budgets for detailed tracking
 
-
 ---
 
 ## 2. Push `db/schema` to Database
@@ -17,45 +16,43 @@
 ---
 
 ## 3. Complete Full CRUD Logic and Error Handling for Each Module
-- [ ] Implement full CRUD (create, read, update, delete) operations in each module's +page.server.ts (document, finance, rundown, task, vendor)
-- [ ] Add error handling for database operations, form submissions, and validation failures
-- [ ] Ensure data loading from Supabase using Drizzle ORM for read operations (load existing data)
-- [ ] Add proper error messages, toasts, and user feedback for all actions
+- [x] **Finance Module**: ✅ Fully implemented (create, read, update, delete) with expense tracking, categories, and budget calculations
+- [x] **Task Module**: ✅ Fully implemented (create, read, update, delete) with status management and priority tracking
+- [ ] **Vendor Module**: ❌ Not implemented - currently uses mock data, needs full CRUD with database operations
+- [ ] **Rundown Module**: ❌ Not implemented - currently uses mock data, needs full CRUD with timeline management
+- [ ] **Document Module**: ❌ Not implemented - currently uses mock data, needs full CRUD with file upload support
 
-### 3.1 Priority CRUD Implementation Tasks (from CRUD.MD analysis)
-- [ ] **Phase 2: Server Actions Implementation**
-  - [ ] Replace stubbed server actions with real database operations using Drizzle ORM
-  - [ ] Implement wedding-scoped data access with proper authorization (filter by weddingId)
-  - [ ] Add proper error handling and validation in all server actions
-  - [ ] Implement bulk operations support for efficiency
-  - [ ] Use transactions for multi-table operations
-  - [ ] Add cache invalidation after mutations
+### 3.1 Remaining CRUD Implementation Tasks
+- [ ] **Vendor Module Implementation**
+  - [ ] Implement full CRUD operations in `dashboard/vendor/+page.server.ts`
+  - [ ] Add wedding-scoped data access with proper authorization
+  - [ ] Connect vendor store to real database data instead of mock data
+  - [ ] Add vendor status management and contact tracking
 
-- [ ] **Phase 3: State Management Integration**
-  - [ ] Connect stores to server data instead of mock data (tasks, vendors, expenses, etc.)
-  - [ ] Implement optimistic updates for better UX
-  - [ ] Add cache invalidation after mutations
-  - [ ] Sync client and server state properly
-  - [ ] Replace mock data with real database data in all stores
+- [ ] **Rundown Module Implementation**
+  - [ ] Implement full CRUD operations in `dashboard/rundown/+page.server.ts`
+  - [ ] Add wedding-scoped data access with proper authorization
+  - [ ] Connect rundown store to real database data instead of mock data
+  - [ ] Implement drag-and-drop timeline functionality with database persistence
+
+- [ ] **Document Module Implementation**
+  - [ ] Implement full CRUD operations in `dashboard/document/+page.server.ts`
+  - [ ] Add wedding-scoped data access with proper authorization
+  - [ ] Connect document store to real database data instead of mock data
+  - [ ] Implement file upload to Cloudflare R2 with proper validation
+  - [ ] Add document categorization and metadata management
+
+- [ ] **Error Handling & UX Polish**
+  - [ ] Add comprehensive error handling for all database operations
+  - [ ] Implement proper form response handling with loading states
+  - [ ] Add success/error toasts for all CRUD operations
+  - [ ] Ensure optimistic updates and cache invalidation work properly
 
 - [ ] **Budget Module Integration**
   - [ ] Add budget calculation schemas to main validation index (src/lib/validation/index.ts)
   - [ ] Implement budget CRUD operations (create, read, update, delete)
   - [ ] Add budget UI components and forms
   - [ ] Connect budget data to expense tracking
-
-- [ ] **Form Response Handling**
-  - [ ] Implement proper form response handling in page components (+page.svelte)
-  - [ ] Add loading states during operations
-  - [ ] Handle success/error responses with appropriate toasts
-  - [ ] Add invalidateAll() calls after successful mutations
-
-- [ ] **Implementation Order by Module**
-  - [ ] Tasks Module (start here - simplest entity)
-  - [ ] Vendors Module (next - has relationships)
-  - [ ] Expenses Module (complex - has categories)
-  - [ ] Documents Module (special - file uploads)
-  - [ ] Other Modules (Rundowns, etc.)
 
 ---
 
@@ -94,10 +91,10 @@
 ---
 
 ## 8. Add `wedding-data-alert.svelte`
-- [ ] Display alert if `!wedding.data`
-- [ ] Include CTA button to `/setup`
-- [ ] Style with shadcn `Alert` component
-- [ ] Integrate visibility check into dashboard or main layout
+- [x] Display alert if `!wedding.data`
+- [x] Include CTA button to `/setup`
+- [x] Style with shadcn `Alert` component
+- [x] Integrate visibility check into dashboard or main layout
 
 ---
 
