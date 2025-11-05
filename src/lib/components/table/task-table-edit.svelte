@@ -108,7 +108,7 @@
 				e.preventDefault();
 				handleSubmit();
 			}}
-			class="flex flex-col gap-4 py-4"
+			class="flex flex-col gap-4"
 		>
 			<Dialog.Header>
 				<Dialog.Title>Edit Task</Dialog.Title>
