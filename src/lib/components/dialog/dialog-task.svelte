@@ -62,7 +62,7 @@
 		use:enhance
 		method="POST"
 		action="?/create"
-		class="flex flex-col gap-4 py-4"
+		class="flex flex-col gap-4"
 		onsubmit={() => {
 			wait(500).then(() => (open = false));
 		}}

@@ -125,7 +125,7 @@
 		use:enhance
 		method="POST"
 		enctype="multipart/form-data"
-		class="flex flex-col gap-2 py-4"
+		class="flex flex-col gap-2"
 	>
 		<Form.Field
 			{form}

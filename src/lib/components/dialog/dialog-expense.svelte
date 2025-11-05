@@ -52,7 +52,7 @@
 		method="POST"
 		use:enhance
 		action="?/createExpenseItem"
-		class="flex flex-col gap-4 py-4"
+		class="flex flex-col gap-4"
 	>
 		<Form.Field
 			{form}

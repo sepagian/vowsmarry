@@ -54,7 +54,7 @@
 		use:enhance
 		method="POST"
 		action={data.wedding ? '?/updateWeddingData' : '?/createWeddingData'}
-		class="flex flex-col gap-4 py-2"
+		class="flex flex-col gap-4"
 		onsubmit={() => {
 			wait(500).then(() => (open = false));
 		}}

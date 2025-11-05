@@ -63,7 +63,7 @@
 	<form
 		use:enhance
 		method="POST"
-		class="flex flex-col gap-4 py-4"
+		class="flex flex-col gap-4"
 	>
 		<Form.Field
 			{form}

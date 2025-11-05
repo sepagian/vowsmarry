@@ -47,7 +47,7 @@
 	<form
 		method="POST"
 		use:enhance
-		class="flex flex-col gap-4 py-4"
+		class="flex flex-col gap-4"
 	>
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-row items-start justify-between gap-2">
