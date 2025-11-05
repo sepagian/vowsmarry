@@ -10,7 +10,7 @@
 	}>();
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2 justify-center">
 	<TaskTableEdit
 		{task}
 		{data}
