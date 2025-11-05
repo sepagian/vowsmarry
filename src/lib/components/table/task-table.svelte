@@ -240,7 +240,7 @@
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold">Actions</div>`,
+						render: () => `<div class="font-semibold text-center">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
