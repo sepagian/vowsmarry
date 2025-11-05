@@ -5,7 +5,7 @@ import { zod4 } from 'sveltekit-superforms/adapters';
 import { taskFormSchema } from '$lib/validation/index';
 import { plannerDb } from '$lib/server/db';
 import { tasks, weddings } from '$lib/server/db/schema/planner';
-import { eq, count, and } from 'drizzle-orm';
+import { eq, count, and, desc } from 'drizzle-orm';
 import type { TaskStatus } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase } }) => {
@@ -32,6 +32,12 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 				pendingTasksCount: 0,
 				onProgressTasksCount: 0,
 				completedTasksCount: 0,
+			},
+			update: {
+				total: new Date(),
+				pending: new Date(),
+				onProgress: new Date(),
+				completed: new Date(),
 			},
 			tasks: [],
 		};
@@ -69,6 +75,40 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			}),
 		]);
 
+	const [total, pending, onProgress, completed] = await Promise.all([
+		plannerDb
+			.select({ updatedAt: tasks.updatedAt })
+			.from(tasks)
+			.where(eq(tasks.weddingId, wedding.id))
+			.orderBy(desc(tasks.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+
+		plannerDb
+			.select({ updatedAt: tasks.updatedAt })
+			.from(tasks)
+			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'pending')))
+			.orderBy(desc(tasks.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+
+		plannerDb
+			.select({ updatedAt: tasks.updatedAt })
+			.from(tasks)
+			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'on_progress')))
+			.orderBy(desc(tasks.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+
+		plannerDb
+			.select({ updatedAt: tasks.completedAt })
+			.from(tasks)
+			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'completed')))
+			.orderBy(desc(tasks.updatedAt))
+			.limit(1)
+			.then((result) => result[0]?.updatedAt || new Date()),
+	]);
+
 	return {
 		taskForm,
 		stats: {
@@ -76,6 +116,12 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			pendingTasksCount,
 			onProgressTasksCount,
 			completedTasksCount,
+		},
+		update: {
+			total,
+			pending,
+			onProgress,
+			completed,
 		},
 		tasks: tasksList,
 	};
