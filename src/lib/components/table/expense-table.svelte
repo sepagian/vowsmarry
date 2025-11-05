@@ -26,13 +26,14 @@
 		renderComponent,
 		renderSnippet,
 	} from '$lib/components/ui/data-table/index.js';
-	import DialogExpense from '../dialog/dialog-expense.svelte';
+	import DialogExpense from '$lib/components/dialog/dialog-expense.svelte';
+	import ExpenseTableActionsGroup from './expense-table-actions-group.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
 	import type { Expense } from '$lib/types';
 	import { invalidateAll } from '$app/navigation';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 
-	let { data } = $props();
+	let { data, allowAdd } = $props();
 
 	async function updatePaymentStatus(
 		expenseId: string,
@@ -79,6 +80,18 @@
 		} catch (error) {
 			CrudToasts.error('update', 'Network error occurred', 'expense');
 		}
+	}
+
+	async function updateExpense(expenseId: string, updatedData: any) {
+		// This function is passed to the actions group component
+		// The actual update is handled by the form submission in the dialog
+		await invalidateAll();
+	}
+
+	async function deleteExpense(expenseId: string) {
+		// This function is passed to the actions group component
+		// The actual delete is handled by the delete dialog in the actions group
+		await invalidateAll();
 	}
 
 	const columns: ColumnDef<Expense>[] = [
@@ -177,6 +190,25 @@
 					onChange: async (newPaymentStatus: Expense['paymentStatus']) => {
 						await updatePaymentStatus(row.original.id, newPaymentStatus);
 					},
+				}),
+		},
+		{
+			id: 'actions',
+			header: () => {
+				const actionsHeaderSnippet = createRawSnippet(() => {
+					return {
+						render: () => `<div class="font-semibold text-center">Actions</div>`,
+					};
+				});
+				return renderSnippet(actionsHeaderSnippet, '');
+			},
+			enableHiding: false,
+			cell: ({ row }) =>
+				renderComponent(ExpenseTableActionsGroup, {
+					expense: row.original,
+					data,
+					onUpdate: updateExpense,
+					onDelete: deleteExpense,
 				}),
 		},
 	];
@@ -294,13 +326,15 @@
 					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
-			<Dialog.Root>
-				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
-					<div class="i-lucide:plus p-2"></div>
-					<span class="hidden lg:inline">Add Expense</span>
-				</Dialog.Trigger>
-				<DialogExpense {data} />
-			</Dialog.Root>
+			{#if allowAdd}
+				<Dialog.Root>
+					<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
+						<div class="i-lucide:plus p-2"></div>
+						<span class="hidden lg:inline">Add Expense</span>
+					</Dialog.Trigger>
+					<DialogExpense {data} />
+				</Dialog.Root>
+			{:else}{/if}
 		</ButtonGroup.Root>
 	</div>
 	<div class="rounded-md border">
