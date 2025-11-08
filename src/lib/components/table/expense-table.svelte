@@ -30,7 +30,7 @@
 	import ExpenseTableActionsGroup from './expense-table-actions-group.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
 	import type { Expense } from '$lib/types';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data, allowAdd } = $props();
@@ -63,7 +63,8 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'expense');
-				await invalidateAll();
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
 			} else {
 				// Revert optimistic update on error
 				if (originalExpense) {
@@ -85,13 +86,15 @@
 	async function updateExpense(expenseId: string, updatedData: any) {
 		// This function is passed to the actions group component
 		// The actual update is handled by the form submission in the dialog
-		await invalidateAll();
+		await invalidate('expense:list');
+		await invalidate('dashboard:data');
 	}
 
 	async function deleteExpense(expenseId: string) {
 		// This function is passed to the actions group component
 		// The actual delete is handled by the delete dialog in the actions group
-		await invalidateAll();
+		await invalidate('expense:list');
+		await invalidate('dashboard:data');
 	}
 
 	const columns: ColumnDef<Expense>[] = [
