@@ -5,15 +5,15 @@
 	import SectionSavings from '$lib/components/section/section-savings.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
 	import ExpenseCategories from '$lib/components/chart/expense-categories.svelte';
-	import { onMount } from 'svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
 	import { expensesStore } from '$lib/stores/expenses';
 
 	let { data } = $props();
 
-	onMount(() => {
-		if (data.expenses && data.expenses.length > 0) {
+	// Update store whenever data changes (including after invalidation)
+	$effect(() => {
+		if (data.expenses) {
 			expensesStore.set(data.expenses);
 		}
 	});
@@ -30,7 +30,9 @@
 				description: 'Planned Budget',
 				actionClass: 'i-lucide:wallet',
 				actionColor: 'bg-green-500 text-white',
-				footer: `Last updated ${formatDistanceToNow(new Date(data.update.plannedBudgetUpdate), { addSuffix: true })}`,
+				footer: data.update.planned
+					? `Last updated ${formatDistanceToNow(new Date(data.update.planned), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
 				title: parseFloat(data.stats.totalSavings).toLocaleString('id-ID', {
@@ -54,7 +56,9 @@
 				description: 'Expenses',
 				actionClass: 'i-lucide:receipt-text',
 				actionColor: 'bg-yellow-500 text-white',
-				footer: `Last updated ${formatDistanceToNow(new Date(data.update.budgetSpentUpdate), { addSuffix: true })}`,
+				footer: data.update.spent
+					? `Last updated ${formatDistanceToNow(new Date(data.update.spent), { addSuffix: true })}`
+					: 'No data yet',
 			},
 
 			{
@@ -67,7 +71,9 @@
 				description: 'Remaining Balance',
 				actionClass: 'i-lucide:chart-area',
 				actionColor: 'bg-blue-500 text-white',
-				footer: `Last updated ${formatDistanceToNow(new Date(data.update.budgetSpentUpdate), { addSuffix: true })}`,
+				footer: data.update.spent
+					? `Last updated ${formatDistanceToNow(new Date(data.update.spent), { addSuffix: true })}`
+					: 'No data yet',
 			},
 		];
 	});
