@@ -259,14 +259,12 @@ export const rundowns = pgTable(
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
 		rundownName: varchar('rundown_name', { length: 200 }).notNull(),
-		rundownType: rundownTypeEnum('rundown_type'), // ceremony, reception, party, etc.
+		rundownType: rundownTypeEnum('rundown_type').notNull(), // ceremony, reception, party, etc.
 		startTime: time('start_time').notNull(),
 		endTime: time('end_time').notNull(),
-		location: varchar('location', { length: 255 }),
-		venue: varchar('venue', { length: 255 }),
-		attendees: varchar('attendees', { length: 255 }),
-		assignedTo: jsonb('assigned_to'), // array of person names/roles
-		vendorIds: jsonb('vendor_ids'), // array of vendor UUIDs
+		location: varchar('location', { length: 255 }).notNull(),
+		venue: varchar('venue', { length: 255 }).notNull(),
+		attendees: varchar('attendees', { length: 255 }).notNull(),
 		isPublic: boolean('is_public').default(false).notNull(), // visible to guests
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull(),
