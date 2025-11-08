@@ -13,6 +13,7 @@
 		taskPriorityEnum,
 		taskStatusEnum,
 	} from '$lib/validation/index';
+	import { invalidate } from '$app/navigation';
 
 	let { data, open = $bindable() } = $props();
 
@@ -22,11 +23,13 @@
 
 	const form = superForm(data.taskForm, {
 		validators: zod4(taskFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful task creation
 				const taskName = f.data.description || 'Task';
 				CrudToasts.success('create', 'task', { itemName: taskName });
+				// Invalidate to refetch all task data including stats
+				await invalidate('task:list');
 			} else {
 				FormToasts.emptyFormError();
 			}
