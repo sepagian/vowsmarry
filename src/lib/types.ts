@@ -118,13 +118,17 @@ export type VendorRating = '1' | '2' | '3' | '4' | '5';
 //Rundowns
 export type Rundown = {
 	id: string;
-	title: string;
-	description?: string;
-	category: RundownCategory;
+	weddingId: string;
+	rundownName: string;
+	rundownType: RundownCategory;
 	startTime: string;
 	endTime: string;
-	location?: string;
-	attendees?: string;
+	location: string;
+	venue: string;
+	attendees: string;
+	isPublic: boolean;
+	createdAt: Date;
+	updatedAt: Date;
 };
 
 export type RundownCategory =
@@ -136,7 +140,8 @@ export type RundownCategory =
 	| 'photo-video'
 	| 'paperwork'
 	| 'closing'
-	| 'miscellaneous';
+	| 'miscellaneous'
+	| 'other';
 
 // Simple Task for overview
 export type SimpleTask = {
