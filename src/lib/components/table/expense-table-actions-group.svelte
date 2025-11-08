@@ -11,7 +11,7 @@
 	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { expensesStore } from '$lib/stores/expenses';
 
 	let { expense, data, onUpdate, onDelete } = $props<{
@@ -31,7 +31,8 @@
 			if (f.valid) {
 				editDialogOpen = false;
 				CrudToasts.success('update', 'expense');
-				await invalidateAll();
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -70,7 +71,8 @@
 			if (result.type === 'success') {
 				expensesStore.update((expenses) => expenses.filter((e) => e.id !== expense.id));
 				CrudToasts.success('delete', 'expense');
-				await invalidateAll();
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
 				deleteDialogOpen = false;
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete expense', 'expense');
