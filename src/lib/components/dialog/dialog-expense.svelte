@@ -8,16 +8,20 @@
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
+	import { invalidate } from '$app/navigation';
 
 	let { data } = $props();
 
 	const form = superForm(data.expenseForm, {
 		validators: zod4(expenseFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful expense creation
 				const expenseDescription = f.data.description || 'Expense';
 				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
+				// Invalidate to refetch all expense data including stats
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
 			} else {
 				FormToasts.emptyFormError();
 			}
