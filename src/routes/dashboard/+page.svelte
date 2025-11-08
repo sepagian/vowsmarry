@@ -6,7 +6,6 @@
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { expensesStore } from '$lib/stores/expenses';
-	import { onMount } from 'svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
 	const overviewTitle = 'Wedding Overview';
@@ -18,8 +17,8 @@
 		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
 		: null;
 
-	onMount(() => {
-		if (data.expenses && data.expenses.length > 0) {
+	$effect(() => {
+		if (data.expenses) {
 			expensesStore.set(data.expenses);
 		}
 	});
@@ -30,7 +29,9 @@
 				title: data.stats.taskCount.toString(),
 				description: 'Tasks',
 				action: 'Total',
-				footer: `Last updated ${formatDistanceToNow(new Date(data.update.taskUpdate), { addSuffix: true })}`,
+				footer: data.update.taskUpdate
+					? `Last updated ${formatDistanceToNow(new Date(data.update.taskUpdate), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
 				title: parseFloat(data.stats.expensePaidAmount).toLocaleString('id-ID', {
@@ -41,19 +42,25 @@
 				}),
 				description: 'Budget Spent',
 				action: 'Total',
-				footer: `Last updated ${formatDistanceToNow(new Date(data.update.expenseUpdate), { addSuffix: true })}`,
+				footer: data.update.expenseUpdate
+					? `Last updated ${formatDistanceToNow(new Date(data.update.expenseUpdate), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
 				title: data.stats.documentCount.toString(),
 				description: 'Documents',
 				action: 'Total',
-				footer: 'Updated just now',
+				footer: data.update.documentUpdate
+					? `Last updated ${formatDistanceToNow(new Date(data.update.documentUpdate), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
 				title: data.stats.vendorCount.toString(),
 				description: 'Vendors',
 				action: 'Total',
-				footer: 'Updated just now',
+				footer: data.update.vendorUpdate
+					? `Last updated ${formatDistanceToNow(new Date(data.update.vendorUpdate), { addSuffix: true })}`
+					: 'No data yet',
 			},
 		];
 	});
