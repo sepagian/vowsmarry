@@ -1,57 +1,57 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
-	import SectionRundown from '$lib/components/section/section-rundown.svelte';
 	import TimelineDnd from '$lib/components/dnd/timeline-dnd.svelte';
 	import { rundownsStore } from '$lib/stores/rundowns';
 
 	let { data } = $props();
 
-	let items = $rundownsStore.map((rundown) => ({
-		id: rundown.id,
-		title: rundown.title,
-		description: rundown.description || '',
-		category: rundown.category,
-		startTime: rundown.startTime,
-		endTime: rundown.endTime,
-		attendees: rundown.attendees,
-		location: rundown.location,
-	}));
+	$effect(() => {
+		if (data.rundowns) {
+			rundownsStore.set(data.rundowns);
+		}
+	});
+
+	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
+	const daysUntilWedding = weddingDate
+		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
+		: null;
+
+	let items = $derived($rundownsStore);
 
 	let overviewCards = $derived(() => {
-		const rundowns = $rundownsStore;
-		const totalEvents = rundowns.length;
-		const preparationEvents = rundowns.filter((r) => r.category === 'preparation').length;
-		const ceremonyEvents = rundowns.filter((r) => r.category === 'ceremony').length;
-		const receptionEvents = rundowns.filter((r) => r.category === 'reception').length;
+		const nextEventTitle = data.stats.nextEvent ? data.stats.nextEvent.startTime : 'No events';
+		const nextEventFooter = data.stats.nextEvent
+			? data.stats.nextEvent.name
+			: 'All events completed';
 
 		return [
 			{
-				title: totalEvents.toString(),
-				description: 'Total Events',
+				title: `${daysUntilWedding === 0 ? 'Today' : daysUntilWedding} days to go`,
+				description: 'Days Until Wedding',
 				actionClass: 'i-lucide:calendar',
 				actionColor: 'bg-blue-500 text-white',
-				footer: 'Scheduled events',
+				footer: 'Until your big day',
 			},
 			{
-				title: preparationEvents.toString(),
-				description: 'Preparation',
+				title: data.stats.completedEvents.toString(),
+				description: 'Completed Events',
 				actionClass: 'i-lucide:sparkles',
 				actionColor: 'bg-purple-500 text-white',
-				footer: 'Prep activities',
+				footer: 'Events finished',
 			},
 			{
-				title: ceremonyEvents.toString(),
-				description: 'Ceremony',
-				actionClass: 'i-lucide:heart',
+				title: nextEventTitle,
+				description: 'Upcoming Events',
+				actionClass: 'i-lucide:clock',
 				actionColor: 'bg-pink-500 text-white',
-				footer: 'Ceremony events',
+				footer: nextEventFooter,
 			},
 			{
-				title: receptionEvents.toString(),
-				description: 'Reception',
-				actionClass: 'i-lucide:utensils',
+				title: data.stats.remainingEvents.toString(),
+				description: 'Remaining Events',
+				actionClass: 'i-lucide:list-checks',
 				actionColor: 'bg-green-500 text-white',
-				footer: 'Reception activities',
+				footer: 'Still to complete',
 			},
 		];
 	});
@@ -64,7 +64,6 @@
 		{overviewCards}
 		{overviewTitle}
 	/>
-	<SectionRundown />
 	<TimelineDnd
 		{items}
 		{data}
