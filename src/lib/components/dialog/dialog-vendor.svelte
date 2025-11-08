@@ -13,16 +13,23 @@
 		vendorStatusEnum,
 		vendorRatingEnum,
 	} from '$lib/validation/index';
+	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.vendorForm, {
 		validators: zod4(vendorFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful vendor creation
 				const vendorName = f.data.name || 'Vendor';
 				CrudToasts.success('create', 'vendor', { itemName: vendorName });
+				// Invalidate to refetch all vendor data including stats
+				await invalidate('vendor:list');
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -63,7 +70,11 @@
 	<form
 		use:enhance
 		method="POST"
+		action="?/createVendor"
 		class="flex flex-col gap-4"
+		onsubmit={() => {
+			wait(500).then(() => (open = false));
+		}}
 	>
 		<Form.Field
 			{form}
@@ -134,24 +145,6 @@
 		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="price"
-				class="flex flex-col w-full"
-			>
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Price</Form.Label>
-						<Input
-							{...props}
-							type="number"
-							inputmode="decimal"
-							bind:value={$formData.price}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
-			</Form.Field>
-			<Form.Field
-				{form}
 				name="status"
 				class="flex flex-col w-full"
 			>
@@ -181,8 +174,6 @@
 				</Form.Control>
 				<Form.FieldErrors class="text-xs" />
 			</Form.Field>
-		</div>
-		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
 				name="rating"
