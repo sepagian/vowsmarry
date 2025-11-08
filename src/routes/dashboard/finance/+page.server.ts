@@ -13,7 +13,8 @@ import {
 import { eq, and, sum, desc } from 'drizzle-orm';
 import type { ExpenseStatus } from '$lib/types';
 
-export const load: PageServerLoad = async ({ locals: { supabase } }) => {
+export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+	depends('expense:list');
 	const expenseForm = await superValidate(zod4(expenseFormSchema as any));
 
 	const {
@@ -40,8 +41,8 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 				savingProgress: 0,
 			},
 			update: {
-				plannedBudgetUpdate: new Date(),
-				budgetSpentUpdate: new Date(),
+				planned: null,
+				spent: null,
 			},
 			tasks: [],
 		};
@@ -67,14 +68,14 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			.then((result) => result[0]?.total ?? '0'),
 	]);
 
-	const [plannedBudgetUpdate, budgetSpentUpdate] = await Promise.all([
+	const [planned, spent] = await Promise.all([
 		plannerDb
 			.select({ updatedAt: weddings.updatedAt })
 			.from(weddings)
 			.where(eq(weddings.id, wedding.id))
 			.orderBy(desc(weddings.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.updatedAt || null),
 
 		plannerDb
 			.select({ updatedAt: expenseItems.updatedAt })
@@ -82,7 +83,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			.where(eq(expenseItems.weddingId, wedding.id))
 			.orderBy(desc(expenseItems.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.updatedAt || null),
 	]);
 
 	const budgetRemaining = (parseFloat(plannedBudget) - parseFloat(budgetSpent)).toString();
@@ -104,8 +105,8 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			savingProgress,
 		},
 		update: {
-			plannedBudgetUpdate,
-			budgetSpentUpdate,
+			planned,
+			spent,
 		},
 		expenses,
 	};
