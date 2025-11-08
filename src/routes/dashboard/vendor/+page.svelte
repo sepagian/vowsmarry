@@ -3,46 +3,55 @@
 	import SectionVendor from '$lib/components/section/section-vendor.svelte';
 
 	import { vendorsStore } from '$lib/stores/vendors';
+	import { formatDistanceToNow } from 'date-fns';
 
-	let { data } = $props();
 	const overviewTitle = 'Vendors Overview';
+	let { data } = $props();
 
-	// Reactive overviewCards based on the store
+	// Update store whenever data changes (including after invalidation)
+	$effect(() => {
+		if (data.vendors) {
+			vendorsStore.set(data.vendors);
+		}
+	});
+
 	let overviewCards = $derived(() => {
-		const vendors = $vendorsStore;
-		const researching = vendors.filter((vendor) => vendor.vendorStatus === 'researching').length;
-		const contacted = vendors.filter((vendor) => vendor.vendorStatus === 'contacted').length;
-		const quoted = vendors.filter((vendor) => vendor.vendorStatus === 'quoted').length;
-		const booked = vendors.filter((vendor) => vendor.vendorStatus === 'booked').length;
-
 		return [
 			{
-				title: researching.toString(),
+				title: data.stats.researchingCount.toString(),
 				description: 'Researching',
 				actionClass: 'i-lucide:search',
 				actionColor: 'bg-gray-500 text-white',
-				footer: 'Updated just now',
+				footer: data.update.researching 
+					? `Last updated ${formatDistanceToNow(new Date(data.update.researching), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: contacted.toString(),
+				title: data.stats.contactedCount.toString(),
 				description: 'Contacted',
 				actionClass: 'i-lucide:phone',
 				actionColor: 'bg-yellow-500 text-white',
-				footer: 'Updated just now',
+				footer: data.update.contacted
+					? `Last updated ${formatDistanceToNow(new Date(data.update.contacted), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: quoted.toString(),
+				title: data.stats.quotedCount.toString(),
 				description: 'Quoted',
 				actionClass: 'i-lucide:message-square-quote',
 				actionColor: 'bg-blue-500 text-white',
-				footer: 'Updated just now',
+				footer: data.update.quoted
+					? `Last updated ${formatDistanceToNow(new Date(data.update.quoted), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: booked.toString(),
+				title: data.stats.bookedCount.toString(),
 				description: 'Booked',
 				actionClass: 'i-lucide:book-check',
 				actionColor: 'bg-green-500 text-white',
-				footer: 'Updated just now',
+				footer: data.update.booked
+					? `Last updated ${formatDistanceToNow(new Date(data.update.booked), { addSuffix: true })}`
+					: 'No data yet',
 			},
 		];
 	});
@@ -54,5 +63,4 @@
 		{overviewTitle}
 	/>
 	<SectionVendor {data} />
-
 </div>
