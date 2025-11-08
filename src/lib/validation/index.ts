@@ -329,20 +329,6 @@ export const vendorFormSchema = z.object({
 			getErrorMessage('vendor', 'website', 'format'),
 		),
 
-	price: createNumberValidator('vendor', 'price', {
-		required: true,
-		min: 0.01,
-		max: 1_000_000_000,
-		coerce: true,
-	}),
-
-	totalCost: createNumberValidator('vendor', 'total_cost', {
-		required: true,
-		min: 0.01,
-		max: 1_000_000_000,
-		coerce: true,
-	}),
-
 	rating: createEnumValidator(
 		'vendor',
 		'rating',
@@ -354,13 +340,6 @@ export const vendorFormSchema = z.object({
 		'status',
 		Object.keys(vendorStatusEnum) as [VendorStatus, ...VendorStatus[]],
 	).default('researching'),
-
-	notes: createStringValidator('vendor', 'notes', {
-		maxLength: 1000,
-		transform: sanitizeHtml,
-	})
-		.optional()
-		.or(z.literal('')),
 });
 
 // =============================================================================
