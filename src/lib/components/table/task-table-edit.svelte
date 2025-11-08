@@ -7,7 +7,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 
 	import {
 		taskFormSchema,
@@ -61,7 +61,8 @@
 			CrudToasts.success('update', 'task', { itemName: taskName });
 			await wait(500);
 			dialogOpen = false;
-			await invalidateAll();
+			await invalidate('task:list');
+			await invalidate('dashboard:data');
 		} catch (error) {
 			CrudToasts.error('update', 'An error occurred while updating the task', 'task');
 		} finally {
