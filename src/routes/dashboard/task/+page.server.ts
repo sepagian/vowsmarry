@@ -6,9 +6,10 @@ import { taskFormSchema } from '$lib/validation/index';
 import { plannerDb } from '$lib/server/db';
 import { tasks, weddings } from '$lib/server/db/schema/planner';
 import { eq, count, and, desc } from 'drizzle-orm';
-import type { TaskStatus } from '$lib/types';
+import type { TaskStatus, Category, TaskPriority } from '$lib/types';
 
-export const load: PageServerLoad = async ({ locals: { supabase } }) => {
+export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+	depends('task:list');
 	const taskForm = await superValidate(zod4(taskFormSchema as any));
 
 	const {
@@ -34,10 +35,10 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 				completedTasksCount: 0,
 			},
 			update: {
-				total: new Date(),
-				pending: new Date(),
-				onProgress: new Date(),
-				completed: new Date(),
+				total: null,
+				pending: null,
+				onProgress: null,
+				completed: null,
 			},
 			tasks: [],
 		};
@@ -82,7 +83,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			.where(eq(tasks.weddingId, wedding.id))
 			.orderBy(desc(tasks.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
 			.select({ updatedAt: tasks.updatedAt })
@@ -90,7 +91,7 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'pending')))
 			.orderBy(desc(tasks.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
 			.select({ updatedAt: tasks.updatedAt })
@@ -98,19 +99,20 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'on_progress')))
 			.orderBy(desc(tasks.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
-			.select({ updatedAt: tasks.completedAt })
+			.select({ completedAt: tasks.completedAt })
 			.from(tasks)
 			.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'completed')))
 			.orderBy(desc(tasks.updatedAt))
 			.limit(1)
-			.then((result) => result[0]?.updatedAt || new Date()),
+			.then((result) => result[0]?.completedAt ?? null),
 	]);
 
 	return {
 		taskForm,
+		tasks: tasksList,
 		stats: {
 			tasksCount,
 			pendingTasksCount,
@@ -123,7 +125,6 @@ export const load: PageServerLoad = async ({ locals: { supabase } }) => {
 			onProgress,
 			completed,
 		},
-		tasks: tasksList,
 	};
 };
 
@@ -227,8 +228,8 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const taskId = data.get('id') as string;
 		const description = data.get('description') as string;
-		const category = data.get('category');
-		const priority = data.get('priority');
+		const category = data.get('category') as Category;
+		const priority = data.get('priority') as TaskPriority;
 		const status = data.get('status') as TaskStatus;
 		const date = data.get('date') as string;
 
@@ -237,8 +238,8 @@ export const actions: Actions = {
 				.update(tasks)
 				.set({
 					description,
-					category: category as any,
-					priority: priority as any,
+					category: category as Category,
+					priority: priority as TaskPriority,
 					status,
 					dueDate: date,
 					completedAt: status === 'completed' ? new Date() : null,
