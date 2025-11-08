@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import * as Form from '$lib/components/ui/form/index';
-	import { cn, type WithElementRef } from '$lib/utils/utils';
+	import { cn } from '$lib/utils/utils';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import CurrencyInput from '@canutin/svelte-currency-input';
@@ -10,7 +10,7 @@
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { weddingFormSchema } from '$lib/validation/index';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 
 	let { data, open = $bindable() } = $props();
 
@@ -25,7 +25,7 @@
 				const action = data.wedding ? 'update' : 'create';
 				CrudToasts.success(action, 'wedding');
 				// Reload page data to get updated wedding info
-				await invalidateAll();
+				await invalidate('dashboard:data');
 			} else {
 				FormToasts.emptyFormError();
 			}
