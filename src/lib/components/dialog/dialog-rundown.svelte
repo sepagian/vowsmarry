@@ -9,16 +9,23 @@
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { scheduleEventFormSchema, rundownCategoryEnum } from '$lib/validation/index';
+	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.scheduleForm, {
 		validators: zod4(scheduleEventFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful rundown item creation
 				const eventTitle = f.data.title || 'Rundown item';
 				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
+				// Invalidate to refetch the rundown list
+				await invalidate('rundown:list');
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -47,7 +54,11 @@
 	<form
 		method="POST"
 		use:enhance
+		action="?/createRundown"
 		class="flex flex-col gap-4"
+		onsubmit={() => {
+			wait(500).then(() => (open = false));
+		}}
 	>
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-row items-start justify-between gap-2">
