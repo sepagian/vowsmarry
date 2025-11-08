@@ -32,7 +32,7 @@
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidate } from '$app/navigation';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data } = $props();
@@ -64,7 +64,8 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'task');
-				await invalidateAll();
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
 			} else {
 				// Revert optimistic update on error
 				if (originalTask) {
@@ -98,7 +99,8 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'task');
-				await invalidateAll();
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete task', 'task');
 			}
@@ -126,7 +128,8 @@
 			const result = await response.json();
 
 			if (result.type === 'success') {
-				await invalidateAll();
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
 			} else {
 				throw new Error(result.error || 'Failed to update task');
 			}
