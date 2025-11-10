@@ -262,14 +262,14 @@ export const actions: Actions = {
 				.returning();
 
 			if (updatedVendor.length === 0) {
-				return fail(404, { error: 'Task not found' });
+				return fail(404, { error: 'Vendor not found' });
 			}
 
 			return { success: true, vendor: updatedVendor[0] };
 		} catch (error) {
 			console.error('Status update error:', error);
 			return fail(500, {
-				error: 'Failed to update task status.',
+				error: 'Failed to update vendor status.',
 			});
 		}
 	},

@@ -22,7 +22,7 @@
 				description: 'Researching',
 				actionClass: 'i-lucide:search',
 				actionColor: 'bg-gray-500 text-white',
-				footer: data.update.researching 
+				footer: data.update.researching
 					? `Last updated ${formatDistanceToNow(new Date(data.update.researching), { addSuffix: true })}`
 					: 'No data yet',
 			},
