@@ -99,8 +99,6 @@ export const docTypeOptions: Option<DocType>[] = [
 	{ value: 'vendor_finance', label: 'Vendor & Finance', icon: 'i-lucide:scroll-text' },
 	{ value: 'guest_ceremony', label: 'Guest & Ceremony', icon: 'i-lucide:book-open-check' },
 	{ value: 'personal_keepsake', label: 'Personal & Keepsake', icon: 'i-lucide:heart' },
-	{ value: 'miscellaneous', label: 'Miscellaneous', icon: 'i-lucide:more-horizontal' },
-	{ value: 'other', label: 'Other', icon: 'i-lucide:more-horizontal' },
 ];
 
 // --- Expense Status ---
@@ -143,7 +141,7 @@ export const vendorStatusOptions: Option<VendorStatus>[] = [
 ];
 
 // --- Rundown Categories ---
-export const rundownCategoryOptions: Option<Rundown['category']>[] = [
+export const rundownCategoryOptions: Option<Rundown['rundownType']>[] = [
 	{
 		value: 'preparation',
 		label: 'Preparation',
