@@ -15,9 +15,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7) // 7 days from now
+				date: getISODate(7), // 7 days from now
 			};
-			
+
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
 		});
 
@@ -27,9 +27,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 
@@ -39,9 +39,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 
@@ -51,9 +51,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 
@@ -63,9 +63,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			const result = taskFormSchema.parse(inputData);
 			expect(result.description).toBe('Book wedding venue');
 		});
@@ -78,9 +78,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7) // 7 days from now
+				date: getISODate(7), // 7 days from now
 			};
-			
+
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
 		});
 
@@ -90,9 +90,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(0) // Today
+				date: getISODate(0), // Today
 			};
-			
+
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
 		});
 
@@ -102,10 +102,12 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(-1) // Yesterday
+				date: getISODate(-1), // Yesterday
 			};
-			
-			expect(() => taskFormSchema.parse(invalidData)).toThrow('Please select a future date for the task due date');
+
+			expect(() => taskFormSchema.parse(invalidData)).toThrow(
+				'Please select a future date for the task due date',
+			);
 		});
 
 		it('should handle ISO date strings', () => {
@@ -115,9 +117,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: tomorrow.toISOString().split('T')[0] // ISO date string (YYYY-MM-DD)
+				date: tomorrow.toISOString().split('T')[0], // ISO date string (YYYY-MM-DD)
 			};
-			
+
 			const result = taskFormSchema.parse(validData);
 			expect(result.date).toBe(tomorrow.toISOString().split('T')[0]);
 		});
@@ -130,25 +132,25 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'high',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			const validDataMedium = {
 				description: 'Call venue',
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			const validDataLow = {
 				description: 'Check venue',
 				category: 'venue',
 				priority: 'low',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(validDataHigh)).not.toThrow();
 			expect(() => taskFormSchema.parse(validDataMedium)).not.toThrow();
 			expect(() => taskFormSchema.parse(validDataLow)).not.toThrow();
@@ -158,10 +160,10 @@ describe('Enhanced Task Schema', () => {
 	describe('Required Fields Validation', () => {
 		it('should require all mandatory fields', () => {
 			const incompleteData = {
-				description: 'Complete wedding venue booking'
+				description: 'Complete wedding venue booking',
 				// Missing category, priority, status, date
 			};
-			
+
 			expect(() => taskFormSchema.parse(incompleteData)).toThrow();
 		});
 
@@ -171,9 +173,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'invalid-category',
 				priority: 'invalid-priority',
 				status: 'invalid-status',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 	});
@@ -185,9 +187,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 
@@ -197,9 +199,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(invalidData)).toThrow();
 		});
 
@@ -209,9 +211,9 @@ describe('Enhanced Task Schema', () => {
 				category: 'venue',
 				priority: 'medium',
 				status: 'pending',
-				date: getISODate(7)
+				date: getISODate(7),
 			};
-			
+
 			expect(() => taskFormSchema.parse(validData)).not.toThrow();
 		});
 	});

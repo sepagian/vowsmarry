@@ -205,4 +205,3 @@ export const sanitizeByType = (input: string, type: keyof typeof sanitizationCon
 	const sanitizer = sanitizationConfig[type];
 	return sanitizer ? sanitizer(input) : sanitizeGeneral(input);
 };
-

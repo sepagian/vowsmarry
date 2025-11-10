@@ -10,15 +10,15 @@ describe('Enhanced Vendor Schema', () => {
 			email: 'contact@photographer.com',
 			phone: '+1234567890',
 			website: 'https://photographer.com',
-			price: 2500.50,
+			price: 2500.5,
 			rating: '5',
 			status: 'contacted',
-			notes: 'Great portfolio, responsive communication'
+			notes: 'Great portfolio, responsive communication',
 		};
 
 		const result = vendorFormSchema.safeParse(validData);
 		expect(result.success).toBe(true);
-		
+
 		if (result.success) {
 			expect(result.data.name).toBe('Amazing Wedding Photographer');
 			expect(result.data.instagram).toBe('@photographer123');
@@ -33,12 +33,12 @@ describe('Enhanced Vendor Schema', () => {
 			instagram: 'minimal_vendor',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(minimalData);
 		expect(result.success).toBe(true);
-		
+
 		if (result.success) {
 			expect(result.data.instagram).toBe('@minimal_vendor'); // Should add @ prefix
 		}
@@ -51,14 +51,14 @@ describe('Enhanced Vendor Schema', () => {
 			instagram: 'test',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const nameError = result.error.issues.find(e => e.path.includes('name'));
+			const nameError = result.error.issues.find((e) => e.path.includes('name'));
 			expect(nameError?.message).toContain('at least 2 characters');
 		}
 	});
@@ -71,14 +71,14 @@ describe('Enhanced Vendor Schema', () => {
 			email: 'invalid-email',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const emailError = result.error.issues.find(e => e.path.includes('email'));
+			const emailError = result.error.issues.find((e) => e.path.includes('email'));
 			expect(emailError?.message).toContain('valid email address');
 		}
 	});
@@ -91,14 +91,14 @@ describe('Enhanced Vendor Schema', () => {
 			phone: 'abc123',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const phoneError = result.error.issues.find(e => e.path.includes('phone'));
+			const phoneError = result.error.issues.find((e) => e.path.includes('phone'));
 			expect(phoneError?.message).toContain('valid phone number');
 		}
 	});
@@ -111,14 +111,14 @@ describe('Enhanced Vendor Schema', () => {
 			website: 'not-a-url',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const websiteError = result.error.issues.find(e => e.path.includes('website'));
+			const websiteError = result.error.issues.find((e) => e.path.includes('website'));
 			expect(websiteError?.message).toContain('valid website URL');
 		}
 	});
@@ -130,14 +130,14 @@ describe('Enhanced Vendor Schema', () => {
 			instagram: 'invalid@handle!',
 			price: 1000,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const instagramError = result.error.issues.find(e => e.path.includes('instagram'));
+			const instagramError = result.error.issues.find((e) => e.path.includes('instagram'));
 			expect(instagramError?.message).toContain('letters, numbers, dots, and underscores');
 		}
 	});
@@ -149,14 +149,14 @@ describe('Enhanced Vendor Schema', () => {
 			instagram: 'test',
 			price: -100,
 			rating: '4',
-			status: 'researching'
+			status: 'researching',
 		};
 
 		const result = vendorFormSchema.safeParse(invalidData);
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const priceError = result.error.issues.find(e => e.path.includes('price'));
+			const priceError = result.error.issues.find((e) => e.path.includes('price'));
 			expect(priceError?.message).toContain('greater than 0');
 		}
 	});
@@ -169,12 +169,12 @@ describe('Enhanced Vendor Schema', () => {
 			price: 1000,
 			rating: '4',
 			status: 'researching',
-			notes: '<p>Some notes with <script>alert("xss")</script> HTML</p>'
+			notes: '<p>Some notes with <script>alert("xss")</script> HTML</p>',
 		};
 
 		const result = vendorFormSchema.safeParse(dataWithHtml);
 		expect(result.success).toBe(true);
-		
+
 		if (result.success) {
 			// Text should be sanitized
 			expect(result.data.name).not.toContain('<script>');
@@ -193,12 +193,12 @@ describe('Enhanced Vendor Schema', () => {
 			price: 1000,
 			rating: '4',
 			status: 'researching',
-			notes: ''
+			notes: '',
 		};
 
 		const result = vendorFormSchema.safeParse(dataWithEmptyOptionals);
 		expect(result.success).toBe(true);
-		
+
 		if (result.success) {
 			expect(result.data.email).toBe('');
 			expect(result.data.phone).toBe('');

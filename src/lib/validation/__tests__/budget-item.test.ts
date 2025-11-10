@@ -13,12 +13,12 @@ describe('Budget Item Schema', () => {
 				priority: 'high',
 				dueDate: new Date('2025-12-31'),
 				vendor: 'Amazing Photography Studio',
-				notes: 'Includes engagement shoot and wedding day coverage'
+				notes: 'Includes engagement shoot and wedding day coverage',
 			};
 
 			const result = budgetItemFormSchema.safeParse(validData);
 			expect(result.success).toBe(true);
-			
+
 			if (result.success) {
 				expect(result.data.name).toBe('Wedding Photographer');
 				expect(result.data.category).toBe('photo-video');
@@ -34,12 +34,12 @@ describe('Budget Item Schema', () => {
 			const minimalData = {
 				name: 'Wedding Cake',
 				category: 'catering',
-				estimatedAmount: 5000
+				estimatedAmount: 5000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(minimalData);
 			expect(result.success).toBe(true);
-			
+
 			if (result.success) {
 				expect(result.data.name).toBe('Wedding Cake');
 				expect(result.data.category).toBe('catering');
@@ -58,7 +58,7 @@ describe('Budget Item Schema', () => {
 				name: 'Future Item',
 				category: 'venue',
 				estimatedAmount: 10000,
-				dueDate: futureDate
+				dueDate: futureDate,
 			};
 
 			const result = budgetItemFormSchema.safeParse(validData);
@@ -69,12 +69,12 @@ describe('Budget Item Schema', () => {
 			const dataWithSpaces = {
 				name: '  wedding flowers  ',
 				category: 'decoration',
-				estimatedAmount: 3000
+				estimatedAmount: 3000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(dataWithSpaces);
 			expect(result.success).toBe(true);
-			
+
 			if (result.success) {
 				expect(result.data.name).toBe('wedding flowers'); // Should be trimmed
 			}
@@ -86,12 +86,12 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: '',
 				category: 'catering',
-				estimatedAmount: 1000
+				estimatedAmount: 1000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Item name must be at least 2 characters');
 			}
@@ -101,12 +101,12 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: 'A',
 				category: 'catering',
-				estimatedAmount: 1000
+				estimatedAmount: 1000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Item name must be at least 2 characters');
 			}
@@ -116,14 +116,16 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: 'A'.repeat(201), // 201 characters
 				category: 'catering',
-				estimatedAmount: 1000
+				estimatedAmount: 1000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
-				expect(result.error.issues[0].message).toContain('Item name must be less than 200 characters');
+				expect(result.error.issues[0].message).toContain(
+					'Item name must be less than 200 characters',
+				);
 			}
 		});
 
@@ -131,12 +133,12 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: 'Valid Item',
 				category: 'invalid-category',
-				estimatedAmount: 1000
+				estimatedAmount: 1000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Please select a valid budget category');
 			}
@@ -146,12 +148,12 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: 'Valid Item',
 				category: 'catering',
-				estimatedAmount: -1000
+				estimatedAmount: -1000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Estimated amount must be 0 or greater');
 			}
@@ -162,12 +164,12 @@ describe('Budget Item Schema', () => {
 				name: 'Valid Item',
 				category: 'catering',
 				estimatedAmount: 1000,
-				actualAmount: -500
+				actualAmount: -500,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Actual amount must be 0 or greater');
 			}
@@ -181,12 +183,12 @@ describe('Budget Item Schema', () => {
 				name: 'Past Due Item',
 				category: 'venue',
 				estimatedAmount: 10000,
-				dueDate: pastDate
+				dueDate: pastDate,
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Due date cannot be in the past');
 			}
@@ -197,12 +199,12 @@ describe('Budget Item Schema', () => {
 				name: 'Over Budget Item',
 				category: 'catering',
 				estimatedAmount: 10000,
-				actualAmount: 14000 // 40% over estimate
+				actualAmount: 14000, // 40% over estimate
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('significantly higher than estimated');
 			}
@@ -213,14 +215,16 @@ describe('Budget Item Schema', () => {
 				name: 'Valid Item',
 				category: 'catering',
 				estimatedAmount: 1000,
-				vendor: 'A'.repeat(101) // 101 characters
+				vendor: 'A'.repeat(101), // 101 characters
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
-				expect(result.error.issues[0].message).toContain('Vendor name must be less than 100 characters');
+				expect(result.error.issues[0].message).toContain(
+					'Vendor name must be less than 100 characters',
+				);
 			}
 		});
 
@@ -229,12 +233,12 @@ describe('Budget Item Schema', () => {
 				name: 'Valid Item',
 				category: 'catering',
 				estimatedAmount: 1000,
-				notes: 'A'.repeat(1001) // 1001 characters
+				notes: 'A'.repeat(1001), // 1001 characters
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Notes must be less than 1000 characters');
 			}
@@ -245,12 +249,12 @@ describe('Budget Item Schema', () => {
 				name: 'Valid Item',
 				category: 'catering',
 				estimatedAmount: 1000,
-				status: 'invalid-status'
+				status: 'invalid-status',
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Please select a valid budget status');
 			}
@@ -261,12 +265,12 @@ describe('Budget Item Schema', () => {
 				name: 'Valid Item',
 				category: 'catering',
 				estimatedAmount: 1000,
-				priority: 'invalid-priority'
+				priority: 'invalid-priority',
 			};
 
 			const result = budgetItemFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Please select a valid priority level');
 			}
@@ -279,7 +283,7 @@ describe('Budget Item Schema', () => {
 				name: 'Exact Estimate',
 				category: 'catering',
 				estimatedAmount: 10000,
-				actualAmount: 10000
+				actualAmount: 10000,
 			};
 
 			const result = budgetItemFormSchema.safeParse(edgeData);
@@ -291,7 +295,7 @@ describe('Budget Item Schema', () => {
 				name: 'At Limit Item',
 				category: 'catering',
 				estimatedAmount: 10000,
-				actualAmount: 13000 // Exactly 30% over
+				actualAmount: 13000, // Exactly 30% over
 			};
 
 			const result = budgetItemFormSchema.safeParse(edgeData);
@@ -306,7 +310,7 @@ describe('Budget Item Schema', () => {
 				name: 'Today Item',
 				category: 'venue',
 				estimatedAmount: 10000,
-				dueDate: today
+				dueDate: today,
 			};
 
 			const result = budgetItemFormSchema.safeParse(validData);
@@ -319,7 +323,7 @@ describe('Budget Item Schema', () => {
 				category: 'catering',
 				estimatedAmount: 1000,
 				vendor: '',
-				notes: ''
+				notes: '',
 			};
 
 			const result = budgetItemFormSchema.safeParse(dataWithEmptyFields);
@@ -330,7 +334,7 @@ describe('Budget Item Schema', () => {
 			const zeroData = {
 				name: 'Free Item',
 				category: 'miscellaneous',
-				estimatedAmount: 0
+				estimatedAmount: 0,
 			};
 
 			const result = budgetItemFormSchema.safeParse(zeroData);
@@ -344,7 +348,7 @@ describe('Budget Item Schema', () => {
 				name: 'Action Item',
 				category: 'catering',
 				estimatedAmount: 5000,
-				action: 'default' as const
+				action: 'default' as const,
 			};
 
 			const result = budgetItemSchema.safeParse(validData);
@@ -355,7 +359,7 @@ describe('Budget Item Schema', () => {
 			const invalidData = {
 				name: 'No Action Item',
 				category: 'catering',
-				estimatedAmount: 5000
+				estimatedAmount: 5000,
 			};
 
 			const result = budgetItemSchema.safeParse(invalidData);
@@ -371,13 +375,13 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Wedding Cake',
 					category: 'catering',
-					estimatedAmount: 5000
+					estimatedAmount: 5000,
 				},
 				{
 					name: 'Photographer',
 					category: 'photo-video',
-					estimatedAmount: 20000
-				}
+					estimatedAmount: 20000,
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(validItems);
@@ -394,13 +398,13 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Setup',
 					category: 'venue',
-					estimatedAmount: 5000
+					estimatedAmount: 5000,
 				},
 				{
 					name: 'Setup',
 					category: 'catering',
-					estimatedAmount: 3000
-				}
+					estimatedAmount: 3000,
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(validItems);
@@ -414,18 +418,18 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Wedding Cake',
 					category: 'catering',
-					estimatedAmount: 5000
+					estimatedAmount: 5000,
 				},
 				{
 					name: 'Wedding Cake', // Duplicate name in same category
 					category: 'catering',
-					estimatedAmount: 6000
-				}
+					estimatedAmount: 6000,
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(invalidItems);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Duplicate item name');
 			}
@@ -436,18 +440,18 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Expensive Venue 1',
 					category: 'venue',
-					estimatedAmount: 60_000_000
+					estimatedAmount: 60_000_000,
 				},
 				{
 					name: 'Expensive Venue 2',
 					category: 'venue',
-					estimatedAmount: 50_000_000 // Total exceeds venue limit
-				}
+					estimatedAmount: 50_000_000, // Total exceeds venue limit
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(invalidItems);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('exceeds typical range');
 			}
@@ -458,18 +462,18 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Wedding Cake',
 					category: 'catering',
-					estimatedAmount: 5000
+					estimatedAmount: 5000,
 				},
 				{
 					name: 'WEDDING CAKE', // Same name, different case
 					category: 'catering',
-					estimatedAmount: 6000
-				}
+					estimatedAmount: 6000,
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(invalidItems);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Duplicate item name');
 			}
@@ -482,8 +486,8 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: 'Max Venue',
 					category: 'venue',
-					estimatedAmount: 100_000_000 // At the limit
-				}
+					estimatedAmount: 100_000_000, // At the limit
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(edgeItems);
@@ -495,18 +499,18 @@ describe('Budget Items Array Schema', () => {
 				{
 					name: '  Wedding Cake  ',
 					category: 'catering',
-					estimatedAmount: 5000
+					estimatedAmount: 5000,
 				},
 				{
 					name: 'Wedding Cake',
 					category: 'catering',
-					estimatedAmount: 6000
-				}
+					estimatedAmount: 6000,
+				},
 			];
 
 			const result = budgetItemsArraySchema.safeParse(invalidItems);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Duplicate item name');
 			}

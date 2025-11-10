@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { vendorFormSchema, documentFormSchema, expenseFormSchema, taskFormSchema } from '../index.js';
+import {
+	vendorFormSchema,
+	documentFormSchema,
+	expenseFormSchema,
+	taskFormSchema,
+} from '../index.js';
 import { loginSchema, registrationSchema } from '../auth.js';
 import { getErrorMessage } from '../messages.js';
 
@@ -11,12 +16,12 @@ describe('Message Standardization', () => {
 			instagram: '@test',
 			price: 1000,
 			rating: '5',
-			status: 'researching'
+			status: 'researching',
 		});
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const nameError = result.error.issues.find(issue => issue.path.includes('name'));
+			const nameError = result.error.issues.find((issue) => issue.path.includes('name'));
 			expect(nameError?.message).toBe(getErrorMessage('vendor', 'name', 'required'));
 		}
 	});
@@ -26,12 +31,12 @@ describe('Message Standardization', () => {
 			name: '', // Empty string to trigger required message
 			category: 'venue',
 			file: [],
-			date: new Date()
+			date: new Date(),
 		});
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const nameError = result.error.issues.find(issue => issue.path.includes('name'));
+			const nameError = result.error.issues.find((issue) => issue.path.includes('name'));
 			expect(nameError?.message).toBe(getErrorMessage('document', 'name', 'required'));
 		}
 	});
@@ -42,12 +47,14 @@ describe('Message Standardization', () => {
 			amount: 1000,
 			category: 'venue',
 			status: 'pending',
-			date: new Date()
+			date: new Date(),
 		});
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const descriptionError = result.error.issues.find(issue => issue.path.includes('description'));
+			const descriptionError = result.error.issues.find((issue) =>
+				issue.path.includes('description'),
+			);
 			expect(descriptionError?.message).toBe(getErrorMessage('expense', 'description', 'required'));
 		}
 	});
@@ -58,12 +65,14 @@ describe('Message Standardization', () => {
 			category: 'venue',
 			priority: 'medium',
 			status: 'pending',
-			date: new Date(Date.now() + 86400000) // Tomorrow
+			date: new Date(Date.now() + 86400000), // Tomorrow
 		});
 		expect(result.success).toBe(false);
-		
+
 		if (!result.success) {
-			const descriptionError = result.error.issues.find(issue => issue.path.includes('description'));
+			const descriptionError = result.error.issues.find((issue) =>
+				issue.path.includes('description'),
+			);
 			expect(descriptionError?.message).toBe(getErrorMessage('task', 'description', 'minLength'));
 		}
 	});
@@ -71,12 +80,12 @@ describe('Message Standardization', () => {
 	it('should use centralized error messages for auth schemas', () => {
 		const loginResult = loginSchema.safeParse({
 			email: '', // Empty string to trigger required message
-			password: 'password123'
+			password: 'password123',
 		});
 		expect(loginResult.success).toBe(false);
-		
+
 		if (!loginResult.success) {
-			const emailError = loginResult.error.issues.find(issue => issue.path.includes('email'));
+			const emailError = loginResult.error.issues.find((issue) => issue.path.includes('email'));
 			expect(emailError?.message).toBe(getErrorMessage('auth', 'email', 'required'));
 		}
 
@@ -85,13 +94,17 @@ describe('Message Standardization', () => {
 			password: 'password123',
 			confirmPassword: 'different',
 			firstName: 'John',
-			lastName: 'Doe'
+			lastName: 'Doe',
 		});
 		expect(registrationResult.success).toBe(false);
-		
+
 		if (!registrationResult.success) {
-			const confirmPasswordError = registrationResult.error.issues.find(issue => issue.path.includes('confirmPassword'));
-			expect(confirmPasswordError?.message).toBe(getErrorMessage('auth', 'confirmPassword', 'match'));
+			const confirmPasswordError = registrationResult.error.issues.find((issue) =>
+				issue.path.includes('confirmPassword'),
+			);
+			expect(confirmPasswordError?.message).toBe(
+				getErrorMessage('auth', 'confirmPassword', 'match'),
+			);
 		}
 	});
 

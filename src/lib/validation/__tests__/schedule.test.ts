@@ -4,7 +4,7 @@ import {
 	scheduleEventsArraySchema,
 	checkTimeOverlap,
 	calculateDuration,
-	formatDuration
+	formatDuration,
 } from '../index.js';
 
 describe('Schedule Validation', () => {
@@ -17,7 +17,7 @@ describe('Schedule Validation', () => {
 				endTime: '15:00',
 				description: 'Main wedding ceremony',
 				location: 'Church',
-				responsible: 'Wedding Planner'
+				responsible: 'Wedding Planner',
 			};
 
 			const result = scheduleEventFormSchema.safeParse(validData);
@@ -30,7 +30,7 @@ describe('Schedule Validation', () => {
 				category: 'ceremony',
 				startTime: '25:00', // Invalid hour
 				endTime: '15:00',
-				location: 'Church'
+				location: 'Church',
 			};
 
 			const result = scheduleEventFormSchema.safeParse(invalidData);
@@ -43,7 +43,7 @@ describe('Schedule Validation', () => {
 				category: 'ceremony',
 				startTime: '15:00',
 				endTime: '14:00', // End before start
-				location: 'Church'
+				location: 'Church',
 			};
 
 			const result = scheduleEventFormSchema.safeParse(invalidData);
@@ -58,16 +58,18 @@ describe('Schedule Validation', () => {
 				title: 'Wedding Ceremony',
 				category: 'ceremony',
 				startTime: '14:00',
-				endTime: '15:00'
+				endTime: '15:00',
 				// Missing location
 			};
 
 			const result = scheduleEventFormSchema.safeParse(invalidData);
 			expect(result.success).toBe(false);
 			if (!result.success) {
-				expect(result.error.issues.some(issue => 
-					issue.message.includes('Location is required for Ceremony events')
-				)).toBe(true);
+				expect(
+					result.error.issues.some((issue) =>
+						issue.message.includes('Location is required for Ceremony events'),
+					),
+				).toBe(true);
 			}
 		});
 
@@ -78,7 +80,7 @@ describe('Schedule Validation', () => {
 				startTime: '14:00',
 				endTime: '14:05', // Only 5 minutes - too short
 				location: 'Church',
-				responsible: 'Planner'
+				responsible: 'Planner',
 			};
 
 			const result = scheduleEventFormSchema.safeParse(invalidData);
@@ -94,23 +96,23 @@ describe('Schedule Validation', () => {
 					category: 'preparation',
 					startTime: '14:00',
 					endTime: '15:00',
-					location: 'Church'
+					location: 'Church',
 				},
 				{
 					title: 'Event 2',
 					category: 'preparation',
 					startTime: '14:30',
 					endTime: '15:30', // Overlaps with Event 1
-					location: 'Hall'
-				}
+					location: 'Hall',
+				},
 			];
 
 			const result = scheduleEventsArraySchema.safeParse(overlappingEvents);
 			expect(result.success).toBe(false);
 			if (!result.success) {
 				// Find the overlap error message
-				const overlapError = result.error.issues.find(issue => 
-					issue.message.includes('overlaps with')
+				const overlapError = result.error.issues.find((issue) =>
+					issue.message.includes('overlaps with'),
 				);
 				expect(overlapError).toBeDefined();
 			}
@@ -123,15 +125,15 @@ describe('Schedule Validation', () => {
 					category: 'preparation',
 					startTime: '14:00',
 					endTime: '15:00',
-					location: 'Church'
+					location: 'Church',
 				},
 				{
 					title: 'Event 2',
 					category: 'preparation',
 					startTime: '15:00',
 					endTime: '16:00',
-					location: 'Hall'
-				}
+					location: 'Hall',
+				},
 			];
 
 			const result = scheduleEventsArraySchema.safeParse(nonOverlappingEvents);
