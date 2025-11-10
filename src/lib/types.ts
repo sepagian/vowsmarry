@@ -140,8 +140,7 @@ export type RundownCategory =
 	| 'photo-video'
 	| 'paperwork'
 	| 'closing'
-	| 'miscellaneous'
-	| 'other';
+	| 'miscellaneous';
 
 // Simple Task for overview
 export type SimpleTask = {
