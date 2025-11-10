@@ -419,4 +419,3 @@ export function executeBatchWithToast<T>(
 
 // Export the main class as default
 export default CrudToasts;
-
