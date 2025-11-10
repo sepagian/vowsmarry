@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
-	import { Button, buttonVariants } from '$lib/components/ui/button/index';
+	import { buttonVariants } from '$lib/components/ui/button/index';
 	import DialogWedding from '$lib/components/dialog/dialog-wedding.svelte';
 
 	let { data } = $props();
@@ -10,7 +10,7 @@
 
 <div class="flex flex-col px-4 gap-4">
 	<div class="flex flex-col gap-4">
-		{#if data.wedding}{:else}
+		{#if !data.wedding}
 			<Card.Root
 				class="@container/card flex flex-row justify-between items-center shadow-none border-blue-400 bg-blue-200"
 			>
