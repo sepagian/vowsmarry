@@ -73,7 +73,10 @@ export const actions: Actions = {
 			console.error('Registration error:', error);
 
 			// Handle specific registration errors
-			if (error.message.includes('already registered') || error.message.includes('already exists')) {
+			if (
+				error.message.includes('already registered') ||
+				error.message.includes('already exists')
+			) {
 				return fail(400, {
 					error: 'An account with this email already exists. Try logging in instead.',
 					errorType: 'email_already_exists',
@@ -81,7 +84,10 @@ export const actions: Actions = {
 					lastName,
 					email,
 				});
-			} else if (error.message.includes('password') && (error.message.includes('weak') || error.message.includes('strength'))) {
+			} else if (
+				error.message.includes('password') &&
+				(error.message.includes('weak') || error.message.includes('strength'))
+			) {
 				return fail(400, {
 					error: 'Password is too weak. Please choose a stronger password.',
 					errorType: 'weak_password',

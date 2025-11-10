@@ -11,10 +11,10 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 
 	const forgotPasswordForm = await superValidate(zod4(passwordResetRequestSchema as any));
 	const error = url.searchParams.get('error');
-	
-	return { 
+
+	return {
 		forgotPasswordForm,
-		error 
+		error,
 	};
 };
 

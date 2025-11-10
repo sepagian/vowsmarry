@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 		message,
 		messageType,
 		error,
-		errorType
+		errorType,
 	};
 };
 
