@@ -1,7 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
-	import SectionTodo from '$lib/components/section/section-todo.svelte';
 	import SectionBudget from '$lib/components/section/section-budget.svelte';
+	import WeddingAlert from '$lib/components/wedding-alert.svelte';
 	import DialogWedding from '$lib/components/dialog/dialog-wedding.svelte';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import { buttonVariants } from '$lib/components/ui/button/index';
@@ -100,7 +100,7 @@
 		</Dialog.Root>
 	</div>
 
-	<SectionTodo {data} />
+	<WeddingAlert {data} />
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}
