@@ -70,14 +70,16 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	return {
 		scheduleForm,
 		rundowns: rundownList,
-		stats: { 
-			totalEvents, 
-			completedEvents: completedEventsCount, 
+		stats: {
+			totalEvents,
+			completedEvents: completedEventsCount,
 			remainingEvents: remainingEventsCount,
-			nextEvent: nextEvent ? {
-				name: nextEvent.rundownName,
-				startTime: nextEvent.startTime,
-			} : null,
+			nextEvent: nextEvent
+				? {
+						name: nextEvent.rundownName,
+						startTime: nextEvent.startTime,
+					}
+				: null,
 		},
 		wedding,
 		update: {},
