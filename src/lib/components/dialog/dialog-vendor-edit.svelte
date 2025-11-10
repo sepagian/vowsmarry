@@ -6,11 +6,7 @@
 	import { Label } from '$lib/components/ui/label/index';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import { vendorsStore } from '$lib/stores/vendors';
-	import {
-		categoryEnum,
-		vendorStatusEnum,
-		vendorRatingEnum,
-	} from '$lib/validation/index';
+	import { categoryEnum, vendorStatusEnum, vendorRatingEnum } from '$lib/validation/index';
 	import type { Vendor } from '$lib/types';
 	import { invalidate } from '$app/navigation';
 
@@ -31,19 +27,19 @@
 	const selectedCategory = $derived(
 		formData.category
 			? categoryEnum[formData.category as keyof typeof categoryEnum]
-			: 'Choose category'
+			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
 		formData.status
 			? vendorStatusEnum[formData.status as keyof typeof vendorStatusEnum]
-			: 'Select progress status'
+			: 'Select progress status',
 	);
 
 	const selectedRating = $derived(
 		formData.rating
 			? vendorRatingEnum[formData.rating as keyof typeof vendorRatingEnum]
-			: 'Select vendor rating'
+			: 'Select vendor rating',
 	);
 
 	async function handleSubmit(e: Event) {
@@ -63,9 +59,9 @@
 							status: formData.status,
 							rating: formData.rating,
 							updatedAt: new Date(),
-					  }
-					: v
-			)
+						}
+					: v,
+			),
 		);
 
 		try {
@@ -98,7 +94,7 @@
 			CrudToasts.error(
 				'update',
 				error instanceof Error ? error.message : 'Failed to update vendor',
-				'vendor'
+				'vendor',
 			);
 		} finally {
 			isSubmitting = false;
@@ -114,7 +110,10 @@
 				<p>Update vendor information</p>
 			</Dialog.Description>
 		</Dialog.Header>
-		<form onsubmit={handleSubmit} class="flex flex-col gap-4">
+		<form
+			onsubmit={handleSubmit}
+			class="flex flex-col gap-4"
+		>
 			<div class="flex flex-col gap-2">
 				<Label for="name">Name</Label>
 				<Input
@@ -192,7 +191,10 @@
 			</div>
 
 			<Dialog.Footer>
-				<Button type="submit" disabled={isSubmitting}>
+				<Button
+					type="submit"
+					disabled={isSubmitting}
+				>
 					{isSubmitting ? 'Updating...' : 'Update Vendor'}
 				</Button>
 			</Dialog.Footer>
