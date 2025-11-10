@@ -8,7 +8,7 @@
 		{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // DOCUMENTS & PAPERWORK
 		{ title: 'Finance', url: '/dashboard/finance', icon: 'i-lucide:dollar-sign' }, // EXPENSES AND SAVINGS
 		{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' }, // VENDORS
-		{ title: 'Rundown', url: '/dashboard/rundown', icon: 'i-lucide:calendar-1' }, // RUNDOWN & DRESSCODES
+		{ title: 'Schedules', url: '/dashboard/schedules', icon: 'i-lucide:calendar-1' }, // RUNDOWN & DRESSCODES
 		{ title: 'Setup', url: '/dashboard/invitation', icon: 'i-lucide:settings' }, // OVERVIEW, TEMPLATES, COUPLES DETAILS
 		{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // LOVE STORY & GALLERY
 		{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // RSVPS
