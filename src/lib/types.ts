@@ -60,13 +60,7 @@ export type Document = {
 	updatedAt: Date;
 };
 
-export type DocType =
-	| 'legal_formal'
-	| 'vendor_finance'
-	| 'guest_ceremony'
-	| 'personal_keepsake'
-	| 'miscellaneous'
-	| 'other';
+export type DocType = 'legal_formal' | 'vendor_finance' | 'guest_ceremony' | 'personal_keepsake';
 
 // Expenses
 export type Expense = {
