@@ -7,20 +7,20 @@ vi.mock('svelte-sonner', () => ({
 		success: vi.fn(),
 		error: vi.fn(),
 		info: vi.fn(),
-		warning: vi.fn()
-	}
+		warning: vi.fn(),
+	},
 }));
 
 // Mock auth-toasts utility
 const mockAuthToasts = {
 	success: {
-		passwordResetRequest: vi.fn()
+		passwordResetRequest: vi.fn(),
 	},
 	error: {
 		tooManyRequests: vi.fn(),
 		invalidEmail: vi.fn(),
-		unexpectedError: vi.fn()
-	}
+		unexpectedError: vi.fn(),
+	},
 };
 
 const mockHandleSupabaseAuthError = vi.fn();
@@ -31,7 +31,7 @@ vi.mock('$lib/utils/auth-toasts', () => ({
 	authToasts: mockAuthToasts,
 	handleSupabaseAuthError: mockHandleSupabaseAuthError,
 	handleFormValidationError: mockHandleFormValidationError,
-	handleFormSuccess: mockHandleFormSuccess
+	handleFormSuccess: mockHandleFormSuccess,
 }));
 
 describe('ForgotPasswordForm Component Logic', () => {
@@ -47,7 +47,7 @@ describe('ForgotPasswordForm Component Logic', () => {
 		it('should validate correct email format', () => {
 			const validEmail = 'user@example.com';
 			const result = passwordResetRequestSchema.safeParse({ email: validEmail });
-			
+
 			expect(result.success).toBe(true);
 			if (result.success) {
 				expect(result.data.email).toBe(validEmail);
@@ -62,10 +62,10 @@ describe('ForgotPasswordForm Component Logic', () => {
 				'user.example.com',
 				'',
 				'user@domain',
-				'user.domain.com'
+				'user.domain.com',
 			];
 
-			invalidEmails.forEach(email => {
+			invalidEmails.forEach((email) => {
 				const result = passwordResetRequestSchema.safeParse({ email });
 				expect(result.success).toBe(false);
 			});
@@ -74,7 +74,7 @@ describe('ForgotPasswordForm Component Logic', () => {
 		it('should sanitize email input by trimming whitespace and converting to lowercase', () => {
 			const inputWithSpaces = 'USER@EXAMPLE.COM';
 			const result = passwordResetRequestSchema.safeParse({ email: inputWithSpaces });
-			
+
 			expect(result.success).toBe(true);
 			if (result.success) {
 				expect(result.data.email).toBe('user@example.com');
@@ -84,7 +84,7 @@ describe('ForgotPasswordForm Component Logic', () => {
 		it('should require email field', () => {
 			const result = passwordResetRequestSchema.safeParse({ email: '' });
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
 				// The schema has both email format validation and min length validation
 				// Empty string fails email format validation first
@@ -95,7 +95,7 @@ describe('ForgotPasswordForm Component Logic', () => {
 		it('should handle case insensitive email validation', () => {
 			const upperCaseEmail = 'USER@EXAMPLE.COM';
 			const result = passwordResetRequestSchema.safeParse({ email: upperCaseEmail });
-			
+
 			expect(result.success).toBe(true);
 			if (result.success) {
 				expect(result.data.email).toBe('user@example.com');
@@ -151,13 +151,13 @@ describe('ForgotPasswordForm Component Logic', () => {
 			const mockResult = {
 				type: 'success',
 				status: 200,
-				data: {}
+				data: {},
 			};
 
 			// Verify that valid data would pass schema validation
 			const validData = { email: 'user@example.com' };
 			const result = passwordResetRequestSchema.safeParse(validData);
-			
+
 			expect(result.success).toBe(true);
 		});
 
@@ -165,14 +165,14 @@ describe('ForgotPasswordForm Component Logic', () => {
 			const rateLimitResult = {
 				type: 'failure',
 				status: 429,
-				data: { error: 'Too many requests', errorType: 'rate_limit' }
+				data: { error: 'Too many requests', errorType: 'rate_limit' },
 			};
 
 			// Verify error type handling
 			if (rateLimitResult.data.errorType === 'rate_limit') {
 				mockAuthToasts.error.tooManyRequests();
 			}
-			
+
 			expect(mockAuthToasts.error.tooManyRequests).toHaveBeenCalledTimes(1);
 		});
 
@@ -180,14 +180,14 @@ describe('ForgotPasswordForm Component Logic', () => {
 			const invalidEmailResult = {
 				type: 'failure',
 				status: 400,
-				data: { error: 'Invalid email', errorType: 'invalid_email' }
+				data: { error: 'Invalid email', errorType: 'invalid_email' },
 			};
 
 			// Verify error type handling
 			if (invalidEmailResult.data.errorType === 'invalid_email') {
 				mockAuthToasts.error.invalidEmail();
 			}
-			
+
 			expect(mockAuthToasts.error.invalidEmail).toHaveBeenCalledTimes(1);
 		});
 
@@ -195,20 +195,20 @@ describe('ForgotPasswordForm Component Logic', () => {
 			const genericErrorResult = {
 				type: 'failure',
 				status: 500,
-				data: { error: 'Server error' }
+				data: { error: 'Server error' },
 			} as const;
 
 			// Verify generic error handling
 			if (genericErrorResult.data.error && !('errorType' in genericErrorResult.data)) {
-				mockHandleSupabaseAuthError({ 
-					message: genericErrorResult.data.error, 
-					status: genericErrorResult.status 
+				mockHandleSupabaseAuthError({
+					message: genericErrorResult.data.error,
+					status: genericErrorResult.status,
 				});
 			}
-			
+
 			expect(mockHandleSupabaseAuthError).toHaveBeenCalledWith({
 				message: 'Server error',
-				status: 500
+				status: 500,
 			});
 		});
 
@@ -216,7 +216,7 @@ describe('ForgotPasswordForm Component Logic', () => {
 			const errorResult = {
 				type: 'error',
 				status: 500,
-				error: new Error('Network error')
+				error: new Error('Network error'),
 			};
 
 			// Verify unexpected error handling

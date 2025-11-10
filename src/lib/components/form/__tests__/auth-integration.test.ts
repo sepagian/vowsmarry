@@ -7,8 +7,8 @@ const mockSupabaseClient = {
 		resetPasswordForEmail: vi.fn(),
 		updateUser: vi.fn(),
 		getSession: vi.fn(),
-		signOut: vi.fn()
-	}
+		signOut: vi.fn(),
+	},
 };
 
 // Mock svelte-sonner
@@ -17,29 +17,29 @@ vi.mock('svelte-sonner', () => ({
 		success: vi.fn(),
 		error: vi.fn(),
 		info: vi.fn(),
-		warning: vi.fn()
-	}
+		warning: vi.fn(),
+	},
 }));
 
 // Mock auth-toasts utility
 const mockAuthToasts = {
 	success: {
 		passwordResetRequest: vi.fn(),
-		passwordResetSuccess: vi.fn()
+		passwordResetSuccess: vi.fn(),
 	},
 	error: {
 		tooManyRequests: vi.fn(),
 		invalidEmail: vi.fn(),
 		invalidResetToken: vi.fn(),
-		unexpectedError: vi.fn()
-	}
+		unexpectedError: vi.fn(),
+	},
 };
 
 vi.mock('$lib/utils/auth-toasts', () => ({
 	authToasts: mockAuthToasts,
 	handleSupabaseAuthError: vi.fn(),
 	handleFormValidationError: vi.fn(),
-	handleFormSuccess: vi.fn()
+	handleFormSuccess: vi.fn(),
 }));
 
 describe('Authentication Integration Tests', () => {
@@ -56,25 +56,25 @@ describe('Authentication Integration Tests', () => {
 			// Step 1: User requests password reset
 			const resetRequestData = { email: 'user@example.com' };
 			const requestResult = passwordResetRequestSchema.safeParse(resetRequestData);
-			
+
 			expect(requestResult.success).toBe(true);
-			
+
 			// Mock successful password reset email request
 			mockSupabaseClient.auth.resetPasswordForEmail.mockResolvedValue({
 				data: {},
-				error: null
+				error: null,
 			});
 
 			// Simulate server action call
 			const resetEmailResponse = await mockSupabaseClient.auth.resetPasswordForEmail(
 				resetRequestData.email,
-				{ redirectTo: 'http://localhost:5173/reset-password' }
+				{ redirectTo: 'http://localhost:5173/reset-password' },
 			);
 
 			expect(resetEmailResponse.error).toBeNull();
 			expect(mockSupabaseClient.auth.resetPasswordForEmail).toHaveBeenCalledWith(
 				'user@example.com',
-				{ redirectTo: 'http://localhost:5173/reset-password' }
+				{ redirectTo: 'http://localhost:5173/reset-password' },
 			);
 
 			// Step 2: User receives email and clicks reset link (token validation)
@@ -82,7 +82,7 @@ describe('Authentication Integration Tests', () => {
 			const newPasswordData = {
 				token: resetToken,
 				password: 'NewSecurePassword123!',
-				confirmPassword: 'NewSecurePassword123!'
+				confirmPassword: 'NewSecurePassword123!',
 			};
 
 			const passwordResetResult = passwordResetSchema.safeParse(newPasswordData);
@@ -91,17 +91,17 @@ describe('Authentication Integration Tests', () => {
 			// Step 3: User submits new password
 			mockSupabaseClient.auth.updateUser.mockResolvedValue({
 				data: { user: { id: 'user-123', email: 'user@example.com' } },
-				error: null
+				error: null,
 			});
 
 			const updateResponse = await mockSupabaseClient.auth.updateUser({
-				password: newPasswordData.password
+				password: newPasswordData.password,
 			});
 
 			expect(updateResponse.error).toBeNull();
 			expect(updateResponse.data.user).toBeDefined();
 			expect(mockSupabaseClient.auth.updateUser).toHaveBeenCalledWith({
-				password: 'NewSecurePassword123!'
+				password: 'NewSecurePassword123!',
 			});
 
 			// Verify success flow completed
@@ -112,7 +112,7 @@ describe('Authentication Integration Tests', () => {
 		it('should handle password reset flow with invalid email', async () => {
 			const invalidEmailData = { email: 'invalid-email' };
 			const result = passwordResetRequestSchema.safeParse(invalidEmailData);
-			
+
 			expect(result.success).toBe(false);
 			if (!result.success) {
 				expect(result.error.issues[0].message).toContain('Please enter a valid email address');
@@ -123,13 +123,13 @@ describe('Authentication Integration Tests', () => {
 			// Mock expired token error from Supabase
 			mockSupabaseClient.auth.updateUser.mockResolvedValue({
 				data: null,
-				error: { message: 'Token has expired', status: 400 }
+				error: { message: 'Token has expired', status: 400 },
 			});
 
 			const resetData = {
 				token: 'expired-token',
 				password: 'NewPassword123!',
-				confirmPassword: 'NewPassword123!'
+				confirmPassword: 'NewPassword123!',
 			};
 
 			const validationResult = passwordResetSchema.safeParse(resetData);
@@ -137,7 +137,7 @@ describe('Authentication Integration Tests', () => {
 
 			// Simulate server action with expired token
 			const updateResponse = await mockSupabaseClient.auth.updateUser({
-				password: resetData.password
+				password: resetData.password,
 			});
 
 			expect(updateResponse.error).toBeDefined();
@@ -148,13 +148,13 @@ describe('Authentication Integration Tests', () => {
 			// Mock invalid token error from Supabase
 			mockSupabaseClient.auth.updateUser.mockResolvedValue({
 				data: null,
-				error: { message: 'Invalid token', status: 400 }
+				error: { message: 'Invalid token', status: 400 },
 			});
 
 			const resetData = {
 				token: 'invalid-token',
 				password: 'NewPassword123!',
-				confirmPassword: 'NewPassword123!'
+				confirmPassword: 'NewPassword123!',
 			};
 
 			const validationResult = passwordResetSchema.safeParse(resetData);
@@ -162,7 +162,7 @@ describe('Authentication Integration Tests', () => {
 
 			// Simulate server action with invalid token
 			const updateResponse = await mockSupabaseClient.auth.updateUser({
-				password: resetData.password
+				password: resetData.password,
 			});
 
 			expect(updateResponse.error).toBeDefined();
@@ -173,16 +173,16 @@ describe('Authentication Integration Tests', () => {
 			const mismatchedData = {
 				token: 'valid-token',
 				password: 'Password123!',
-				confirmPassword: 'DifferentPassword123!'
+				confirmPassword: 'DifferentPassword123!',
 			};
 
 			const result = passwordResetSchema.safeParse(mismatchedData);
 			expect(result.success).toBe(false);
-			
+
 			if (!result.success) {
-				expect(result.error.issues.some(issue => 
-					issue.message.includes("don't match")
-				)).toBe(true);
+				expect(result.error.issues.some((issue) => issue.message.includes("don't match"))).toBe(
+					true,
+				);
 			}
 		});
 
@@ -190,7 +190,7 @@ describe('Authentication Integration Tests', () => {
 			const weakPasswordData = {
 				token: 'valid-token',
 				password: 'weak',
-				confirmPassword: 'weak'
+				confirmPassword: 'weak',
 			};
 
 			const result = passwordResetSchema.safeParse(weakPasswordData);
@@ -200,12 +200,10 @@ describe('Authentication Integration Tests', () => {
 
 	describe('Error Handling and Edge Cases', () => {
 		it('should handle network errors during password reset request', async () => {
-			mockSupabaseClient.auth.resetPasswordForEmail.mockRejectedValue(
-				new Error('Network error')
-			);
+			mockSupabaseClient.auth.resetPasswordForEmail.mockRejectedValue(new Error('Network error'));
 
 			const resetRequestData = { email: 'user@example.com' };
-			
+
 			try {
 				await mockSupabaseClient.auth.resetPasswordForEmail(resetRequestData.email);
 			} catch (error) {
@@ -217,7 +215,7 @@ describe('Authentication Integration Tests', () => {
 		it('should handle rate limiting during password reset', async () => {
 			mockSupabaseClient.auth.resetPasswordForEmail.mockResolvedValue({
 				data: null,
-				error: { message: 'Too many requests', status: 429 }
+				error: { message: 'Too many requests', status: 429 },
 			});
 
 			const resetRequestData = { email: 'user@example.com' };
@@ -231,17 +229,17 @@ describe('Authentication Integration Tests', () => {
 		it('should handle server errors during password update', async () => {
 			mockSupabaseClient.auth.updateUser.mockResolvedValue({
 				data: null,
-				error: { message: 'Internal server error', status: 500 }
+				error: { message: 'Internal server error', status: 500 },
 			});
 
 			const resetData = {
 				token: 'valid-token',
 				password: 'NewPassword123!',
-				confirmPassword: 'NewPassword123!'
+				confirmPassword: 'NewPassword123!',
 			};
 
 			const response = await mockSupabaseClient.auth.updateUser({
-				password: resetData.password
+				password: resetData.password,
 			});
 
 			expect(response.error).toBeDefined();
@@ -255,14 +253,14 @@ describe('Authentication Integration Tests', () => {
 			const invalidLinkScenarios = [
 				{ token: null, reason: 'missing_token' },
 				{ token: 'expired_token', reason: 'token_expired' },
-				{ token: 'invalid_token', reason: 'invalid_token' }
+				{ token: 'invalid_token', reason: 'invalid_token' },
 			];
 
-			invalidLinkScenarios.forEach(scenario => {
+			invalidLinkScenarios.forEach((scenario) => {
 				// Simulate error page parameters
 				const errorPageParams = new URLSearchParams({
 					type: 'password_reset_error',
-					reason: scenario.reason
+					reason: scenario.reason,
 				});
 
 				expect(errorPageParams.get('type')).toBe('password_reset_error');
@@ -274,7 +272,7 @@ describe('Authentication Integration Tests', () => {
 			// Simulate successful password reset redirect
 			const successRedirect = '/login?message=password_reset_success';
 			const url = new URL(successRedirect, 'http://localhost:5173');
-			
+
 			expect(url.pathname).toBe('/login');
 			expect(url.searchParams.get('message')).toBe('password_reset_success');
 		});
@@ -306,7 +304,7 @@ describe('Authentication Integration Tests', () => {
 				{ type: 'invalid_email', handler: mockAuthToasts.error.invalidEmail },
 				{ type: 'rate_limit', handler: mockAuthToasts.error.tooManyRequests },
 				{ type: 'invalid_token', handler: mockAuthToasts.error.invalidResetToken },
-				{ type: 'unexpected', handler: mockAuthToasts.error.unexpectedError }
+				{ type: 'unexpected', handler: mockAuthToasts.error.unexpectedError },
 			];
 
 			errorTypes.forEach(({ handler }) => {
@@ -320,7 +318,7 @@ describe('Authentication Integration Tests', () => {
 		it('should handle form loading states during password reset flow', () => {
 			// Simulate form loading state management
 			let isLoading = false;
-			
+
 			// Start password reset request
 			isLoading = true;
 			expect(isLoading).toBe(true);
@@ -336,13 +334,13 @@ describe('Authentication Integration Tests', () => {
 				pristine: true,
 				valid: false,
 				submitting: false,
-				errors: {}
+				errors: {},
 			};
 
 			// Simulate user input
 			formStates.pristine = false;
 			formStates.valid = true;
-			
+
 			expect(formStates.pristine).toBe(false);
 			expect(formStates.valid).toBe(true);
 
@@ -359,21 +357,21 @@ describe('Authentication Integration Tests', () => {
 				data: {
 					session: {
 						user: { id: 'user-123', email: 'user@example.com' },
-						access_token: 'new-access-token'
-					}
+						access_token: 'new-access-token',
+					},
 				},
-				error: null
+				error: null,
 			});
 
 			const sessionResponse = await mockSupabaseClient.auth.getSession();
-			
+
 			expect(sessionResponse.data.session).toBeDefined();
 			expect(sessionResponse.data.session.user.email).toBe('user@example.com');
 		});
 
 		it('should handle logout after password reset if required', async () => {
 			mockSupabaseClient.auth.signOut.mockResolvedValue({
-				error: null
+				error: null,
 			});
 
 			const logoutResponse = await mockSupabaseClient.auth.signOut();
