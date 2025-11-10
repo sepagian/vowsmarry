@@ -8,6 +8,7 @@ _Tagline:_ "Plan Your Perfect Day – Organized, Elegant, Effortless."
 VowsMarry is a **comprehensive wedding planner SaaS platform** designed for couples and wedding planners. It provides an integrated suite of tools to manage all aspects of wedding planning including **paperwork tracking, budgeting, task management, vendor coordination, dresscode planning, event rundown, and savings tracking**, with **digital wedding invitations** as a premium add-on feature.
 
 ### Key Differentiators
+
 - **All-in-one Solution**: Unlike competitors focusing solely on invitations, VowsMarry provides end-to-end wedding planning capabilities
 - **Cultural Sensitivity**: Includes features like dowry (Mahar) tracking and traditional ceremony elements
 - **Freemium Model**: Core planning tools free, premium features and templates monetized
@@ -65,25 +66,27 @@ This positions VowsMarry as more than just an invitation builder — it becomes 
 ## 5. Tech Stack & Architecture
 
 ### Core Technologies
-| Layer          | Technology                                                |
-| -------------- | --------------------------------------------------------- |
-| **Frontend**   | SvelteKit 5 with TypeScript                              |
-| **Runtime**    | Bun (with npm fallback)                                  |
-| **Backend**    | Supabase (PostgreSQL with pg_cron)                       |
-| **ORM**        | Drizzle ORM with Drizzle Kit                             |
-| **Auth**       | Supabase Auth                                            |
-| **Styling**    | UnoCSS with Tailwind CSS utilities                       |
-| **UI**         | Shadcn-svelte + bits-ui components                       |
-| **Forms**      | Superforms + Formsnap + Zod validation                   |
-| **Charts**     | LayerChart + D3                                          |
-| **Icons**      | Lucide icons via @iconify-json/lucide                    |
-| **Media**      | Cloudflare R2 + Images + Stream                          |
-| **Deployment** | Vercel with adapter-vercel                               |
-| **DNS**        | Cloudflare (wildcard `*.vowsmarry.id`)                   |
+
+| Layer          | Technology                             |
+| -------------- | -------------------------------------- |
+| **Frontend**   | SvelteKit 5 with TypeScript            |
+| **Runtime**    | Bun (with npm fallback)                |
+| **Backend**    | Supabase (PostgreSQL with pg_cron)     |
+| **ORM**        | Drizzle ORM with Drizzle Kit           |
+| **Auth**       | Supabase Auth                          |
+| **Styling**    | UnoCSS with Tailwind CSS utilities     |
+| **UI**         | Shadcn-svelte + bits-ui components     |
+| **Forms**      | Superforms + Formsnap + Zod validation |
+| **Charts**     | LayerChart + D3                        |
+| **Icons**      | Lucide icons via @iconify-json/lucide  |
+| **Media**      | Cloudflare R2 + Images + Stream        |
+| **Deployment** | Vercel with adapter-vercel             |
+| **DNS**        | Cloudflare (wildcard `*.vowsmarry.id`) |
 
 ### Development Tools
+
 - **Environment**: Doppler for secrets management
-- **Database**: Drizzle Kit for migrations and schema management  
+- **Database**: Drizzle Kit for migrations and schema management
 - **Code Quality**: ESLint + Prettier + TypeScript strict mode
 - **Package Manager**: Bun with package-lock.json fallback
 
@@ -92,6 +95,7 @@ This positions VowsMarry as more than just an invitation builder — it becomes 
 ## 6. Project Structure & Architecture
 
 ### Source Organization
+
 ```
 src/
 ├── lib/                    # Shared library code
@@ -107,6 +111,7 @@ src/
 ```
 
 ### Routing Structure (Planned)
+
 ```
 src/routes/
 ├── (dashboard)/           # Wedding planner dashboard
@@ -145,6 +150,7 @@ src/routes/
 ## 7. Database Schema (High-Level)
 
 ### Core Tables Structure
+
 ```sql
 -- User Management
 users (id, email, created_at, updated_at)
@@ -174,6 +180,7 @@ digital_gifts (id, invitation_id, gift_type, amount, message, guest_name)
 ```
 
 ### Key Relationships
+
 - **One-to-Many**: User → Weddings, Wedding → All planning modules
 - **Many-to-Many**: Users ↔ Weddings (via collaborators table)
 - **Hierarchical**: Budget Categories → Budget Items, Tasks → Subtasks
@@ -183,6 +190,7 @@ digital_gifts (id, invitation_id, gift_type, amount, message, guest_name)
 ## 8. Development Workflow & Commands
 
 ### Common Commands
+
 ```bash
 # Development
 bun run dev          # Start dev server with Doppler
@@ -202,6 +210,7 @@ bun run db:studio    # Open Drizzle Studio
 ```
 
 ### Environment Setup
+
 - All commands use `doppler run --` prefix for environment variable injection
 - Database schema located at `./src/lib/server/db/schema.ts`
 - UnoCSS safelist classes defined in `./src/lib/styles/safelist`
@@ -211,6 +220,7 @@ bun run db:studio    # Open Drizzle Studio
 ## 9. Current Status & Recommendations
 
 ### Implementation Priority (MVP)
+
 1. **Authentication System** - Supabase Auth integration
 2. **Core Dashboard** - Basic wedding creation and management
 3. **Essential Modules** - Paperwork, Budget, Tasks, Vendors
@@ -218,13 +228,15 @@ bun run db:studio    # Open Drizzle Studio
 5. **UI Foundation** - Shadcn-svelte component library setup
 
 ### Technical Recommendations
+
 - **Database First**: Implement complete schema with Drizzle before building UI
 - **Component Library**: Establish consistent Shadcn-svelte patterns early
 - **Form Validation**: Use Superforms + Zod for all data input
 - **State Management**: Leverage SvelteKit's built-in stores and page data
 - **Testing Strategy**: Focus on integration tests for critical user flows
 
-### Business Recommendations  
+### Business Recommendations
+
 - **MVP Focus**: Launch with core planning tools, add invitations as premium feature
 - **User Onboarding**: Create guided setup flow for new weddings
 - **Data Export**: Provide PDF/CSV exports for vendor presentations
@@ -232,6 +244,7 @@ bun run db:studio    # Open Drizzle Studio
 - **Collaboration**: Implement real-time updates for shared planning
 
 ### Next Steps
+
 1. Complete database schema implementation
 2. Set up authentication and user management
 3. Build core dashboard with wedding creation
