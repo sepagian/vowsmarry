@@ -23,16 +23,16 @@
 - [x] **Task Module**: ✅ Fully implemented (create, read, update, delete) with status management and priority tracking
 - [x] **Vendor Module**: ✅ Fully implemented (create, read, update, delete) with status management and contact tracking
 - [x] **Rundown Module**: ✅ Fully implemented (create, read, update, delete) with timeline management and drag-and-drop functionality
-- [ ] **Document Module**: ❌ Not implemented - currently uses mock data, needs full CRUD with file upload support
+- [x] **Document Module**: ✅ CRUD operations implemented with real database integration (file upload pending)
 
 ### 3.1 Remaining CRUD Implementation Tasks
 
 - [ ] **Document Module Implementation**
-  - [ ] Implement full CRUD operations in `dashboard/document/+page.server.ts`
-  - [ ] Add wedding-scoped data access with proper authorization
-  - [ ] Connect document store to real database data instead of mock data
+  - [x] Implement full CRUD operations in `dashboard/document/+page.server.ts`
+  - [x] Add wedding-scoped data access with proper authorization
+  - [x] Connect document store to real database data instead of mock data
   - [ ] Implement file upload to Cloudflare R2 with proper validation
-  - [ ] Add document categorization and metadata management
+  - [x] Add document categorization and metadata management
 
 - [ ] **Error Handling & UX Polish**
   - [ ] Add comprehensive error handling for all database operations
@@ -44,7 +44,7 @@
 
 ## 4. Create Cloudflare R2 File Upload Config
 
-- [ ] Configure R2 bucket and access keys
+- [x] Configure R2 bucket and access keys ✅ R2 client configured in `src/lib/server/storage/r2-client.ts`
 - [ ] Add signed upload URL endpoint
 - [ ] Set up CORS policies for frontend upload
 - [ ] Test file upload and retrieval (avatar, wedding media)
@@ -53,16 +53,16 @@
 
 ## 5. Update Auth / Reset-Password Mechanism
 
-- [ ] Refactor `/auth/reset-password` route
-- [ ] Implement token verification and expiration handling
-- [ ] Add success/error toast notifications
-- [ ] Improve user feedback and redirect flow
+- [x] Refactor `/auth/reset-password` route ✅ Fully implemented with token verification and expiration handling
+- [x] Implement token verification and expiration handling
+- [x] Add success/error toast notifications
+- [x] Improve user feedback and redirect flow
 
 ---
 
 ## 6. Build `account/+page.svelte`
 
-- [ ] **6.1.** Design and layout page using shadcn-svelte components
+- [ ] **6.1.** Design and layout page using shadcn-svelte components ❌ Not implemented - page is empty
 - [ ] **6.2.** Fetch and display user data from Supabase session
 - [ ] **6.3.** Implement editable profile form (name, email, etc.)
 - [ ] **6.4.** Add avatar upload using Cloudflare R2
@@ -73,7 +73,7 @@
 
 ## 7. Build `setup/+page.svelte`
 
-- [ ] Create onboarding page for initializing couple & wedding data
+- [ ] Create onboarding page for initializing couple & wedding data ❌ Not implemented - route doesn't exist
 - [ ] Add form for partner names, date, location
 - [ ] Save data into `wedding` schema
 - [ ] Redirect to dashboard after successful setup
@@ -82,9 +82,9 @@
 
 ## 8. Add `wedding-data-alert.svelte`
 
-- [x] Display alert if `!wedding.data`
+- [x] Display alert if `!wedding.data` ❌ Not implemented - component doesn't exist
 - [x] Include CTA button to `/setup`
-- [x] Style with shadcn `Alert` component
+- [x] Style with shadcn `Item` component
 - [x] Integrate visibility check into dashboard or main layout
 
 ---
@@ -104,7 +104,7 @@
 
 - [ ] **10.1.** Enhance paperwork module: Add file upload UI for documents using R2
 - [x] **10.2.** Enhance rundown module: Implement timeline with drag-and-drop for events
-- [ ] **10.3.** Add savings tracking module: UI for goal setting and progress visualization
+- [ ] **10.3.** Add savings tracking module: UI for goal setting and progress visualization ❌ Schema exists but only placeholder UI
 - [ ] **10.4.** Add dowry tracking module: Forms for item details and proof uploads
 
 ---
@@ -112,7 +112,7 @@
 ## 11. Validation, Testing & User Flow
 
 - [ ] Sync Zod schemas between frontend and backend
-- [ ] Add unit and integration tests for critical user flows
+- [ ] Add unit and integration tests for critical user flows (using Vitest framework)
 - [ ] Run lint and typecheck commands post-changes
 - [ ] Ensure wedding setup redirects properly and handle multi-user collaboration
 
@@ -120,7 +120,7 @@
 
 ## 12. Build Souvenirs Module
 
-- [ ] Design and implement UI for souvenir planning (type, quantity, cost)
+- [ ] Design and implement UI for souvenir planning (type, quantity, cost) ❌ Schema exists but no UI implemented
 - [ ] Add tracking for distribution to guests
 - [ ] Link souvenirs to vendors for coordination
 
@@ -128,7 +128,7 @@
 
 ## 13. Add Data Export Features
 
-- [ ] Implement PDF export for budgets and rundowns
+- [ ] Implement PDF export for budgets and rundowns ❌ Not implemented - no export features exist
 - [ ] Add CSV export for vendor lists and expenses
 - [ ] Ensure exports are downloadable from dashboard
 
@@ -136,7 +136,7 @@
 
 ## 14. Implement Wedding Collaboration
 
-- [ ] Add shared wedding access via invites or links
+- [ ] Add shared wedding access via invites or links ❌ Not implemented - no collaboration features exist
 - [ ] Implement role-based permissions (e.g., partner vs. planner)
 - [ ] Sync changes in real-time for collaborators
 
@@ -144,7 +144,7 @@
 
 ## 15. Enhance Rundown with Drag-and-Drop
 
-- [x] Integrate DND library for event reordering
+- [x] Integrate DND library for event reordering ✅ Fully implemented
 - [x] Update timeline visualization dynamically
 - [x] Save reordered events to database
 
@@ -152,7 +152,7 @@
 
 ## 16. Add Reminders/Notifications
 
-- [ ] Set up email/SMS alerts for due dates
+- [ ] Set up email/SMS alerts for due dates ❌ Not implemented - no notification system exists
 - [ ] Integrate with Supabase cron for scheduling
 - [ ] Allow users to configure notification preferences
 
