@@ -36,10 +36,10 @@
 
 	function getTypeColor(type: DocType): string {
 		const colors = {
-			'legal-formal': 'bg-green-50 text-green-700 border-green-200',
-			'vendor-finance': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-			'guest-ceremony': 'bg-blue-50 text-blue-700 border-blue-200',
-			'personal-keepsake': 'bg-red-50 text-red-700 border-red-200',
+			'legal_formal': 'bg-green-50 text-green-700 border-green-200',
+			'vendor_finance': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+			'guest_ceremony': 'bg-blue-50 text-blue-700 border-blue-200',
+			'personal_keepsake': 'bg-red-50 text-red-700 border-red-200',
 		};
 		return colors[type] || 'bg-gray-50 text-gray-700 border-gray-200';
 	}
