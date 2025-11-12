@@ -44,37 +44,10 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const [tasksCount, pendingTasksCount, onProgressTasksCount, completedTasksCount, tasksList] =
-		await Promise.all([
-			plannerDb
-				.select({ count: count() })
-				.from(tasks)
-				.where(eq(tasks.weddingId, wedding.id))
-				.then((result) => result[0]?.count ?? 0),
-
-			plannerDb
-				.select({ count: count() })
-				.from(tasks)
-				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'pending')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb
-				.select({ count: count() })
-				.from(tasks)
-				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'on_progress')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb
-				.select({ count: count() })
-				.from(tasks)
-				.where(and(eq(tasks.weddingId, wedding.id), eq(tasks.status, 'completed')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb.query.tasks.findMany({
-				where: eq(tasks.weddingId, wedding.id),
-				orderBy: (tasks, { asc }) => [asc(tasks.dueDate)],
-			}),
-		]);
+	const tasksList = await plannerDb.query.tasks.findMany({
+		where: eq(tasks.weddingId, wedding.id),
+		orderBy: (tasks, { asc }) => [asc(tasks.dueDate)],
+	});
 
 	const [total, pending, onProgress, completed] = await Promise.all([
 		plannerDb
@@ -113,12 +86,6 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	return {
 		taskForm,
 		tasks: tasksList,
-		stats: {
-			tasksCount,
-			pendingTasksCount,
-			onProgressTasksCount,
-			completedTasksCount,
-		},
 		update: {
 			total,
 			pending,
