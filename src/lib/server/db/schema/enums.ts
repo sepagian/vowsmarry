@@ -21,9 +21,9 @@ export const documentCategoryEnum = pgEnum('document_category', [
 	'vendor_finance',
 	'guest_ceremony',
 	'personal_keepsake',
-	'miscellaneous',
-	'other',
 ]);
+
+export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved', 'rejected']);
 
 export const expensePaymentStatusEnum = pgEnum('expense_payment_status', ['paid', 'unpaid']);
 
