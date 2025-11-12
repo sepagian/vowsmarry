@@ -10,7 +10,11 @@
 	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
 	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.expenseForm, {
 		validators: zod4(expenseFormSchema as any),
@@ -22,6 +26,9 @@
 				// Invalidate to refetch all expense data including stats
 				await invalidate('expense:list');
 				await invalidate('dashboard:data');
+				// Close dialog after successful creation
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}
