@@ -38,10 +38,16 @@ export const rundownCategoryEnum = {
 } as const;
 
 export const documentCategoryEnum = {
-	'legal-formal': 'Legal & Formal',
-	'vendor-finance': 'Vendor & Finance',
-	'guest-ceremony': 'Guest & Ceremony',
-	'personal-keepsake': 'Personal & Keepsake',
+	legal_formal: 'Legal & Formal',
+	vendor_finance: 'Vendor & Finance',
+	guest_ceremony: 'Guest & Ceremony',
+	personal_keepsake: 'Personal & Keepsake',
+} as const;
+
+export const documentStatusEnum = {
+	pending: 'Pending',
+	approved: 'Approved',
+	rejected: 'Rejected',
 } as const;
 
 export const taskStatusEnum = {
@@ -78,6 +84,7 @@ type VendorStatus = keyof typeof vendorStatusEnum;
 type PaymentStatus = keyof typeof paymentStatusEnum;
 type TaskStatus = keyof typeof taskStatusEnum;
 type DocumentCategory = keyof typeof documentCategoryEnum;
+type DocumentStatus = keyof typeof documentStatusEnum;
 type RundownCategory = keyof typeof rundownCategoryEnum;
 
 // =============================================================================
@@ -163,76 +170,100 @@ export const taskFormSchema = z.object({
 // DOCUMENT SCHEMAS
 // =============================================================================
 
-export const documentFormSchema = z
-	.object({
-		name: createStringValidator('document', 'name', {
-			required: true,
-			minLength: 2,
-			maxLength: 200,
-			transform: sanitizeText,
-		}),
+export const documentFormSchema = z.object({
+	description: createStringValidator('document', 'name', {
+		required: true,
+		minLength: 2,
+		maxLength: 255,
+		transform: sanitizeText,
+	}),
 
-		category: createEnumValidator(
-			'document',
-			'category',
-			Object.keys(documentCategoryEnum) as [DocumentCategory, ...DocumentCategory[]],
+	category: createEnumValidator(
+		'document',
+		'category',
+		Object.keys(documentCategoryEnum) as [DocumentCategory, ...DocumentCategory[]],
+	),
+
+	file: z
+		.array(z.instanceof(File))
+		.max(1)
+		.min(1)
+		.refine(
+			(files) => files.every((f) => f.size <= 10_000_000), // 10MB
+			{ message: getErrorMessage('document', 'file', 'size') },
+		)
+		.refine(
+			(files) =>
+				files.every((f) =>
+					[
+						'application/pdf',
+						'image/jpeg',
+						'image/png',
+						'image/webp',
+						'application/msword',
+						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					].includes(f.type),
+				),
+			{ message: getErrorMessage('document', 'file', 'type') },
 		),
 
-		file: z
-			.array(
-				z
-					.instanceof(File)
-					.refine(
-						(f) => f.size <= 10_000_000, // 10MB limit
-						{ message: getErrorMessage('document', 'file', 'size') },
-					)
-					.refine(
-						(f) => ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'].includes(f.type),
-						{ message: getErrorMessage('document', 'file', 'type') },
-					)
-					.refine((f) => f.name.length <= 255, {
-						message:
-							'File name is too long. Please rename your file to be shorter than 255 characters.',
-					}),
-			)
-			.max(1, { message: getErrorMessage('document', 'file', 'multiple') })
-			.min(1, { message: getErrorMessage('document', 'file', 'required') }),
+	status: createEnumValidator(
+		'document',
+		'status',
+		Object.keys(documentStatusEnum) as [DocumentStatus, ...DocumentStatus[]],
+	).default('pending'),
 
-		date: createDateValidator('document', 'date', {
-			required: true,
-			customValidation: (dateString) => {
-				const date = new Date(dateString);
-				const today = new Date();
-				const oneYearAgo = new Date();
-				oneYearAgo.setFullYear(today.getFullYear() - 1);
-				const twoYearsFromNow = new Date();
-				twoYearsFromNow.setFullYear(today.getFullYear() + 2);
-				return date >= oneYearAgo && date <= twoYearsFromNow;
-			},
-			customErrorType: 'format',
-		}),
+	notes: createStringValidator('document', 'notes', {
+		required: false,
+		maxLength: 1000,
+		transform: sanitizeText,
+	}),
 
-		expiryDate: createDateValidator('document', 'date', {}).optional(),
-
-		description: createStringValidator('document', 'description', {
-			maxLength: 500,
-			transform: sanitizeHtml,
-		})
-			.optional()
-			.or(z.literal('')),
-	})
-	.refine(
-		(data) => {
-			if (data.expiryDate && data.date) {
-				return new Date(data.expiryDate) > new Date(data.date);
-			}
-			return true;
+	date: createDateValidator('document', 'date', {
+		required: true,
+		customValidation: (dateString) => {
+			const date = new Date(dateString);
+			const today = new Date();
+			const oneYearAgo = new Date();
+			oneYearAgo.setFullYear(today.getFullYear() - 1);
+			const twoYearsFromNow = new Date();
+			twoYearsFromNow.setFullYear(today.getFullYear() + 2);
+			return date >= oneYearAgo && date <= twoYearsFromNow;
 		},
-		{
-			message: 'Expiry date must be after the document date',
-			path: ['expiryDate'],
-		},
-	);
+		customErrorType: 'format',
+	}),
+
+	dueDate: createDateValidator('document', 'dueDate', {
+		required: false,
+	}),
+});
+
+// Separate schema for updates (file optional)
+export const documentUpdateSchema = documentFormSchema.extend({
+	file: z
+		.array(z.instanceof(File))
+		.max(1)
+		.min(0) // File optional for updates
+		.refine(
+			(files) => files.length === 0 || files.every((f) => f.size <= 10_000_000), // 10MB
+			{ message: getErrorMessage('document', 'file', 'size') },
+		)
+		.refine(
+			(files) =>
+				files.length === 0 ||
+				files.every((f) =>
+					[
+						'application/pdf',
+						'image/jpeg',
+						'image/png',
+						'image/webp',
+						'application/msword',
+						'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					].includes(f.type),
+				),
+			{ message: getErrorMessage('document', 'file', 'type') },
+		),
+});
 
 // =============================================================================
 // EXPENSE SCHEMAS
