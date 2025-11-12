@@ -53,14 +53,27 @@ export type Document = {
 	id: string;
 	weddingId: string;
 	name: string;
-	documentCategory: DocType;
+	documentCategory: DocumentCategory;
 	documentDate: string;
+	status: DocumentStatus;
+	dueDate?: Date | null;
+	notes?: string;
+	fileName: string;
+	fileSize: number;
 	fileUrl: string;
+	mimeType: string;
+	reminderSent: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 };
 
-export type DocType = 'legal_formal' | 'vendor_finance' | 'guest_ceremony' | 'personal_keepsake';
+export type DocumentCategory =
+	| 'legal_formal'
+	| 'vendor_finance'
+	| 'guest_ceremony'
+	| 'personal_keepsake';
+
+export type DocumentStatus = 'pending' | 'approved' | 'rejected';
 
 // Expenses
 export type Expense = {
