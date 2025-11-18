@@ -54,11 +54,78 @@ export interface NetworkErrorConfig {
 }
 
 /**
- * Form Toast Class
- *
- * Handles all form-related toast notifications with promise support,
- * validation integration, and comprehensive error handling
+ * Server validation error interface
  */
+export interface ServerValidationError {
+	field: string;
+	message: string;
+	code?: string;
+}
+
+/**
+ * Validation toast utilities
+ */
+class ValidationToasts {
+	static multipleErrors(
+		errors: { fieldName: string; displayName: string; errorMessage: string }[],
+		options?: {
+			scrollToFirstError?: () => void;
+			maxDisplayErrors?: number;
+			duration?: number;
+		},
+	): void {
+		if (errors.length === 0) return;
+
+		const maxDisplay = options?.maxDisplayErrors || 3;
+		const displayErrors = errors.slice(0, maxDisplay);
+		const remainingCount = errors.length - maxDisplay;
+
+		const message = `Please fix ${errors.length} validation error${errors.length > 1 ? 's' : ''}`;
+		let description = displayErrors
+			.map((error) => `${error.displayName}: ${error.errorMessage}`)
+			.join('\n');
+
+		if (remainingCount > 0) {
+			description += `\n...and ${remainingCount} more error${remainingCount > 1 ? 's' : ''}`;
+		}
+
+		toast.error(message, {
+			duration: options?.duration || 8000,
+			description,
+			action: options?.scrollToFirstError
+				? {
+						label: 'Review errors',
+						onClick: (event: MouseEvent) => {
+							event.preventDefault();
+							options.scrollToFirstError?.();
+						},
+					}
+				: undefined,
+		});
+	}
+
+	static serverErrors(
+		errors: ServerValidationError[],
+		options?: {
+			retryAction?: () => void | Promise<void>;
+			scrollToFirstError?: () => void;
+			duration?: number;
+		},
+	): void {
+		const validationErrors = errors.map((error) => ({
+			fieldName: error.field,
+			displayName: FormToasts['formatFieldName'](error.field),
+			errorMessage: error.message,
+		}));
+
+		this.multipleErrors(validationErrors, {
+			scrollToFirstError: options?.scrollToFirstError,
+			duration: options?.duration,
+			maxDisplayErrors: 5, // Show more for server errors
+		});
+	}
+}
+
 export class FormToasts {
 	/**
 	 * Display success toast for form submission
@@ -289,7 +356,7 @@ export class FormToasts {
 		}
 
 		// Format file info for display
-		const fileInfo = this.formatFileInfo(fileName, fileSize, fileType);
+		const fileInfo = this.formatFileInfo(fileName, fileType);
 		const sizeInfo = options?.showFileSize && fileSize ? ` (${this.formatFileSize(fileSize)})` : '';
 
 		const messages: PromiseToastMessages<T> = {
@@ -507,10 +574,11 @@ export class FormToasts {
 	/**
 	 * Format file information for display
 	 */
-	private static formatFileInfo(fileName: string, fileSize?: number, fileType?: string): string {
+	private static formatFileInfo(fileName: string, fileType?: string): string {
 		const name = fileName.length > 30 ? `${fileName.substring(0, 27)}...` : fileName;
+		const typeInfo = fileType ? ` (${fileType})` : '';
 
-		return name;
+		return `${name}${typeInfo}`;
 	}
 
 	/**
@@ -724,39 +792,3 @@ export function validateFormNotEmpty(
 
 // Export the main class as default
 export default FormToasts;
-
-/**
- * Usage Examples:
- *
- * // Basic empty form error
- * showEmptyFormError();
- *
- * // Empty form error with form name
- * showEmptyFormError({ formName: 'contact' });
- *
- * // Empty form error with specific required fields
- * showEmptyFormError({
- *   formName: 'registration',
- *   requiredFields: ['Name', 'Email', 'Password'],
- *   scrollToFirstField: () => document.getElementById('name')?.focus()
- * });
- *
- * // Validate form before submission
- * const formData = { name: '', email: 'user@example.com', password: '' };
- * const requiredFields = ['name', 'email', 'password'];
- *
- * if (!validateFormNotEmpty(formData, requiredFields, {
- *   formName: 'registration',
- *   fieldDisplayNames: { name: 'Full Name', email: 'Email Address' }
- * })) {
- *   return; // Don't submit if form is empty
- * }
- *
- * // Using with toast service
- * import { toastService } from '$lib/utils/toast-service.js';
- *
- * toastService.form.emptyFormError({
- *   formName: 'contact',
- *   requiredFields: ['Name', 'Email', 'Message']
- * });
- */
