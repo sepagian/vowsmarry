@@ -74,9 +74,9 @@
 	let filteredVendors = $derived(
 		vendorItems.filter(
 			(v) =>
-				v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				v.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				v.status.toLowerCase().includes(searchTerm.toLowerCase()),
+				v.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				v.vendorCategory.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				v.vendorStatus.toLowerCase().includes(searchTerm.toLowerCase()),
 		),
 	);
 </script>
@@ -101,7 +101,7 @@
 		</Dialog.Root>
 	</div>
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-2 xl:grid-cols-4">
-		{#each filteredVendors as data (data.name)}
+		{#each filteredVendors as data (data.vendorName)}
 			<Card.Root
 				class="@container/card shrink-0 w-full sm:w-auto gap-2 flex flex-col p-2 shadow-none "
 			>
@@ -112,7 +112,7 @@
 					<div class="flex justify-between w-full items-center">
 						<div class="inline-flex gap-1 items-center text-xs truncate text-gray-600">
 							<Card.Description class="text-sm font-semibold truncate overflow-hidden">
-								{data.name}
+								{data.vendorName}
 							</Card.Description>
 						</div>
 						<div class="flex gap-2">
@@ -156,13 +156,15 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Delete Vendor</AlertDialog.Title>
 			<AlertDialog.Description>
-				Are you sure you want to delete "{selectedVendor?.name}"? This action cannot be undone.
+				Are you sure you want to delete "{selectedVendor?.vendorName}"? This action cannot be
+				undone.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
-				onclick={() => selectedVendor && handleDelete(selectedVendor.id, selectedVendor.name)}
+				onclick={() =>
+					selectedVendor && handleDelete(selectedVendor.id as string, selectedVendor.vendorName)}
 				disabled={isDeleting}
 				class="bg-red-600 hover:bg-red-700"
 			>
