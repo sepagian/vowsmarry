@@ -4,8 +4,8 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { passwordResetSchema } from '$lib/validation/auth';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { resetPasswordSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
 		handleSupabaseAuthError,
@@ -21,7 +21,7 @@
 	let loadingToastId: string | number | undefined;
 
 	const form = superForm(data.resetPasswordForm, {
-		validators: zodClient(passwordResetSchema as any),
+		validators: valibot(resetPasswordSchema),
 		onSubmit: () => {
 			// Show loading toast and track its ID
 			isSubmitting = true;

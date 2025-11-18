@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
@@ -57,7 +57,7 @@
 	});
 
 	const form = superForm(data.loginForm, {
-		validators: zodClient(loginSchema as any),
+		validators: valibot(loginSchema),
 		onResult: ({ result }) => {
 			if (result.type === 'success') {
 				// Show success toast briefly before redirect
