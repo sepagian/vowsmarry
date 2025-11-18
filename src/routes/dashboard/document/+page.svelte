@@ -2,7 +2,7 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
 	import { documentsStore } from '$lib/stores/documents';
-	import type { DocType } from '$lib/types';
+	import type { DocumentCategory } from '$lib/types';
 
 	import { docTypeOptions } from '$lib/constants/constants';
 
@@ -14,26 +14,26 @@
 		const documents = $documentsStore;
 		const typeCounts = documents.reduce(
 			(acc, doc) => {
-				acc[doc.type] = (acc[doc.type] || 0) + 1;
+				acc[doc.documentCategory] = (acc[doc.documentCategory] || 0) + 1;
 				return acc;
 			},
-			{} as Partial<Record<DocType, number>>,
+			{} as Partial<Record<DocumentCategory, number>>,
 		);
 
 		return docTypeOptions.map((option) => {
 			const count = typeCounts[option.value] ?? 0;
 			let actionColor = '';
 			switch (option.value) {
-				case 'legal-formal':
+				case 'legal_formal':
 					actionColor = 'bg-green-500 text-white';
 					break;
-				case 'vendor-finance':
+				case 'vendor_finance':
 					actionColor = 'bg-yellow-500 text-white';
 					break;
-				case 'guest-ceremony':
+				case 'guest_ceremony':
 					actionColor = 'bg-blue-500 text-white';
 					break;
-				case 'personal-keepsake':
+				case 'personal_keepsake':
 					actionColor = 'bg-red-500 text-white';
 					break;
 			}
@@ -47,12 +47,14 @@
 		});
 	});
 
-	let docsCards = $documentsStore.map((doc) => ({
-		description: doc.description,
-		type: doc.type,
-		action: doc.action,
-		footer: doc.footer,
-	}));
+	// Initialize store with server data
+	$effect(() => {
+		if (data.documents) {
+			documentsStore.set(data.documents);
+		}
+	});
+
+	let docsCards = $derived($documentsStore);
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
@@ -61,7 +63,7 @@
 		{overviewTitle}
 	/>
 	<SectionDocs
-		{data}
+		{data} 
 		{docsCards}
 	/>
 </div>
