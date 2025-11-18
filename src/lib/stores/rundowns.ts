@@ -1,4 +1,4 @@
 import { writable } from 'svelte/store';
-import type { Rundown } from '$lib/types';
+import type { Schedule } from '$lib/types';
 
-export const rundownsStore = writable<Rundown[]>([]);
+export const rundownsStore = writable<Schedule[]>([]);
