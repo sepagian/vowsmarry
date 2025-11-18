@@ -1,6 +1,6 @@
 {
-  "id": "bcd1bded-26df-40e8-b08e-f27987a34880",
-  "prevId": "b5f2f9bf-a64b-46a9-80d4-5700541b6e3c",
+  "id": "e2b51052-25ec-4772-b499-ca075f984224",
+  "prevId": "a4774a19-f4e0-4ec9-9c68-a8e400f5427f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -959,11 +959,56 @@
           "primaryKey": false,
           "notNull": true
         },
+        "status": {
+          "name": "status",
+          "type": "document_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "varchar(1000)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "file_url": {
           "name": "file_url",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filesize": {
+          "name": "filesize",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mimetype": {
+          "name": "mimetype",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reminder_sent": {
+          "name": "reminder_sent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -1297,10 +1342,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "dresscodes_rundown_id_rundowns_id_fk": {
-          "name": "dresscodes_rundown_id_rundowns_id_fk",
+        "dresscodes_rundown_id_schedules_id_fk": {
+          "name": "dresscodes_rundown_id_schedules_id_fk",
           "tableFrom": "dresscodes",
-          "tableTo": "rundowns",
+          "tableTo": "schedules",
           "columnsFrom": [
             "rundown_id"
           ],
@@ -1452,12 +1497,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "expense_category_id": {
-          "name": "expense_category_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "category": {
           "name": "category",
           "type": "category",
@@ -1471,12 +1510,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'0'"
-        },
-        "vendor_id": {
-          "name": "vendor_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "payment_status": {
           "name": "payment_status",
@@ -1553,21 +1586,6 @@
           "method": "btree",
           "with": {}
         },
-        "expense_items_vendor_id_idx": {
-          "name": "expense_items_vendor_id_idx",
-          "columns": [
-            {
-              "expression": "vendor_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "expense_items_payment_status_idx": {
           "name": "expense_items_payment_status_idx",
           "columns": [
@@ -1612,179 +1630,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "expense_items_expense_category_id_expense_categories_id_fk": {
-          "name": "expense_items_expense_category_id_expense_categories_id_fk",
-          "tableFrom": "expense_items",
-          "tableTo": "expense_categories",
-          "columnsFrom": [
-            "expense_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "expense_items_vendor_id_vendors_id_fk": {
-          "name": "expense_items_vendor_id_vendors_id_fk",
-          "tableFrom": "expense_items",
-          "tableTo": "vendors",
-          "columnsFrom": [
-            "vendor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.rundowns": {
-      "name": "rundowns",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "wedding_id": {
-          "name": "wedding_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rundown_name": {
-          "name": "rundown_name",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rundown_type": {
-          "name": "rundown_type",
-          "type": "rundown_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "start_time": {
-          "name": "start_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "end_time": {
-          "name": "end_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "location": {
-          "name": "location",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "venue": {
-          "name": "venue",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "attendees": {
-          "name": "attendees",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "assigned_to": {
-          "name": "assigned_to",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vendor_ids": {
-          "name": "vendor_ids",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "is_public": {
-          "name": "is_public",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "rundown_events_wedding_id_idx": {
-          "name": "rundown_events_wedding_id_idx",
-          "columns": [
-            {
-              "expression": "wedding_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "rundown_events_start_time_idx": {
-          "name": "rundown_events_start_time_idx",
-          "columns": [
-            {
-              "expression": "start_time",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "rundowns_wedding_id_weddings_id_fk": {
-          "name": "rundowns_wedding_id_weddings_id_fk",
-          "tableFrom": "rundowns",
-          "tableTo": "weddings",
-          "columnsFrom": [
-            "wedding_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1809,12 +1654,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "savings_id": {
-          "name": "savings_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "amount": {
           "name": "amount",
@@ -1859,21 +1698,6 @@
           "method": "btree",
           "with": {}
         },
-        "savings_items_savings_id_idx": {
-          "name": "savings_items_savings_id_idx",
-          "columns": [
-            {
-              "expression": "savings_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "savings_items_date_idx": {
           "name": "savings_items_date_idx",
           "columns": [
@@ -1903,19 +1727,6 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
-        },
-        "savings_items_savings_id_savings_summary_id_fk": {
-          "name": "savings_items_savings_id_savings_summary_id_fk",
-          "tableFrom": "savings_items",
-          "tableTo": "savings_summary",
-          "columnsFrom": [
-            "savings_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1924,8 +1735,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.savings_summary": {
-      "name": "savings_summary",
+    "public.schedules": {
+      "name": "schedules",
       "schema": "",
       "columns": {
         "id": {
@@ -1941,33 +1752,61 @@
           "primaryKey": false,
           "notNull": true
         },
-        "total_saved": {
-          "name": "total_saved",
-          "type": "numeric(12, 2)",
+        "schedule_name": {
+          "name": "schedule_name",
+          "type": "varchar(200)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'0'"
+          "notNull": true
         },
-        "total_target": {
-          "name": "total_target",
-          "type": "numeric(12, 2)",
+        "schedule_category": {
+          "name": "schedule_category",
+          "type": "rundown_type",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'0'"
+          "notNull": true
         },
-        "monthly_average": {
-          "name": "monthly_average",
-          "type": "numeric(12, 2)",
+        "schedule_date": {
+          "name": "schedule_date",
+          "type": "date",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'0'"
+          "notNull": true
         },
-        "last_updated": {
-          "name": "last_updated",
-          "type": "timestamp",
+        "schedule_start_time": {
+          "name": "schedule_start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schedule_end_time": {
+          "name": "schedule_end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schedule_location": {
+          "name": "schedule_location",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schedule_venue": {
+          "name": "schedule_venue",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schedule_attendees": {
+          "name": "schedule_attendees",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_public": {
+          "name": "is_public",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "now()"
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -1985,8 +1824,8 @@
         }
       },
       "indexes": {
-        "savings_summaries_wedding_id_idx": {
-          "name": "savings_summaries_wedding_id_idx",
+        "rundown_events_wedding_id_idx": {
+          "name": "rundown_events_wedding_id_idx",
           "columns": [
             {
               "expression": "wedding_id",
@@ -1995,16 +1834,31 @@
               "nulls": "last"
             }
           ],
-          "isUnique": true,
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "rundown_events_start_time_idx": {
+          "name": "rundown_events_start_time_idx",
+          "columns": [
+            {
+              "expression": "schedule_start_time",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
         }
       },
       "foreignKeys": {
-        "savings_summary_wedding_id_weddings_id_fk": {
-          "name": "savings_summary_wedding_id_weddings_id_fk",
-          "tableFrom": "savings_summary",
+        "schedules_wedding_id_weddings_id_fk": {
+          "name": "schedules_wedding_id_weddings_id_fk",
+          "tableFrom": "schedules",
           "tableTo": "weddings",
           "columnsFrom": [
             "wedding_id"
@@ -2196,14 +2050,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "task_description": {
+          "name": "task_description",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },
-        "category": {
-          "name": "category",
+        "task_category": {
+          "name": "task_category",
           "type": "category",
           "typeSchema": "public",
           "primaryKey": false,
@@ -2394,37 +2248,37 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "user_name": {
+          "name": "user_name",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "email": {
-          "name": "email",
+        "user_email": {
+          "name": "user_email",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
         },
-        "phone": {
-          "name": "phone",
+        "user_phone": {
+          "name": "user_phone",
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false
+        },
+        "user_role": {
+          "name": "user_role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'partner'"
         },
         "avatar_url": {
           "name": "avatar_url",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
-        },
-        "role": {
-          "name": "role",
-          "type": "user_role",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'collaborator'"
         },
         "created_at": {
           "name": "created_at",
@@ -2461,7 +2315,7 @@
           "name": "users_email_idx",
           "columns": [
             {
-              "expression": "email",
+              "expression": "user_email",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2476,7 +2330,7 @@
           "name": "users_role_idx",
           "columns": [
             {
-              "expression": "role",
+              "expression": "user_role",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2699,8 +2553,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "partner_name": {
-          "name": "partner_name",
+        "groom_name": {
+          "name": "groom_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bride_name": {
+          "name": "bride_name",
           "type": "varchar(200)",
           "primaryKey": false,
           "notNull": false
@@ -2711,15 +2571,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "venue": {
-          "name": "venue",
+        "wedding_venue": {
+          "name": "wedding_venue",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
-        "budget": {
-          "name": "budget",
-          "type": "numeric(12)",
+        "wedding_budget": {
+          "name": "wedding_budget",
+          "type": "numeric(12, 2)",
           "primaryKey": false,
           "notNull": false
         },
@@ -2787,9 +2647,16 @@
         "legal_formal",
         "vendor_finance",
         "guest_ceremony",
-        "personal_keepsake",
-        "miscellaneous",
-        "other"
+        "personal_keepsake"
+      ]
+    },
+    "public.document_status": {
+      "name": "document_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "approved",
+        "rejected"
       ]
     },
     "public.dowry_recipient": {
@@ -2897,8 +2764,7 @@
         "photo-video",
         "paperwork",
         "closing",
-        "miscellaneous",
-        "other"
+        "miscellaneous"
       ]
     },
     "public.souvenir_status": {
@@ -2933,7 +2799,8 @@
       "name": "user_role",
       "schema": "public",
       "values": [
-        "owner",
+        "partner",
+        "planner",
         "collaborator"
       ]
     },
