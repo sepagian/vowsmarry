@@ -3,9 +3,9 @@
 	import { expenseStatusOptions } from '$lib/constants/constants';
 	import type { Expense } from '$lib/types';
 
-	export let status: Expense['paymentStatus'];
-	export let onChange: (newPaymentStatus: Expense['paymentStatus']) => void;
-	function getActionData(paymentStatus: Expense['paymentStatus']) {
+	export let status: Expense['expensePaymentStatus'];
+	export let onChange: (newPaymentStatus: Expense['expensePaymentStatus']) => void;
+	function getActionData(paymentStatus: Expense['expensePaymentStatus']) {
 		return (
 			expenseStatusOptions.find((s) => s.value === paymentStatus) ?? {
 				label: '-',

@@ -2,11 +2,11 @@
 	import { categoryOptions } from '$lib/constants/constants';
 	import type { Task } from '$lib/types';
 
-	export let description: Task['description'];
-	export let category: Task['category'];
-	export let status: Task['status'];
+	export let description: Task['taskDescription'];
+	export let category: Task['taskCategory'];
+	export let status: Task['taskStatus'];
 
-	function getCategoryData(category: Task['category']) {
+	function getCategoryData(category: Task['taskCategory']) {
 		return (
 			categoryOptions.find((c) => c.value === category) ?? {
 				color: 'bg-gray-200 text-gray-800',
@@ -14,7 +14,7 @@
 			}
 		);
 	}
-	function getCategoryLabel(category: Task['category']) {
+	function getCategoryLabel(category: Task['taskCategory']) {
 		return categoryOptions.find((s) => s.value === category)?.label ?? category;
 	}
 

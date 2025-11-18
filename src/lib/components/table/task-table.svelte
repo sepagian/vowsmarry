@@ -39,14 +39,14 @@
 	let open = $state(false);
 
 	// Server action functions
-	async function updateTaskStatus(taskId: string, newStatus: Task['status']) {
+	async function updateTaskStatus(taskId: string, newStatus: Task['taskStatus']) {
 		try {
 			// Optimistic update
 			const originalTask = $tasksStore.find((task) => task.id === taskId);
 			tasksStore.update((tasks) => {
 				const taskIndex = tasks.findIndex((task) => task.id === taskId);
 				if (taskIndex !== -1) {
-					tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
+					tasks[taskIndex] = { ...tasks[taskIndex], taskStatus: newStatus };
 				}
 				return [...tasks];
 			});
@@ -114,11 +114,11 @@
 		try {
 			const formData = new FormData();
 			formData.append('id', taskId);
-			formData.append('description', updatedData.description);
-			formData.append('category', updatedData.category);
-			formData.append('priority', updatedData.priority);
-			formData.append('status', updatedData.status);
-			formData.append('date', updatedData.date);
+			formData.append('taskDescription', updatedData.taskDescription);
+			formData.append('taskCategory', updatedData.taskCategory);
+			formData.append('taskPriority', updatedData.taskPriority);
+			formData.append('taskStatus', updatedData.taskStatus);
+			formData.append('taskDueDate', updatedData.taskDueDate);
 
 			const response = await fetch('?/update', {
 				method: 'POST',
@@ -144,11 +144,11 @@
 			id: 'select',
 			cell: ({ row }) =>
 				renderComponent(TaskTableCheckbox, {
-					checked: row.original.status === 'completed',
+					checked: row.original.taskStatus === 'completed',
 					onCheckedChange: async (value: unknown) => {
 						const isCompleted = !!value;
-						const newStatus: Task['status'] = isCompleted ? 'completed' : 'pending';
-						await updateTaskStatus(row.original.id, newStatus);
+						const newStatus: Task['taskStatus'] = isCompleted ? 'completed' : 'pending';
+						await updateTaskStatus(row.original.id as string, newStatus);
 					},
 					'aria-label': 'Mark as completed',
 				}),
@@ -167,14 +167,14 @@
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(TaskTableDesc, {
-					category: row.original.category,
-					description: row.original.description,
-					status: row.original.status,
+					category: row.original.taskCategory,
+					description: row.original.taskDescription,
+					status: row.original.taskStatus,
 				}),
 		},
 		{
 			id: 'dueDate',
-			accessorKey: 'dueDate',
+			accessorKey: 'taskDueDate',
 			header: () => {
 				const dateHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -192,7 +192,7 @@
 					};
 				});
 
-				const dateValue = row.getValue('dueDate');
+				const dateValue = row.original.taskDueDate;
 				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
 					day: '2-digit',
 					month: 'short',
@@ -214,13 +214,13 @@
 			},
 			cell: ({ row }) =>
 				renderComponent(TaskTablePriority, {
-					priority: row.original.priority,
+					priority: row.original.taskPriority,
 				}),
 		},
 
 		{
 			id: 'status',
-			accessorKey: 'status',
+			accessorKey: 'taskStatus',
 			header: () => {
 				const statusHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -232,9 +232,9 @@
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(TaskTableActions, {
-					status: row.original.status,
-					onChange: async (newStatus: Task['status']) => {
-						await updateTaskStatus(row.original.id, newStatus);
+					status: row.original.taskStatus,
+					onChange: async (newStatus: Task['taskStatus']) => {
+						await updateTaskStatus(row.original.id as string, newStatus);
 					},
 				}),
 		},

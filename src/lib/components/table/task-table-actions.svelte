@@ -3,10 +3,10 @@
 	import { statusOptions } from '$lib/constants/constants';
 	import type { Task } from '$lib/types';
 
-	export let status: Task['status'];
-	export let onChange: (newStatus: Task['status']) => void;
+	export let status: Task['taskStatus'];
+	export let onChange: (newStatus: Task['taskStatus']) => void;
 
-	function getActionData(status: Task['status']) {
+	function getActionData(status: Task['taskStatus']) {
 		return (
 			statusOptions.find((s) => s.value === status) ?? {
 				label: '-',

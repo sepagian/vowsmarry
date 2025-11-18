@@ -7,8 +7,8 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import type { Expense } from '$lib/types';
 	import { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
-	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { expenseSchema, categoryEnum, expenseStatusEnum } from '$lib/validation/planner';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { invalidate } from '$app/navigation';
@@ -25,7 +25,7 @@
 	let deleteDialogOpen = $state(false);
 
 	const form = superForm(data.expenseForm, {
-		validators: zod4(expenseFormSchema as any),
+		validators: valibot(expenseSchema),
 		resetForm: false,
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
@@ -90,7 +90,7 @@
 
 	const selectedStatus = $derived(
 		$formData.paymentStatus
-			? paymentStatusEnum[$formData.paymentStatus as keyof typeof paymentStatusEnum]
+			? expenseStatusEnum[$formData.paymentStatus as keyof typeof expenseStatusEnum]
 			: 'Select payment status',
 	);
 </script>
@@ -221,7 +221,7 @@
 									{selectedStatus}
 								</Select.Trigger>
 								<Select.Content>
-									{#each Object.entries(paymentStatusEnum) as [value, label] (label)}
+									{#each Object.entries(expenseStatusEnum) as [value, label] (label)}
 										<Select.Item {value}>
 											{label}
 										</Select.Item>

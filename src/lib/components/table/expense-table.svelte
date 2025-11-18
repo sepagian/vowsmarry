@@ -37,7 +37,7 @@
 
 	async function updatePaymentStatus(
 		expenseId: string,
-		newPaymentStatus: Expense['paymentStatus'],
+		newPaymentStatus: Expense['expensePaymentStatus'],
 	) {
 		try {
 			// Optimistic update
@@ -45,7 +45,10 @@
 			expensesStore.update((expenses) => {
 				const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
 				if (expenseIndex !== -1) {
-					expenses[expenseIndex] = { ...expenses[expenseIndex], paymentStatus: newPaymentStatus };
+					expenses[expenseIndex] = {
+						...expenses[expenseIndex],
+						expensePaymentStatus: newPaymentStatus,
+					};
 				}
 				return [...expenses];
 			});
@@ -110,14 +113,14 @@
 			},
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableDesc, {
-					category: row.original.category,
-					description: row.original.description,
-					status: row.original['paymentStatus'],
+					category: row.original.expenseCategory,
+					description: row.original.expenseDescription,
+					status: row.original['expensePaymentStatus'],
 				}),
 		},
 		{
 			id: 'dueDate',
-			accessorKey: 'dueDate',
+			accessorKey: 'expenseDueDate',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -135,7 +138,7 @@
 					};
 				});
 
-				const dateValue = row.getValue('dueDate');
+				const dateValue = row.original.expenseDueDate;
 				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
 					day: '2-digit',
 					month: 'short',
@@ -146,7 +149,7 @@
 			},
 		},
 		{
-			accessorKey: 'amount',
+			accessorKey: 'expenseAmount',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -171,13 +174,13 @@
 
 				return renderSnippet(
 					amountCellSnippet,
-					formatter.format(Number.parseFloat(row.getValue('amount'))),
+					formatter.format(Number.parseFloat(row.getValue('expenseAmount'))),
 				);
 			},
 		},
 		{
 			id: 'status',
-			accessorKey: 'status',
+			accessorKey: 'expensePaymentStatus',
 			header: () => {
 				const statusHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -189,9 +192,9 @@
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableActions, {
-					status: row.original.paymentStatus,
-					onChange: async (newPaymentStatus: Expense['paymentStatus']) => {
-						await updatePaymentStatus(row.original.id, newPaymentStatus);
+					status: row.original.expensePaymentStatus,
+					onChange: async (newPaymentStatus: Expense['expensePaymentStatus']) => {
+						await updatePaymentStatus(row.original.id as string, newPaymentStatus);
 					},
 				}),
 		},

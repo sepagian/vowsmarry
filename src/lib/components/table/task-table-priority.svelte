@@ -2,9 +2,9 @@
 	import { priorityOptions } from '$lib/constants/constants';
 	import type { Task } from '$lib/types';
 
-	export let priority: Task['priority'];
+	export let priority: Task['taskPriority'];
 
-	function getPriorityData(priority: Task['priority']) {
+	function getPriorityData(priority: Task['taskPriority']) {
 		return (
 			priorityOptions.find((p) => p.value === priority) ?? {
 				label: '-',
