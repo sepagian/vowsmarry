@@ -1,5 +1,13 @@
 // src/lib/constants.ts
-import type { Option, Category, Task, DocType, Expense, VendorStatus, Rundown } from '$lib/types';
+import type {
+	Option,
+	Category,
+	Task,
+	DocumentCategory,
+	Expense,
+	VendorStatus,
+	Schedule,
+} from '$lib/types';
 
 // --- Categories ---
 export const categoryOptions: Option<Category>[] = [
@@ -60,7 +68,7 @@ export const categoryOptions: Option<Category>[] = [
 ];
 
 // --- Priorities ---
-export const priorityOptions: Option<NonNullable<Task['priority']>>[] = [
+export const priorityOptions: Option<NonNullable<Task['taskPriority']>>[] = [
 	{ value: 'low', label: 'Low', icon: 'i-lucide:arrow-down', color: 'bg-green-100 text-green-800' },
 	{
 		value: 'medium',
@@ -72,7 +80,7 @@ export const priorityOptions: Option<NonNullable<Task['priority']>>[] = [
 ];
 
 // --- Status ---
-export const statusOptions: Option<NonNullable<Task['status']>>[] = [
+export const statusOptions: Option<NonNullable<Task['taskStatus']>>[] = [
 	{
 		value: 'pending',
 		label: 'Pending',
@@ -94,7 +102,7 @@ export const statusOptions: Option<NonNullable<Task['status']>>[] = [
 ];
 
 // --- Doc Types ---
-export const docTypeOptions: Option<DocType>[] = [
+export const docTypeOptions: Option<DocumentCategory>[] = [
 	{ value: 'legal_formal', label: 'Legal & Formal', icon: 'i-lucide:scale' },
 	{ value: 'vendor_finance', label: 'Vendor & Finance', icon: 'i-lucide:scroll-text' },
 	{ value: 'guest_ceremony', label: 'Guest & Ceremony', icon: 'i-lucide:book-open-check' },
@@ -102,7 +110,7 @@ export const docTypeOptions: Option<DocType>[] = [
 ];
 
 // --- Expense Status ---
-export const expenseStatusOptions: Option<Expense['paymentStatus']>[] = [
+export const expenseStatusOptions: Option<Expense['expensePaymentStatus']>[] = [
 	{ value: 'paid', label: 'Paid', icon: 'i-lucide:check', color: 'bg-green-100 text-green-800' },
 	{
 		value: 'unpaid',
@@ -141,7 +149,7 @@ export const vendorStatusOptions: Option<VendorStatus>[] = [
 ];
 
 // --- Rundown Categories ---
-export const rundownCategoryOptions: Option<Rundown['rundownType']>[] = [
+export const rundownCategoryOptions: Option<Schedule['scheduleCategory']>[] = [
 	{
 		value: 'preparation',
 		label: 'Preparation',
