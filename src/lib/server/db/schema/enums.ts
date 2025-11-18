@@ -46,7 +46,6 @@ export const rundownTypeEnum = pgEnum('rundown_type', [
 	'paperwork',
 	'closing',
 	'miscellaneous',
-	'other',
 ]);
 
 export const dowryTypeEnum = pgEnum('dowry_type', [
@@ -91,4 +90,4 @@ export const galleryTypeEnum = pgEnum('gallery_type', ['photo', 'video']);
 
 export const giftTypeEnum = pgEnum('gift_type', ['digital wallet', 'registry']);
 
-export const userRoleEnum = pgEnum('user_role', ['owner', 'collaborator']);
+export const userRoleEnum = pgEnum('user_role', ['partner', 'planner', 'collaborator']);
