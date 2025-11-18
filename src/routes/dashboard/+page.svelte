@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SuperDebug from 'sveltekit-superforms';
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionBudget from '$lib/components/section/section-budget.svelte';
 	import WeddingAlert from '$lib/components/wedding-alert.svelte';
@@ -72,7 +73,7 @@
 			<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
 			<p class="text-muted-foreground">
 				{#if data.wedding}
-					Plan your wedding with {data.wedding.partnerName || 'your partner'}
+					Plan your wedding with {data.wedding.brideName || 'your partner'}
 					{#if weddingDate}
 						- {daysUntilWedding} days to go!
 					{/if}

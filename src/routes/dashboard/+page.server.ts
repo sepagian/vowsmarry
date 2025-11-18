@@ -1,24 +1,22 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
+import { valibot } from 'sveltekit-superforms/adapters';
 import { plannerDb } from '$lib/server/db';
-import {
-	tasks,
-	expenseItems,
-	expenseCategories,
-	documents,
-	vendors,
-	weddings,
-} from '$lib/server/db/schema/planner';
+import { tasks, expenseItems, documents, vendors, weddings } from '$lib/server/db/schema/planner';
 import { eq, count, sum, and, desc } from 'drizzle-orm';
-import { expenseFormSchema, weddingFormSchema } from '$lib/validation/index';
+import {
+	expenseSchema,
+	weddingSchema,
+	type WeddingData,
+	type ExpenseData,
+} from '$lib/validation/planner';
 import type { ExpenseStatus } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
 	depends('dashboard:data');
-	const expenseForm = await superValidate(zod4(expenseFormSchema as any));
-	const weddingForm = await superValidate(zod4(weddingFormSchema as any));
+	const expenseForm = await superValidate(valibot(expenseSchema));
+	const weddingForm = await superValidate(valibot(weddingSchema));
 
 	const {
 		data: { user },
@@ -68,9 +66,14 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 				.then((result) => result[0]?.count ?? 0),
 
 			plannerDb
-				.select({ total: sum(expenseItems.amount) })
+				.select({ total: sum(expenseItems.expenseAmount) })
 				.from(expenseItems)
-				.where(and(eq(expenseItems.weddingId, wedding.id), eq(expenseItems.paymentStatus, 'paid')))
+				.where(
+					and(
+						eq(expenseItems.weddingId, wedding.id),
+						eq(expenseItems.expensePaymentStatus, 'paid'),
+					),
+				)
 				.then((result) => result[0]?.total ?? '0'),
 
 			plannerDb
@@ -87,7 +90,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 
 			plannerDb.query.expenseItems.findMany({
 				where: eq(expenseItems.weddingId, wedding.id),
-				orderBy: (expenseItems, { desc }) => [desc(expenseItems.dueDate)],
+				orderBy: (expenseItems, { desc }) => [desc(expenseItems.expenseDueDate)],
 			}),
 		],
 	);
@@ -133,7 +136,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 			firstName: user.user_metadata?.first_name || '',
 			lastName: user.user_metadata?.last_name || '',
 		},
-		weddings: wedding,
+		wedding: wedding,
 		expenseForm,
 		weddingForm,
 		stats: {
@@ -160,13 +163,10 @@ export const actions: Actions = {
 
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
-		const form = await superValidate(request, zod4(weddingFormSchema as any));
+		const form = await superValidate(request, valibot(weddingSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const { partnerName, weddingDate, venue, budget } = form.data as any;
-
 		try {
-			// Check if wedding already exists for this user
 			const existingWedding = await plannerDb.query.weddings.findFirst({
 				where: eq(weddings.userId, user.id),
 			});
@@ -178,14 +178,18 @@ export const actions: Actions = {
 				});
 			}
 
+			const { groomName, brideName, weddingVenue, weddingDate, weddingBudget } =
+				form.data as WeddingData;
+
 			const [newWedding] = await plannerDb
 				.insert(weddings)
 				.values({
 					userId: user.id,
-					partnerName,
+					groomName,
+					brideName,
+					weddingVenue,
 					weddingDate,
-					venue,
-					budget,
+					weddingBudget: weddingBudget.toString(),
 				})
 				.returning();
 
@@ -211,19 +215,21 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
-		const form = await superValidate(request, zod4(weddingFormSchema as any));
+		const form = await superValidate(request, valibot(weddingSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const { partnerName, weddingDate, venue, budget } = form.data as any;
+		const { groomName, brideName, weddingDate, weddingVenue, weddingBudget } =
+			form.data as WeddingData;
 
 		try {
 			const [updatedWedding] = await plannerDb
 				.update(weddings)
 				.set({
-					partnerName,
+					groomName,
+					brideName,
 					weddingDate,
-					venue,
-					budget,
+					weddingVenue,
+					weddingBudget: weddingBudget.toString(),
 					updatedAt: new Date(),
 				})
 				.where(eq(weddings.id, wedding.id))
@@ -251,42 +257,26 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
-		const form = await superValidate(request, zod4(expenseFormSchema as any));
+		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const { description, category, amount, paymentStatus, date } = form.data as any;
-
+		const {
+			expenseDescription,
+			expenseCategory,
+			expenseAmount,
+			expensePaymentStatus,
+			expenseDueDate,
+		} = form.data as ExpenseData;
 		try {
-			let expenseCategory = await plannerDb.query.expenseCategories.findFirst({
-				where: and(
-					eq(expenseCategories.weddingId, wedding.id),
-					eq(expenseCategories.category, category),
-				),
-			});
-
-			if (!expenseCategory) {
-				const [newCategory] = await plannerDb
-					.insert(expenseCategories)
-					.values({
-						weddingId: wedding.id,
-						category,
-						allocatedAmount: '0',
-						spentAmount: '0',
-					})
-					.returning();
-				expenseCategory = newCategory;
-			}
-
 			const newExpense = await plannerDb
 				.insert(expenseItems)
 				.values({
 					weddingId: wedding.id,
-					description,
-					expenseCategoryId: expenseCategory.id,
-					category,
-					amount,
-					paymentStatus,
-					dueDate: date,
+					expenseDescription,
+					expenseCategory,
+					expenseAmount: expenseAmount.toString(),
+					expensePaymentStatus,
+					expenseDueDate,
 				})
 				.returning();
 
@@ -312,7 +302,7 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
-		const form = await superValidate(request, zod4(expenseFormSchema as any));
+		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const data = await request.formData();
@@ -322,38 +312,24 @@ export const actions: Actions = {
 			return fail(400, { form, error: 'Missing expense ID' });
 		}
 
-		const { description, category, amount, paymentStatus, date } = form.data as any;
+		const {
+			expenseDescription,
+			expenseCategory,
+			expenseAmount,
+			expensePaymentStatus,
+			expenseDueDate,
+		} = form.data as ExpenseData;
 
 		try {
-			let expenseCategory = await plannerDb.query.expenseCategories.findFirst({
-				where: and(
-					eq(expenseCategories.weddingId, wedding.id),
-					eq(expenseCategories.category, category),
-				),
-			});
-
-			if (!expenseCategory) {
-				const [newCategory] = await plannerDb
-					.insert(expenseCategories)
-					.values({
-						weddingId: wedding.id,
-						category,
-						allocatedAmount: '0',
-						spentAmount: '0',
-					})
-					.returning();
-				expenseCategory = newCategory;
-			}
-
 			const updatedExpense = await plannerDb
 				.update(expenseItems)
 				.set({
-					description,
-					expenseCategoryId: expenseCategory.id,
-					category,
-					amount,
-					paymentStatus,
-					dueDate: date,
+					weddingId: wedding.id,
+					expenseDescription,
+					expenseCategory,
+					expenseAmount: expenseAmount.toString(),
+					expensePaymentStatus,
+					expenseDueDate,
 					updatedAt: new Date(),
 				})
 				.where(and(eq(expenseItems.id, expenseId), eq(expenseItems.weddingId, wedding.id)))
@@ -435,7 +411,7 @@ export const actions: Actions = {
 			const updatedPaymentStatus = await plannerDb
 				.update(expenseItems)
 				.set({
-					paymentStatus: newPaymentStatus,
+					expensePaymentStatus: newPaymentStatus,
 					updatedAt: new Date(),
 				})
 				.where(and(eq(expenseItems.id, expenseId), eq(expenseItems.weddingId, wedding.id)))
