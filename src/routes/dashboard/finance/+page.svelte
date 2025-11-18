@@ -4,7 +4,6 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionSavings from '$lib/components/section/section-savings.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
-	import ExpenseCategories from '$lib/components/chart/expense-categories.svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
 	import { expensesStore } from '$lib/stores/expenses';
@@ -21,7 +20,7 @@
 	let overviewCards = $derived(() => {
 		return [
 			{
-				title: parseFloat(data.stats.plannedBudget).toLocaleString('id-ID', {
+				title: parseFloat(data.financeStats.plannedBudget).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -35,7 +34,7 @@
 					: 'No data yet',
 			},
 			{
-				title: parseFloat(data.stats.totalSavings).toLocaleString('id-ID', {
+				title: parseFloat(data.financeStats.totalSavings).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -44,10 +43,10 @@
 				description: 'Savings',
 				actionClass: 'i-lucide:piggy-bank',
 				actionColor: 'bg-pink-500 text-white',
-				footer: `${data.stats.savingProgress}% saved`,
+				footer: `${data.financeStats.savingProgress}% saved`,
 			},
 			{
-				title: parseFloat(data.stats.budgetSpent).toLocaleString('id-ID', {
+				title: parseFloat(data.financeStats.budgetSpent).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -62,7 +61,7 @@
 			},
 
 			{
-				title: parseFloat(data.stats.budgetRemaining).toLocaleString('id-ID', {
+				title: parseFloat(data.financeStats.budgetRemaining).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -104,9 +103,7 @@
 				</div>
 				<div class="flex flex-col col-span-3 lg:col-span-1 row-span-3 gap-2 pb-4">
 					<Card.Root class="@container/card p-6 h-full gap-2 shadow-none">
-						<Card.Content class="p-0">
-							<ExpenseCategories />
-						</Card.Content>
+						<Card.Content class="p-0"></Card.Content>
 					</Card.Root>
 				</div>
 			</div>
