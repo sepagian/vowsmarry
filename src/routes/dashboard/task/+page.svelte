@@ -22,34 +22,34 @@
 				description: 'Total',
 				actionClass: 'i-lucide:badge-info',
 				actionColor: 'bg-blue-500 text-white',
-				footer: data.update.total
+				footer: data.taskStats.total && data.update.total
 					? `Last updated ${formatDistanceToNow(new Date(data.update.total), { addSuffix: true })}`
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.status === 'pending').length.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'pending').length.toString(),
 				description: 'Pending',
 				actionClass: 'i-lucide:badge-minus',
 				actionColor: 'bg-gray-500 text-white',
-				footer: data.update.pending
+				footer: data.taskStats.pending && data.update.pending
 					? `Last updated ${formatDistanceToNow(new Date(data.update.pending), { addSuffix: true })}`
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.status === 'on_progress').length.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'on_progress').length.toString(),
 				description: 'On Progress',
 				actionClass: 'i-lucide:badge-alert',
 				actionColor: 'bg-yellow-500 text-white',
-				footer: data.update.onProgress
+				footer: data.taskStats.onProgress && data.update.onProgress
 					? `Last updated ${formatDistanceToNow(new Date(data.update.onProgress), { addSuffix: true })}`
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.status === 'completed').length.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'completed').length.toString(),
 				description: 'Completed',
 				actionClass: 'i-lucide:badge-check',
 				actionColor: 'bg-green-500 text-white',
-				footer: data.update.completed
+				footer: data.taskStats.completed && data.update.completed
 					? `Last updated ${formatDistanceToNow(new Date(data.update.completed), { addSuffix: true })}`
 					: 'No data yet',
 			},
