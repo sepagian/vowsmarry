@@ -1,16 +1,16 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
+import { valibot } from 'sveltekit-superforms/adapters';
 import { plannerDb } from '$lib/server/db';
 import { vendors, weddings } from '$lib/server/db/schema/planner';
-import { eq, count, and } from 'drizzle-orm';
-import { vendorFormSchema } from '$lib/validation/index';
+import { eq, and } from 'drizzle-orm';
+import { vendorSchema, type VendorData } from '$lib/validation/planner';
 import type { Category, VendorStatus, VendorRating } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
 	depends('vendor:list');
-	const vendorForm = await superValidate(zod4(vendorFormSchema as any));
+	const vendorForm = await superValidate(valibot(vendorSchema));
 
 	const {
 		data: { user },
@@ -28,11 +28,11 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	if (!wedding) {
 		return {
 			vendorForm,
-			stats: {
-				researchingCount: 0,
-				contactedCount: 0,
-				quotedCount: 0,
-				bookedCount: 0,
+			vendorStats: {
+				researching: 0,
+				contacted: 0,
+				quoted: 0,
+				booked: 0,
 			},
 			update: {
 				researching: null,
@@ -44,68 +44,49 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const [researchingCount, contactedCount, quotedCount, bookedCount, vendorList] =
-		await Promise.all([
-			plannerDb
-				.select({ count: count() })
-				.from(vendors)
-				.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'researching')))
-				.then((result) => result[0]?.count ?? '0'),
+	const vendorList = await plannerDb.query.vendors.findMany({
+		where: eq(vendors.weddingId, wedding.id),
+		orderBy: vendors.vendorName,
+	});
 
-			plannerDb
-				.select({ count: count() })
-				.from(vendors)
-				.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'contacted')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb
-				.select({ count: count() })
-				.from(vendors)
-				.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'quoted')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb
-				.select({ count: count() })
-				.from(vendors)
-				.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'booked')))
-				.then((result) => result[0]?.count ?? '0'),
-
-			plannerDb.query.vendors.findMany({
-				where: eq(vendors.weddingId, wedding.id),
-				orderBy: (vendors, { asc }) => [asc(vendors.name)],
-			}),
-		]);
+	const vendorStats = {
+		total: vendorList.length,
+		researching: vendorList.filter((vendor) => vendor.vendorStatus === 'researching').length,
+		contacted: vendorList.filter((vendor) => vendor.vendorStatus === 'contacted').length,
+		quoted: vendorList.filter((vendor) => vendor.vendorStatus === 'quoted').length,
+		booked: vendorList.filter((vendor) => vendor.vendorStatus === 'booked').length,
+	};
 
 	const [researching, contacted, quoted, booked] = await Promise.all([
 		plannerDb
 			.select({ updatedAt: vendors.createdAt })
 			.from(vendors)
-			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'researching')))
+			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.vendorStatus, 'researching')))
 			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
 			.select({ updatedAt: vendors.createdAt })
 			.from(vendors)
-			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'contacted')))
+			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.vendorStatus, 'contacted')))
 			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
 			.select({ updatedAt: vendors.createdAt })
 			.from(vendors)
-			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'quoted')))
+			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.vendorStatus, 'quoted')))
 			.then((result) => result[0]?.updatedAt ?? null),
 
 		plannerDb
 			.select({ updatedAt: vendors.createdAt })
 			.from(vendors)
-			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.status, 'booked')))
+			.where(and(eq(vendors.weddingId, wedding.id), eq(vendors.vendorStatus, 'booked')))
 			.then((result) => result[0]?.updatedAt ?? null),
 	]);
 
 	return {
 		vendorForm,
 		vendors: vendorList,
-		stats: { researchingCount, contactedCount, quotedCount, bookedCount },
+		vendorStats,
 		update: { researching, contacted, quoted, booked },
 	};
 };
@@ -124,21 +105,22 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
-		const form = await superValidate(request, zod4(vendorFormSchema as any));
+		const form = await superValidate(request, valibot(vendorSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const { name, category, instagram, status, rating } = form.data as any;
+		const { vendorName, vendorCategory, vendorInstagram, vendorStatus, vendorRating } =
+			form.data as VendorData;
 
 		try {
 			const newVendor = await plannerDb
 				.insert(vendors)
 				.values({
 					weddingId: wedding.id,
-					name,
-					category,
-					instagram,
-					status,
-					rating,
+					vendorName,
+					vendorCategory,
+					vendorInstagram,
+					vendorStatus,
+					vendorRating,
 				})
 				.returning();
 
@@ -164,23 +146,26 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
+		const form = await superValidate(request, valibot(vendorSchema));
+		if (!form.valid) return fail(400, { form });
+
 		const data = await request.formData();
 		const vendorId = data.get('id') as string;
-		const name = data.get('name') as string;
-		const category = data.get('category') as Category;
-		const instagram = data.get('instagram') as string;
-		const status = data.get('status') as VendorStatus;
-		const rating = data.get('rating') as VendorRating;
+		const vendorName = data.get('vendorName') as string;
+		const vendorCategory = data.get('vendorCategory') as Category;
+		const vendorInstagram = data.get('vendorInstagram') as string;
+		const vendorStatus = data.get('vendorStatus') as VendorStatus;
+		const vendorRating = data.get('vendorRating') as VendorRating;
 
 		try {
 			const updatedVendor = await plannerDb
 				.update(vendors)
 				.set({
-					name,
-					category: category as Category,
-					instagram,
-					status: status as VendorStatus,
-					rating: rating as VendorRating,
+					vendorName,
+					vendorCategory,
+					vendorInstagram,
+					vendorStatus,
+					vendorRating,
 					updatedAt: new Date(),
 				})
 				.where(and(eq(vendors.id, vendorId), eq(vendors.weddingId, wedding.id)))
@@ -255,7 +240,7 @@ export const actions: Actions = {
 			const updatedVendor = await plannerDb
 				.update(vendors)
 				.set({
-					status: newStatus,
+					vendorStatus: newStatus,
 					updatedAt: new Date(),
 				})
 				.where(and(eq(vendors.id, vendorId), eq(vendors.weddingId, wedding.id)))

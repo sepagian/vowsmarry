@@ -18,7 +18,7 @@
 	let overviewCards = $derived(() => {
 		return [
 			{
-				title: data.stats.researchingCount.toString(),
+				title: data.vendorStats.researching.toString(),
 				description: 'Researching',
 				actionClass: 'i-lucide:search',
 				actionColor: 'bg-gray-500 text-white',
@@ -27,7 +27,7 @@
 					: 'No data yet',
 			},
 			{
-				title: data.stats.contactedCount.toString(),
+				title: data.vendorStats.contacted.toString(),
 				description: 'Contacted',
 				actionClass: 'i-lucide:phone',
 				actionColor: 'bg-yellow-500 text-white',
@@ -36,7 +36,7 @@
 					: 'No data yet',
 			},
 			{
-				title: data.stats.quotedCount.toString(),
+				title: data.vendorStats.quoted.toString(),
 				description: 'Quoted',
 				actionClass: 'i-lucide:message-square-quote',
 				actionColor: 'bg-blue-500 text-white',
@@ -45,7 +45,7 @@
 					: 'No data yet',
 			},
 			{
-				title: data.stats.bookedCount.toString(),
+				title: data.vendorStats.booked.toString(),
 				description: 'Booked',
 				actionClass: 'i-lucide:book-check',
 				actionColor: 'bg-green-500 text-white',
