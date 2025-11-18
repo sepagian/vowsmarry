@@ -5,10 +5,10 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { scheduleEventFormSchema, rundownCategoryEnum } from '$lib/validation/index';
+	import { scheduleSchema, scheduleCategoryEnum } from '$lib/validation/planner';
 	import { invalidate } from '$app/navigation';
 
 	let { data, open = $bindable() } = $props();
@@ -18,14 +18,17 @@
 	}
 
 	const form = superForm(data.scheduleForm, {
-		validators: zod4(scheduleEventFormSchema as any),
+		validators: valibot(scheduleSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful rundown item creation
-				const eventTitle = f.data.title || 'Rundown item';
+				const eventTitle = f.data.scheduleName || 'Rundown item';
 				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
 				// Invalidate to refetch the rundown list
 				await invalidate('rundown:list');
+				// Close dialog after successful creation
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -39,7 +42,7 @@
 
 	const selectedCategory = $derived(
 		$formData.category
-			? rundownCategoryEnum[$formData.category as keyof typeof rundownCategoryEnum]
+			? scheduleCategoryEnum.find((c) => c.value === $formData.category)?.label
 			: 'Choose category',
 	);
 </script>
@@ -56,15 +59,17 @@
 		use:enhance
 		action="?/createRundown"
 		class="flex flex-col gap-4"
-		onsubmit={() => {
-			wait(500).then(() => (open = false));
+		onsubmit={(e) => {
+			if (!$formData.valid) {
+				e.preventDefault();
+			}
 		}}
 	>
 		<div class="flex flex-col gap-4">
 			<div class="flex flex-row items-start justify-between gap-2">
 				<Form.Field
 					{form}
-					name="title"
+					name="scheduleName"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
@@ -74,7 +79,7 @@
 								{...props}
 								type="text"
 								placeholder="e.g. Ceremony"
-								bind:value={$formData.title}
+								bind:value={$formData.scheduleName}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -82,7 +87,7 @@
 				</Form.Field>
 				<Form.Field
 					{form}
-					name="category"
+					name="scheduleCategory"
 					class="flex flex-col w-full gap-2"
 				>
 					<Form.Control>
@@ -90,7 +95,7 @@
 							<Form.Label>Category</Form.Label>
 							<Select.Root
 								type="single"
-								bind:value={$formData.category}
+								bind:value={$formData.scheduleCategory}
 								name={props.name}
 							>
 								<Select.Trigger
@@ -102,9 +107,9 @@
 								</Select.Trigger>
 								<Select.Content>
 									<Select.Group>
-										{#each Object.entries(rundownCategoryEnum) as [value, label] (label)}
-											<Select.Item {value}>
-												{label}
+										{#each scheduleCategoryEnum as option (option.value)}
+											<Select.Item value={option.value}>
+												{option.label}
 											</Select.Item>
 										{/each}
 									</Select.Group>
@@ -117,7 +122,7 @@
 			</div>
 			<Form.Field
 				{form}
-				name="description"
+				name="scheduleNotes"
 			>
 				<Form.Control>
 					{#snippet children({ props })}
@@ -125,7 +130,7 @@
 						<Textarea
 							{...props}
 							placeholder="Add details or notes (optional)"
-							bind:value={$formData.description}
+							bind:value={$formData.scheduleNotes}
 						/>
 					{/snippet}
 				</Form.Control>
@@ -134,7 +139,7 @@
 			<div class="flex flex-row items-start justify-between gap-2">
 				<Form.Field
 					{form}
-					name="startTime"
+					name="scheduleStartTime"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
@@ -143,7 +148,7 @@
 							<Input
 								{...props}
 								type="time"
-								bind:value={$formData.startTime}
+								bind:value={$formData.scheduleStartTime}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -151,7 +156,7 @@
 				</Form.Field>
 				<Form.Field
 					{form}
-					name="endTime"
+					name="scheduleEndTime"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
@@ -160,7 +165,7 @@
 							<Input
 								{...props}
 								type="time"
-								bind:value={$formData.endTime}
+								bind:value={$formData.scheduleEndTime}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -170,7 +175,7 @@
 			<div class="flex flex-row items-start justify-between gap-2">
 				<Form.Field
 					{form}
-					name="location"
+					name="scheduleLocation"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
@@ -179,7 +184,7 @@
 							<Input
 								{...props}
 								placeholder="e.g. Main Hall, Garden"
-								bind:value={$formData.location}
+								bind:value={$formData.scheduleLocation}
 							/>
 						{/snippet}
 					</Form.Control>
@@ -187,7 +192,7 @@
 				</Form.Field>
 				<Form.Field
 					{form}
-					name="attendees"
+					name="scheduleAttendees"
 					class="flex flex-col items-start w-full gap-2"
 				>
 					<Form.Control>
@@ -196,7 +201,7 @@
 							<Input
 								{...props}
 								placeholder="e.g. Wedding Planner, Best Man"
-								bind:value={$formData.attendees}
+								bind:value={$formData.scheduleAttendees}
 							/>
 						{/snippet}
 					</Form.Control>

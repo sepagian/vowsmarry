@@ -6,7 +6,12 @@
 	import { Label } from '$lib/components/ui/label/index';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import { vendorsStore } from '$lib/stores/vendors';
-	import { categoryEnum, vendorStatusEnum, vendorRatingEnum } from '$lib/validation/index';
+	import {
+		categoryEnum,
+		vendorStatusEnum,
+		vendorRatingEnum,
+		type VendorData,
+	} from '$lib/validation/planner';
 	import type { Vendor } from '$lib/types';
 	import { invalidate } from '$app/navigation';
 
@@ -17,28 +22,28 @@
 
 	let isSubmitting = $state(false);
 	let formData = $state({
-		name: vendor.name,
-		category: vendor.category,
-		instagram: vendor.instagram || '',
-		status: vendor.status,
-		rating: vendor.rating,
+		vendorName: vendor.vendorName,
+		vendorCategory: vendor.vendorCategory,
+		vendorInstagram: vendor.vendorInstagram,
+		vendorStatus: vendor.vendorStatus,
+		vendorRating: vendor.vendorRating,
 	});
 
 	const selectedCategory = $derived(
-		formData.category
-			? categoryEnum[formData.category as keyof typeof categoryEnum]
+		formData.vendorCategory
+			? categoryEnum.find((c) => c.value === formData.vendorCategory)?.label
 			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
-		formData.status
-			? vendorStatusEnum[formData.status as keyof typeof vendorStatusEnum]
+		formData.vendorStatus
+			? vendorStatusEnum.find((s) => s.value === formData.vendorStatus)?.label
 			: 'Select progress status',
 	);
 
 	const selectedRating = $derived(
-		formData.rating
-			? vendorRatingEnum[formData.rating as keyof typeof vendorRatingEnum]
+		formData.vendorRating
+			? vendorRatingEnum.find((r) => r.value === formData.vendorRating)?.label
 			: 'Select vendor rating',
 	);
 
@@ -53,11 +58,11 @@
 				v.id === vendor.id
 					? {
 							...v,
-							name: formData.name,
-							category: formData.category,
-							instagram: formData.instagram,
-							status: formData.status,
-							rating: formData.rating,
+							vendorName: vendor.vendorName,
+							vendorCategory: vendor.vendorCategory,
+							vendorInstagram: vendor.vendorInstagram,
+							vendorStatus: vendor.vendorStatus,
+							vendorRating: vendor.vendorRating,
 							updatedAt: new Date(),
 						}
 					: v,
@@ -67,11 +72,11 @@
 		try {
 			const form = new FormData();
 			form.append('id', vendor.id);
-			form.append('name', formData.name);
-			form.append('category', formData.category);
-			form.append('instagram', formData.instagram);
-			form.append('status', formData.status);
-			form.append('rating', formData.rating);
+			form.append('vendorName', formData.vendorName);
+			form.append('vendorCategory', formData.vendorCategory);
+			form.append('vendorInstagram', formData.vendorInstagram);
+			form.append('vendorStatus', formData.vendorStatus);
+			form.append('vendorRating', formData.vendorRating);
 
 			const response = await fetch('?/editVendor', {
 				method: 'POST',
@@ -81,7 +86,7 @@
 			const result = await response.json();
 
 			if (result.type === 'success') {
-				CrudToasts.success('update', 'vendor', { itemName: formData.name });
+				CrudToasts.success('update', 'vendor', { itemName: formData.vendorName });
 				// Invalidate to refetch all vendor data including stats
 				await invalidate('vendor:list');
 				open = false;
@@ -119,7 +124,7 @@
 				<Input
 					id="name"
 					type="text"
-					bind:value={formData.name}
+					bind:value={formData.vendorName}
 					required
 				/>
 			</div>
@@ -128,15 +133,15 @@
 					<Label for="category">Category</Label>
 					<Select.Root
 						type="single"
-						bind:value={formData.category}
+						bind:value={formData.vendorCategory}
 					>
 						<Select.Trigger class="flex w-full">
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(categoryEnum) as [value, label] (label)}
-								<Select.Item {value}>
-									{label}
+							{#each categoryEnum as option (option.value)}
+								<Select.Item value={option.value}>
+									{option.label}
 								</Select.Item>
 							{/each}
 						</Select.Content>
@@ -147,7 +152,7 @@
 					<Input
 						id="instagram"
 						type="text"
-						bind:value={formData.instagram}
+						bind:value={formData.vendorInstagram}
 					/>
 				</div>
 			</div>
@@ -156,15 +161,15 @@
 					<Label for="status">Status</Label>
 					<Select.Root
 						type="single"
-						bind:value={formData.status}
+						bind:value={formData.vendorStatus}
 					>
 						<Select.Trigger class="flex w-full">
 							{selectedStatus}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(vendorStatusEnum) as [value, label] (label)}
-								<Select.Item {value}>
-									{label}
+							{#each vendorStatusEnum as option (option.value)}
+								<Select.Item value={option.value}>
+									{option.label}
 								</Select.Item>
 							{/each}
 						</Select.Content>
@@ -174,15 +179,15 @@
 					<Label for="rating">Rating</Label>
 					<Select.Root
 						type="single"
-						bind:value={formData.rating}
+						bind:value={formData.vendorRating}
 					>
 						<Select.Trigger class="flex w-full">
 							{selectedRating} stars
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(vendorRatingEnum) as [value, label] (label)}
-								<Select.Item {value}>
-									{label} stars
+							{#each vendorRatingEnum as option (option.value)}
+								<Select.Item value={option.value}>
+									{option.label} stars
 								</Select.Item>
 							{/each}
 						</Select.Content>

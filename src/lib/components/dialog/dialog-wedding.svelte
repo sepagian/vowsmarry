@@ -6,10 +6,10 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import CurrencyInput from '@canutin/svelte-currency-input';
 	import { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { weddingFormSchema } from '$lib/validation/index';
+	import { weddingSchema } from '$lib/validation/planner';
 	import { invalidate } from '$app/navigation';
 
 	let { data, open = $bindable() } = $props();
@@ -19,13 +19,14 @@
 	}
 
 	const form = superForm(data.weddingForm, {
-		validators: zod4(weddingFormSchema as any),
+		validators: valibot(weddingSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				const action = data.wedding ? 'update' : 'create';
 				CrudToasts.success(action, 'wedding');
-				// Reload page data to get updated wedding info
 				await invalidate('dashboard:data');
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -41,10 +42,13 @@
 	// Load existing wedding data into form when editing
 	$effect(() => {
 		if (data.wedding && open) {
-			$formData.partnerName = data.wedding.partnerName || '';
+			$formData.groomName = data.wedding.groomName || '';
+			$formData.brideName = data.wedding.brideName || '';
 			$formData.weddingDate = data.wedding.weddingDate || '';
-			$formData.venue = data.wedding.venue || '';
-			$formData.budget = data.wedding.budget ? parseFloat(data.wedding.budget) : '';
+			$formData.weddingVenue = data.wedding.weddingVenue || '';
+			$formData.weddingBudget = data.wedding.weddingBudget
+				? parseFloat(data.wedding.weddingBudget)
+				: '';
 		}
 	});
 </script>
@@ -55,8 +59,10 @@
 		method="POST"
 		action={data.wedding ? '?/updateWeddingData' : '?/createWeddingData'}
 		class="flex flex-col gap-4"
-		onsubmit={() => {
-			wait(500).then(() => (open = false));
+		onsubmit={(e) => {
+			if (!$formData.valid) {
+				e.preventDefault();
+			}
 		}}
 	>
 		<Dialog.Header>
@@ -81,15 +87,31 @@
 
 		<Form.Field
 			{form}
-			name="partnerName"
+			name="groomName"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<Form.Label>Partner Name</Form.Label>
+					<Form.Label>Groom Name</Form.Label>
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.partnerName}
+						bind:value={$formData.groomName}
+					/>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+		<Form.Field
+			{form}
+			name="brideName"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Bride Name</Form.Label>
+					<Input
+						{...props}
+						type="text"
+						bind:value={$formData.brideName}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -113,7 +135,7 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="venue"
+			name="weddingVenue"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -121,7 +143,7 @@
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.venue}
+						bind:value={$formData.weddingVenue}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -129,15 +151,15 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="budget"
+			name="weddingBudget"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Budget Allocated</Form.Label>
 					<CurrencyInput
 						{...props}
-						name="budget"
-						bind:value={$formData.budget}
+						name="weddingBudget"
+						bind:value={$formData.weddingBudget}
 						locale="id-ID"
 						currency="IDR"
 						inputClasses={{
@@ -158,7 +180,7 @@
 				class={buttonVariants({ variant: 'secondary' })}
 				onclick={() => (open = false)}>Cancel</Button
 			>
-			<Form.Button class={buttonVariants({ variant: 'default' })}>Save changes</Form.Button>
+			<Form.Button class={buttonVariants({ variant: 'default' })}>Save Changes</Form.Button>
 		</Dialog.Footer>
 	</form></Dialog.Content
 >
