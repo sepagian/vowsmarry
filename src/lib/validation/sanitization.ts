@@ -205,3 +205,30 @@ export const sanitizeByType = (input: string, type: keyof typeof sanitizationCon
 	const sanitizer = sanitizationConfig[type];
 	return sanitizer ? sanitizer(input) : sanitizeGeneral(input);
 };
+
+// Valibot-integrated sanitization validators
+import * as v from 'valibot';
+
+export const sanitizedString = (type: keyof typeof sanitizationConfig) =>
+	v.pipe(
+		v.string(),
+		v.transform((input) => sanitizeByType(input, type)),
+	);
+
+export const sanitizedEmail = () =>
+	v.pipe(v.string(), v.transform(sanitizeEmail), v.email('Please enter a valid email address'));
+
+export const sanitizedUrl = () =>
+	v.pipe(v.string(), v.transform(sanitizeUrl), v.url('Please enter a valid URL'));
+
+export const sanitizedPhone = () => v.pipe(v.string(), v.transform(sanitizePhone));
+
+export const sanitizedInstagram = () => v.pipe(v.string(), v.transform(sanitizeInstagram));
+
+// Safe defaults for common use cases
+export const safeString = () => sanitizedString('text');
+export const safeHtmlString = () => sanitizedString('html');
+export const safeEmail = () => sanitizedEmail();
+export const safeUrl = () => sanitizedUrl();
+export const safePhone = () => sanitizedPhone();
+export const safeInstagram = () => sanitizedInstagram();

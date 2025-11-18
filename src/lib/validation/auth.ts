@@ -1,149 +1,127 @@
-import { z } from 'zod/v4';
-import { passwordValidator } from './utils';
-import { sanitizeEmail, sanitizeText } from './sanitization';
-import { getErrorMessage, createStringValidator } from './messages';
+import * as v from 'valibot';
+import { safeEmail } from './sanitization';
 
-/**
- * Login schema for user authentication
- * Validates email and password for login forms
- */
-export const loginSchema = z.object({
-	email: z.email({ message: 'Email address is required' }).transform(sanitizeEmail),
-
-	password: createStringValidator('auth', 'password', {
-		required: true,
-	}),
+export const loginSchema = v.object({
+	email: safeEmail(),
+	password: v.pipe(v.string(), v.nonEmpty('Please enter your password')),
 });
 
-/**
- * Registration schema for new user signup
- * Includes password confirmation and user details
- */
-export const registrationSchema = z
-	.object({
-		email: z
-			.email({ message: 'Please enter a valid email address' })
-			.min(1, { message: 'Email address is required' })
-			.transform(sanitizeEmail),
+export type LoginData = v.InferInput<typeof loginSchema>;
 
-		password: passwordValidator,
-
-		confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
-
-		firstName: z
-			.string({ message: 'Please enter your first name' })
-			.min(1, { message: 'First name is required' })
-			.min(2, { message: 'First name must be at least 2 characters' })
-			.max(50, { message: 'First name must be less than 50 characters' })
-			.transform(sanitizeText),
-
-		lastName: z
-			.string()
-			.min(1, { message: 'Last name is required' })
-			.min(2, { message: 'Last name must be at least 2 characters' })
-			.max(50, { message: 'Last name must be less than 50 characters' })
-			.transform(sanitizeText)
-			.optional(),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ['confirmPassword'],
-	});
-
-/**
- * Password reset request schema
- * For requesting password reset via email
- */
-export const passwordResetRequestSchema = z.object({
-	email: z
-		.email({ message: 'Please enter a valid email address' })
-		.min(1, { message: 'Email address is required' })
-		.transform(sanitizeEmail),
+export const registerSchema = v.object({
+	firstName: v.pipe(
+		v.string(),
+		v.nonEmpty('Please enter your first name'),
+		v.minLength(2, 'First name must be at least 2 characters'),
+	),
+	lastName: v.pipe(
+		v.string(),
+		v.nonEmpty('Please enter your last name'),
+		v.minLength(2, 'Last name must be at least 2 characters'),
+	),
+	password: v.pipe(
+		v.string(),
+		v.minLength(6, 'Password must be at least 6 characters'),
+		v.maxLength(32, 'Password must be less than 32 characters'),
+		v.regex(/[a-z]/, 'Password must contain at least one lowercase letter'),
+		v.regex(/[A-Z]/, 'Password must contain at least one uppercase letter'),
+		v.regex(/[0-9]/, 'Password must contain at least one number'),
+	),
+	confirmPassword: v.pipe(v.string(), v.nonEmpty('Please confirm your password')),
 });
 
-/**
- * Password reset schema
- * For setting new password with reset token
- */
-export const passwordResetSchema = z
-	.object({
-		token: z.string().min(1, { message: 'Reset token is required' }),
+export const validateRegisterSchema = v.pipe(
+	registerSchema,
+	v.forward(
+		v.partialCheck(
+			[['confirmPassword'], ['password']],
+			(input) => input.password === input.confirmPassword,
+			'Passwords do not match',
+		),
+		['confirmPassword'],
+	),
+);
 
-		password: passwordValidator,
+export type RegisterData = v.InferInput<typeof validateRegisterSchema>;
 
-		confirmPassword: createStringValidator('auth', 'confirmPassword', {
-			required: true,
-		}),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: getErrorMessage('auth', 'confirmPassword', 'match'),
-		path: ['confirmPassword'],
-	});
-
-/**
- * Change password schema
- * For authenticated users changing their password
- */
-export const changePasswordSchema = z
-	.object({
-		currentPassword: z.string().min(1, { message: 'Current password is required' }),
-
-		newPassword: passwordValidator,
-
-		confirmNewPassword: z.string().min(1, { message: 'Please confirm your new password' }),
-	})
-	.refine((data) => data.newPassword === data.confirmNewPassword, {
-		message: "New passwords don't match",
-		path: ['confirmNewPassword'],
-	})
-	.refine((data) => data.currentPassword !== data.newPassword, {
-		message: 'New password must be different from current password',
-		path: ['newPassword'],
-	});
-
-/**
- * Profile update schema
- * For updating user profile information
- */
-export const profileUpdateSchema = z.object({
-	firstName: createStringValidator('auth', 'firstName', {
-		required: true,
-		minLength: 2,
-		maxLength: 50,
-		transform: sanitizeText,
-	}),
-
-	lastName: createStringValidator('auth', 'lastName', {
-		required: true,
-		minLength: 2,
-		maxLength: 50,
-		transform: sanitizeText,
-	}),
-
-	email: z
-		.email({ message: 'Please enter a valid email address' })
-		.min(1, { message: 'Email address is required' })
-		.transform(sanitizeEmail),
+export const forgotPasswordSchema = v.object({
+	email: v.pipe(safeEmail(), v.nonEmpty('Please enter your email')),
 });
 
-/**
- * Email verification schema
- * For verifying email addresses with token
- */
-export const emailVerificationSchema = z.object({
-	token: z.string().min(1, { message: 'Verification token is required' }),
+export type ForgotPasswordData = v.InferInput<typeof forgotPasswordSchema>;
 
-	email: z
-		.email({ message: 'Please enter a valid email address' })
-		.min(1, { message: 'Email address is required' })
-		.transform(sanitizeEmail),
+export const resetPasswordSchema = v.object({
+	token: v.optional(v.string()),
+	newPassword: v.pipe(
+		v.string(),
+		v.minLength(6, 'Password must be at least 6 characters'),
+		v.maxLength(32, 'Password must be less than 32 characters'),
+		v.regex(/[a-z]/, 'Password must contain at least one lowercase letter'),
+		v.regex(/[A-Z]/, 'Password must contain at least one uppercase letter'),
+		v.regex(/[0-9]/, 'Password must contain at least one number'),
+	),
+	confirmNewPassword: v.pipe(v.string(), v.nonEmpty('Please confirm your password')),
 });
 
-// Type exports for use in components
-export type LoginData = z.infer<typeof loginSchema>;
-export type RegistrationData = z.infer<typeof registrationSchema>;
-export type PasswordResetRequestData = z.infer<typeof passwordResetRequestSchema>;
-export type PasswordResetData = z.infer<typeof passwordResetSchema>;
-export type ChangePasswordData = z.infer<typeof changePasswordSchema>;
-export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
-export type EmailVerificationData = z.infer<typeof emailVerificationSchema>;
+export const validateResetPasswordSchema = v.pipe(
+	resetPasswordSchema,
+	v.forward(
+		v.partialCheck(
+			[['confirmNewPassword'], ['newPassword']],
+			(input) => input.newPassword === input.confirmNewPassword,
+			'Passwords do not match',
+		),
+		['confirmNewPassword'],
+	),
+);
+
+export type ResetPasswordData = v.InferInput<typeof validateResetPasswordSchema>;
+
+// Aliases for test compatibility
+export const registrationSchema = validateRegisterSchema;
+export const passwordResetRequestSchema = forgotPasswordSchema;
+export const passwordResetSchema = validateResetPasswordSchema;
+
+// Additional schemas for tests
+export const changePasswordSchema = v.object({
+	oldPassword: v.pipe(v.string(), v.nonEmpty('Please enter your current password')),
+	newPassword: v.pipe(
+		v.string(),
+		v.minLength(6, 'Password must be at least 6 characters'),
+		v.maxLength(32, 'Password must be less than 32 characters'),
+		v.regex(/[a-z]/, 'Password must contain at least one lowercase letter'),
+		v.regex(/[A-Z]/, 'Password must contain at least one uppercase letter'),
+		v.regex(/[0-9]/, 'Password must contain at least one number'),
+	),
+	confirmNewPassword: v.pipe(v.string(), v.nonEmpty('Please confirm your new password')),
+});
+
+export const validateChangePasswordSchema = v.pipe(
+	changePasswordSchema,
+	v.forward(
+		v.partialCheck(
+			[['confirmNewPassword'], ['newPassword']],
+			(input) => input.newPassword === input.confirmNewPassword,
+			'Passwords do not match',
+		),
+		['confirmNewPassword'],
+	),
+);
+
+export const profileUpdateSchema = v.object({
+	firstName: v.pipe(
+		v.string(),
+		v.nonEmpty('Please enter your first name'),
+		v.minLength(2, 'First name must be at least 2 characters'),
+	),
+	lastName: v.pipe(
+		v.string(),
+		v.nonEmpty('Please enter your last name'),
+		v.minLength(2, 'Last name must be at least 2 characters'),
+	),
+	email: safeEmail(),
+});
+
+export const emailVerificationSchema = v.object({
+	token: v.pipe(v.string(), v.nonEmpty('Verification token is required')),
+});
