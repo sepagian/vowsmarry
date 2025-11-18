@@ -1,12 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { passwordResetSchema } from '$lib/validation/auth';
+import { valibot } from 'sveltekit-superforms/adapters';
+import { resetPasswordSchema, type ResetPasswordData } from '$lib/validation/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user, supabase }, url }) => {
-	// Extract Supabase password reset parameters
-	// Supabase provides token_hash and type parameters when user clicks reset link
 	const token_hash = url.searchParams.get('token_hash');
 	const type = url.searchParams.get('type');
 
@@ -39,7 +37,7 @@ export const load: PageServerLoad = async ({ locals: { user, supabase }, url }) 
 	}
 
 	// Initialize the form with validation schema
-	const resetPasswordForm = await superValidate(zod4(passwordResetSchema as any));
+	const resetPasswordForm = await superValidate(valibot(resetPasswordSchema));
 
 	// Store the token_hash in the form data for validation
 	if (resetPasswordForm.data && token_hash) {
@@ -55,9 +53,9 @@ export const load: PageServerLoad = async ({ locals: { user, supabase }, url }) 
 
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase }, url }) => {
-		const form = await superValidate(request, zod4(passwordResetSchema as any));
-		const formData = form.data as { password: string; confirmPassword: string; token: string };
-		const { password, token } = formData;
+		const form = await superValidate(request, valibot(resetPasswordSchema));
+		const formData = form.data as ResetPasswordData;
+		const { token } = formData;
 
 		try {
 			// Extract token from URL parameters (Supabase provides token_hash and type)
@@ -139,7 +137,7 @@ export const actions: Actions = {
 
 			// Update the user's password with the new password from the form
 			const { error: updateError } = await supabase.auth.updateUser({
-				password: formData.password,
+				password: formData.newPassword,
 			});
 
 			if (updateError) {

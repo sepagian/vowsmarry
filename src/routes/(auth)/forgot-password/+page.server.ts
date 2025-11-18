@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { passwordResetRequestSchema, type PasswordResetRequestData } from '$lib/validation/auth';
+import { valibot } from 'sveltekit-superforms/adapters';
+import { forgotPasswordSchema, type ForgotPasswordData } from '$lib/validation/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user }, url }) => {
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 		redirect(302, '/dashboard');
 	}
 
-	const forgotPasswordForm = await superValidate(zod4(passwordResetRequestSchema as any));
+	const forgotPasswordForm = await superValidate(valibot(forgotPasswordSchema));
 	const error = url.searchParams.get('error');
 
 	return {
@@ -21,9 +21,8 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase }, url }) => {
 		const formData = await request.formData();
-		const email = formData.get('email') as PasswordResetRequestData['email'];
+		const email = formData.get('email') as ForgotPasswordData['email'];
 
-		// Configure the password reset email with proper redirect URL
 		const redirectTo = `${url.origin}/reset-password`;
 
 		const { error } = await supabase.auth.resetPasswordForEmail(email, {

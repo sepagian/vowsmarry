@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
+import { valibot } from 'sveltekit-superforms/adapters';
 import { loginSchema } from '$lib/validation/auth';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 		redirect(302, '/dashboard');
 	}
 
-	const loginForm = await superValidate(zod4(loginSchema as any));
+	const loginForm = await superValidate(valibot(loginSchema));
 	const message = url.searchParams.get('message');
 	const messageType = url.searchParams.get('messageType');
 	const error = url.searchParams.get('error');
