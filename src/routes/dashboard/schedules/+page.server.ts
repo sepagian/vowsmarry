@@ -1,17 +1,15 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
+import { valibot } from 'sveltekit-superforms/adapters';
+import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
 import { plannerDb } from '$lib/server/db';
-import { rundowns, weddings } from '$lib/server/db/schema/planner';
+import { schedules, weddings } from '$lib/server/db/schema/planner';
 import { eq, count, and, sql } from 'drizzle-orm';
-import type { RundownCategory } from '$lib/types';
-
-import { scheduleEventFormSchema } from '$lib/validation/index';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
-	depends('rundown:list');
-	const scheduleForm = await superValidate(zod4(scheduleEventFormSchema as any));
+	depends('schedule:list');
+	const scheduleForm = await superValidate(valibot(scheduleSchema));
 
 	const {
 		data: { user },
@@ -29,7 +27,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	if (!wedding) {
 		return {
 			scheduleForm,
-			rundowns: [],
+			schedules: [],
 			stats: {
 				totalEvents: 0,
 				completedEvents: 0,
@@ -42,26 +40,34 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	}
 
 	const [rundownList, completedEventsCount, nextEvent, totalEvents] = await Promise.all([
-		plannerDb.query.rundowns.findMany({
-			where: eq(rundowns.weddingId, wedding.id),
-			orderBy: (rundowns, { asc }) => [asc(rundowns.startTime)],
+		plannerDb.query.schedules.findMany({
+			where: eq(schedules.weddingId, wedding.id),
+			orderBy: (schedules, { asc }) => [asc(schedules.scheduleDate), asc(schedules.scheduleStartTime)],
 		}),
 
 		plannerDb
 			.select({ count: count() })
-			.from(rundowns)
-			.where(and(eq(rundowns.weddingId, wedding.id), sql`${rundowns.endTime} < CURRENT_TIME`))
+			.from(schedules)
+			.where(
+				and(
+					eq(schedules.weddingId, wedding.id),
+					sql`(${schedules.scheduleDate} + ${schedules.scheduleEndTime}) < CURRENT_TIMESTAMP`,
+				),
+			)
 			.then((result) => result[0]?.count ?? 0),
 
-		plannerDb.query.rundowns.findFirst({
-			where: and(eq(rundowns.weddingId, wedding.id), sql`${rundowns.startTime} > CURRENT_TIME`),
-			orderBy: (rundowns, { asc }) => [asc(rundowns.startTime)],
+		plannerDb.query.schedules.findFirst({
+			where: and(
+				eq(schedules.weddingId, wedding.id),
+				sql`(${schedules.scheduleDate} + ${schedules.scheduleStartTime}) > CURRENT_TIMESTAMP`,
+			),
+			orderBy: (schedules, { asc }) => [asc(schedules.scheduleDate), asc(schedules.scheduleStartTime)],
 		}),
 
 		plannerDb
 			.select({ count: count() })
-			.from(rundowns)
-			.where(eq(rundowns.weddingId, wedding.id))
+			.from(schedules)
+			.where(eq(schedules.weddingId, wedding.id))
 			.then((result) => result[0]?.count ?? 0),
 	]);
 
@@ -69,15 +75,15 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 
 	return {
 		scheduleForm,
-		rundowns: rundownList,
+		schedules: rundownList,
 		stats: {
 			totalEvents,
 			completedEvents: completedEventsCount,
 			remainingEvents: remainingEventsCount,
 			nextEvent: nextEvent
 				? {
-						name: nextEvent.rundownName,
-						startTime: nextEvent.startTime,
+						name: nextEvent.scheduleName,
+						startTime: nextEvent.scheduleStartTime,
 					}
 				: null,
 		},
@@ -100,33 +106,39 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
-		const form = await superValidate(request, zod4(scheduleEventFormSchema as any));
+		const form = await superValidate(request, valibot(scheduleSchema));
 		if (!form.valid) return fail(400, { form });
 
-		const formData = form.data as any;
-		const rundownName = formData.title;
-		const rundownType = formData.category;
-		const { startTime, endTime, location, attendees } = formData;
-		const venue = formData.location || '';
-		const isPublic = formData.isPublic ?? false;
+		const {
+			scheduleName,
+			scheduleCategory,
+			scheduleDate,
+			scheduleStartTime,
+			scheduleEndTime,
+			scheduleLocation,
+			scheduleVenue,
+			scheduleAttendees,
+			isPublic,
+		} = form.data as ScheduleData;
 
 		try {
-			const newRundown = await plannerDb
-				.insert(rundowns)
+			const newSchedule = await plannerDb
+				.insert(schedules)
 				.values({
 					weddingId: wedding.id,
-					rundownName,
-					rundownType,
-					startTime,
-					endTime,
-					location: location || '',
-					venue,
-					attendees: attendees || '',
+					scheduleName,
+					scheduleCategory,
+					scheduleDate,
+					scheduleStartTime,
+					scheduleEndTime,
+					scheduleLocation,
+					scheduleVenue,
+					scheduleAttendees,
 					isPublic,
 				})
 				.returning();
 
-			return { form, success: true, rundown: newRundown[0] };
+			return { form, success: true, schedule: newSchedule[0] };
 		} catch (error) {
 			return fail(500, {
 				form,
@@ -147,33 +159,40 @@ export const actions: Actions = {
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
+		const form = await superValidate(request, valibot(scheduleSchema));
+		if (!form.valid) return fail(400, { form });
+
 		const data = await request.formData();
-		const rundownId = data.get('id') as string;
-		const rundownName = data.get('name') as string;
-		const rundownType = data.get('category') as RundownCategory;
-		const startTime = data.get('startTime') as string;
-		const endTime = data.get('endTime') as string;
-		const location = data.get('location') as string;
-		const venue = data.get('venue') as string;
-		const attendees = data.get('attendees') as string;
-		const isPublicValue = data.get('isPublic');
-		const isPublic = isPublicValue === 'true';
+		const scheduleId = data.get('id') as string;
+
+		const {
+			scheduleName,
+			scheduleCategory,
+			scheduleDate,
+			scheduleStartTime,
+			scheduleEndTime,
+			scheduleLocation,
+			scheduleVenue,
+			scheduleAttendees,
+			isPublic,
+		} = form.data as ScheduleData;
 
 		try {
 			const updatedRundown = await plannerDb
-				.update(rundowns)
+				.update(schedules)
 				.set({
-					rundownName: rundownName as string,
-					rundownType: rundownType as RundownCategory,
-					startTime: startTime as string,
-					endTime: endTime as string,
-					location: location as string,
-					venue: venue as string,
-					attendees: attendees as string,
-					isPublic: isPublic as boolean,
+					scheduleName,
+					scheduleCategory,
+					scheduleDate,
+					scheduleStartTime,
+					scheduleEndTime,
+					scheduleLocation,
+					scheduleVenue,
+					scheduleAttendees,
+					isPublic,
 					updatedAt: new Date(),
 				})
-				.where(and(eq(rundowns.id, rundownId), eq(rundowns.weddingId, wedding.id)))
+				.where(and(eq(schedules.id, scheduleId), eq(schedules.weddingId, wedding.id)))
 				.returning();
 
 			if (updatedRundown.length === 0) {
@@ -202,12 +221,12 @@ export const actions: Actions = {
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
 		const data = await request.formData();
-		const rundownId = data.get('id') as string;
+		const scheduleId = data.get('id') as string;
 
 		try {
 			const deletedRundown = await plannerDb
-				.delete(rundowns)
-				.where(and(eq(rundowns.id, rundownId), eq(rundowns.weddingId, wedding.id)))
+				.delete(schedules)
+				.where(and(eq(schedules.id, scheduleId), eq(schedules.weddingId, wedding.id)))
 				.returning();
 
 			if (deletedRundown.length === 0) {

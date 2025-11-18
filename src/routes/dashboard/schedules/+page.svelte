@@ -6,15 +6,15 @@
 	let { data } = $props();
 
 	$effect(() => {
-		if (data.rundowns) {
-			rundownsStore.set(data.rundowns);
+		if (data.schedules) {
+			rundownsStore.set(data.schedules);
 		}
 	});
 
 	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
 	const daysUntilWedding = weddingDate
 		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
-		: null;
+		: '0';
 
 	let items = $derived($rundownsStore);
 
