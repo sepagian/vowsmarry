@@ -10,6 +10,7 @@ import type { TaskStatus } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
 	depends('task:list');
+	depends('calendar:data');
 
 	const {
 		data: { user },
