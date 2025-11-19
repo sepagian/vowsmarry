@@ -82,6 +82,7 @@
 		"@schedule-x/theme-shadcn": "^3.4.0",
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.58.0",
+		"@sveltejs/adapter-cloudflare": "^7.2.4",
 		"@unocss/reset": "^66.5.0",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
@@ -91,6 +92,7 @@
 		"tailwind-merge": "^3.3.1",
 		"tailwind-variants": "^3.1.1",
 		"tailwindcss": "^4.1.13",
-		"temporal-polyfill": "^0.3.0"
+		"temporal-polyfill": "^0.3.0",
+		"wrangler": "^4.49.0"
 	}
 }
