@@ -7,22 +7,7 @@
 	let { data } = $props();
 </script>
 
-<div class="flex flex-col px-4 gap-2">
-	<!-- Header -->
-	<div class="flex justify-between items-center">
-		<h2 class="text-base font-bold text-neutral-600">Recent Tasks</h2>
-		<div class="flex flex-1 items-center justify-end gap-4">
-			<Dialog.Root>
-				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
-					<div class="i-lucide:plus p-2"></div>
-					<span class="hidden lg:inline">Add New Task</span>
-				</Dialog.Trigger>
-				<DialogTask {data} />
-			</Dialog.Root>
-		</div>
-	</div>
-
-	<!-- Profile completion alert -->
+<div class="flex flex-col px-4 gap-4">
 	<div class="flex flex-col gap-4">
 		<Card.Root class="@container/card flex flex-row justify-between items-center shadow-none">
 			<div class="w-full">

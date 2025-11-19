@@ -23,7 +23,10 @@
 
 <ModeWatcher />
 
-<AuthGuard requireAuth={true} redirectTo="/login">
+<AuthGuard
+	requireAuth={true}
+	redirectTo="/login"
+>
 	<div class="[--header-height:calc(--spacing(14))]">
 		<Sidebar.Provider class="flex flex-col">
 			<div class="flex flex-1">

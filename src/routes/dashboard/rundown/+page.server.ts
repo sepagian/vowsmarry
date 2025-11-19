@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { scheduleEventFormSchema, scheduleEventSchema } from '$lib/validation/index';
+import { scheduleEventFormSchema } from '$lib/validation/index';
 
 export const load: PageServerLoad = async () => {
 	const scheduleForm = await superValidate(zod4(scheduleEventFormSchema as any));

@@ -79,7 +79,7 @@
 					<Input
 						{...props}
 						type="number"
-						inputmode="decimal"
+						pattern="[0-9]*"
 						bind:value={$formData.amount}
 					/>
 				{/snippet}

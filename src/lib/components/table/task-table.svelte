@@ -11,10 +11,11 @@
 		getPaginationRowModel,
 		getSortedRowModel,
 	} from '@tanstack/table-core';
-	import { createEventDispatcher, createRawSnippet } from 'svelte';
+	import { createRawSnippet } from 'svelte';
 	import * as Table from '$lib/components/ui/table/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
+	import * as ButtonGroup from '$lib/components/ui/button-group/index';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import {
@@ -32,8 +33,6 @@
 	import type { Task } from '$lib/types';
 
 	let { data } = $props();
-
-	const dispatch = createEventDispatcher();
 
 	const columns: ColumnDef<Task>[] = [
 		{
@@ -75,7 +74,7 @@
 				}),
 		},
 		{
-			accessorKey: 'date',
+			accessorKey: 'dueDate',
 			header: () => {
 				const dateHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -93,7 +92,7 @@
 					};
 				});
 
-				return renderSnippet(taskSnippet, row.getValue('date'));
+				return renderSnippet(taskSnippet, row.getValue('dueDate'));
 			},
 		},
 		{
@@ -213,7 +212,7 @@
 </script>
 
 <div class="w-full px-4">
-	<div class="flex items-center py-4 gap-4">
+	<div class="flex items-center justify-between pb-4 gap-2">
 		<Input
 			placeholder="Search tasks"
 			value={(table.getState().globalFilter as string) ?? ''}
@@ -229,38 +228,40 @@
 			}}
 			class="max-w-sm border-1 border-neutral-200"
 		/>
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button
-						{...props}
-						variant="outline"
-						class="ml-auto items-center"
-					>
-						<div class="i-lucide:columns-2"></div>
-						View
-						<div class="i-lucide:chevron-down ml-2"></div>
-					</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end">
-				{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
-					<DropdownMenu.CheckboxItem
-						class="capitalize"
-						bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
-					>
-						{column.id}
-					</DropdownMenu.CheckboxItem>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
-		<Dialog.Root>
-			<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
-				<div class="i-lucide:plus p-2"></div>
-				<span class="hidden lg:inline">Add Task</span>
-			</Dialog.Trigger>
-			<DialogTask {data} />
-		</Dialog.Root>
+		<ButtonGroup.Root>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="outline"
+							class="ml-auto items-center"
+						>
+							<div class="i-lucide:columns-2"></div>
+							View
+							<div class="i-lucide:chevron-down ml-2"></div>
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content align="end">
+					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
+						<DropdownMenu.CheckboxItem
+							class="capitalize"
+							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+						>
+							{column.id}
+						</DropdownMenu.CheckboxItem>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+			<Dialog.Root>
+				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
+					<div class="i-lucide:plus p-2"></div>
+					<span class="hidden lg:inline">Add Task</span>
+				</Dialog.Trigger>
+				<DialogTask {data} />
+			</Dialog.Root>
+		</ButtonGroup.Root>
 	</div>
 	<div class="rounded-md border">
 		<Table.Root>

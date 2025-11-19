@@ -31,7 +31,7 @@
 		redirectTo = '/login',
 		loadingContent,
 		unauthenticatedContent,
-		children
+		children,
 	}: Props = $props();
 
 	// Handle redirect when auth is required but user is not authenticated
@@ -58,7 +58,7 @@
 			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
 		</div>
 	{/if}
-<!-- Show content based on auth requirements -->
+	<!-- Show content based on auth requirements -->
 {:else if requireAuth}
 	{#if $isAuthenticated}
 		{@render children()}

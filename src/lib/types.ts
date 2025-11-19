@@ -25,20 +25,26 @@ export type Category =
 	| 'paperwork'
 	| 'photo-video'
 	| 'venue'
-	| 'miscellaneous';
+	| 'miscellaneous'
+	| 'other';
 
 // Tasks
 export type Task = {
 	id: string;
-	title: string;
-	description?: string;
+	weddingId: string;
+	description: string;
 	category: Category;
-	priority?: TaskPriority;
+	priority: TaskPriority;
 	status: TaskStatus;
-	date?: string;
+	dueDate: string;
+	completedAt?: Date | null;
+	assignedTo?: string | null;
+	createdBy: string;
+	createdAt: Date;
+	updatedAt: Date;
 };
 
-export type TaskStatus = 'pending' | 'on-progress' | 'completed';
+export type TaskStatus = 'pending' | 'on_progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type Filter = 'all' | 'active' | 'completed';
 
