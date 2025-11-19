@@ -180,7 +180,11 @@
 	<!-- Edit Dialog -->
 	{#if selectedDocument}
 		<Dialog.Root bind:open={editDialogOpen}>
-			<DialogDocumentEdit {data} document={selectedDocument} bind:open={editDialogOpen} />
+			<DialogDocumentEdit
+				{data}
+				document={selectedDocument}
+				bind:open={editDialogOpen}
+			/>
 		</Dialog.Root>
 	{/if}
 
@@ -198,7 +202,8 @@
 				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 				<AlertDialog.Action
 					onclick={() =>
-						selectedDocument && handleDelete(selectedDocument.id as string, selectedDocument.documentName)}
+						selectedDocument &&
+						handleDelete(selectedDocument.id as string, selectedDocument.documentName)}
 					disabled={isDeleting}
 					class="bg-red-600 hover:bg-red-700"
 				>
@@ -216,19 +221,19 @@
 				<Card.Header class="flex flex-col gap-3 px-0">
 					{#if isImage(doc.mimeType)}
 						<div
-							class="inline-flex min-h-[8rem] sm:min-h-[6rem] rounded-lg w-full bg-gray-100 overflow-hidden"
+							class="inline-flex min-h-[12rem] sm:min-h-[6rem] rounded-lg w-full bg-gray-100 overflow-hidden"
 						>
 							<img
 								src={doc.fileUrl}
 								alt={doc.fileName}
-								class="w-full h-full object-cover"
+								class="w-full h-24 object-cover"
 							/>
 						</div>
 					{:else}
 						<div
 							class="inline-flex min-h-[8rem] sm:min-h-[6rem] rounded-lg w-full bg-gray-100 items-center justify-center"
 						>
-							<div class={`${getFileIcon(doc.mimeType)} w-12 h-12 text-gray-400`}></div>
+							<div class={`${getFileIcon(doc.mimeType)} w-12 h-12 text-red-400`}></div>
 						</div>
 					{/if}
 				</Card.Header>
@@ -252,7 +257,7 @@
 							<DropdownMenu.Content>
 								<DropdownMenu.Group>
 									{#each dropdownItem as item (item.label)}
-										<DropdownMenu.Item 
+										<DropdownMenu.Item
 											class={item.color}
 											onclick={() => handleDropdownAction(item.label, doc)}
 										>
@@ -266,11 +271,11 @@
 					</div>
 					<div class="flex flex-col gap-1 w-full text-xs text-gray-500">
 						<div class="flex items-center gap-1.5">
-							<div class={`${getFileIcon(doc.mimeType)} w-3.5 h-3.5`}></div>
+							<div class={`${getFileIcon(doc.mimeType)} w-3 h-3`}></div>
 							<span class="truncate">{doc.fileName}</span>
 						</div>
 						<div class="flex items-center gap-1.5">
-							<div class="i-lucide:hard-drive w-3.5 h-3.5"></div>
+							<div class="i-lucide:hard-drive w-3 h-3"></div>
 							<span>{formatFileSize(doc.fileSize)}</span>
 						</div>
 					</div>
