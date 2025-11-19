@@ -68,6 +68,7 @@
 				CrudToasts.success('update', 'expense');
 				await invalidate('expense:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				// Revert optimistic update on error
 				if (originalExpense) {
@@ -91,6 +92,7 @@
 		// The actual update is handled by the form submission in the dialog
 		await invalidate('expense:list');
 		await invalidate('dashboard:data');
+		await invalidate('calendar:data');
 	}
 
 	async function deleteExpense(expenseId: string) {
@@ -98,6 +100,7 @@
 		// The actual delete is handled by the delete dialog in the actions group
 		await invalidate('expense:list');
 		await invalidate('dashboard:data');
+		await invalidate('calendar:data');
 	}
 
 	const columns: ColumnDef<Expense>[] = [
