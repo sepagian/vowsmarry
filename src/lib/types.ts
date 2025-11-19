@@ -150,6 +150,24 @@ export type ScheduleCategory =
 	| 'closing'
 	| 'miscellaneous';
 
+// CALENDAR
+
+import type { Temporal } from 'temporal-polyfill';
+
+export type CalendarEventSource = 'schedule' | 'task' | 'expense';
+
+export interface UnifiedCalendarEvent {
+	id: string;
+	title: string;
+	description?: string;
+	start: Temporal.ZonedDateTime | Temporal.PlainDate;
+	end: Temporal.ZonedDateTime | Temporal.PlainDate;
+	calendarId: string;
+	source: CalendarEventSource;
+	sourceData: Schedule | Task | Expense;
+	isOverdue?: boolean;
+}
+
 // DOWRY
 
 export type Dowry = {
