@@ -36,11 +36,7 @@
 	{variant}
 	{...restProps}
 >
-<<<<<<< HEAD
 	<Sidebar.Header class="h-13.75 bg-background"></Sidebar.Header>
-=======
-	<Sidebar.Header class="h-13.75"></Sidebar.Header>
->>>>>>> dev
 	<Sidebar.Content class="align-center bg-background">
 		<NavMain items={navMainItems} />
 	</Sidebar.Content>
