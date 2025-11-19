@@ -33,6 +33,7 @@
 				CrudToasts.success('update', 'expense');
 				await invalidate('expense:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -73,6 +74,7 @@
 				CrudToasts.success('delete', 'expense');
 				await invalidate('expense:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 				deleteDialogOpen = false;
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete expense', 'expense');
