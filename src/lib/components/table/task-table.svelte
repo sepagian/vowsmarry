@@ -66,6 +66,7 @@
 				CrudToasts.success('update', 'task');
 				await invalidate('task:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				// Revert optimistic update on error
 				if (originalTask) {
@@ -101,6 +102,7 @@
 				CrudToasts.success('delete', 'task');
 				await invalidate('task:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete task', 'task');
 			}
@@ -130,6 +132,7 @@
 			if (result.type === 'success') {
 				await invalidate('task:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				throw new Error(result.error || 'Failed to update task');
 			}
