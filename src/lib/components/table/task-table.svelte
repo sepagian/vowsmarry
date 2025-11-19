@@ -28,28 +28,130 @@
 	import TaskTableActions from './task-table-actions.svelte';
 	import TaskTableDesc from './task-table-desc.svelte';
 	import TaskTablePriority from './task-table-priority.svelte';
+	import TaskTableActionsGroup from './task-table-actions-group.svelte';
 	import DialogTask from '../dialog/dialog-task.svelte';
 	import { tasksStore } from '$lib/stores/tasks';
 	import type { Task } from '$lib/types';
+	import { invalidate } from '$app/navigation';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
 
 	let { data } = $props();
+	let open = $state(false);
+
+	// Server action functions
+	async function updateTaskStatus(taskId: string, newStatus: Task['taskStatus']) {
+		try {
+			// Optimistic update
+			const originalTask = $tasksStore.find((task) => task.id === taskId);
+			tasksStore.update((tasks) => {
+				const taskIndex = tasks.findIndex((task) => task.id === taskId);
+				if (taskIndex !== -1) {
+					tasks[taskIndex] = { ...tasks[taskIndex], taskStatus: newStatus };
+				}
+				return [...tasks];
+			});
+
+			const formData = new FormData();
+			formData.append('id', taskId);
+			formData.append('status', newStatus);
+
+			const response = await fetch('?/updateStatus', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				CrudToasts.success('update', 'task');
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
+			} else {
+				// Revert optimistic update on error
+				if (originalTask) {
+					tasksStore.update((tasks) => {
+						const taskIndex = tasks.findIndex((task) => task.id === taskId);
+						if (taskIndex !== -1) {
+							tasks[taskIndex] = originalTask;
+						}
+						return [...tasks];
+					});
+				}
+				CrudToasts.error('update', result.error || 'Failed to update task status', 'task');
+			}
+		} catch (error) {
+			console.error('Status update error:', error);
+			CrudToasts.error('update', 'Network error occurred', 'task');
+		}
+	}
+
+	async function deleteTask(taskId: string) {
+		try {
+			const formData = new FormData();
+			formData.append('id', taskId);
+
+			const response = await fetch('?/delete', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				CrudToasts.success('delete', 'task');
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
+			} else {
+				CrudToasts.error('delete', result.error || 'Failed to delete task', 'task');
+			}
+		} catch (error) {
+			console.error('Delete error:', error);
+			CrudToasts.error('delete', 'Network error occurred', 'task');
+		}
+	}
+
+	async function updateTask(taskId: string, updatedData: any) {
+		try {
+			const formData = new FormData();
+			formData.append('id', taskId);
+			formData.append('taskDescription', updatedData.taskDescription);
+			formData.append('taskCategory', updatedData.taskCategory);
+			formData.append('taskPriority', updatedData.taskPriority);
+			formData.append('taskStatus', updatedData.taskStatus);
+			formData.append('taskDueDate', updatedData.taskDueDate);
+
+			const response = await fetch('?/update', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				await invalidate('task:list');
+				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
+			} else {
+				throw new Error(result.error || 'Failed to update task');
+			}
+		} catch (error) {
+			console.error('Update error:', error);
+			throw error;
+		}
+	}
 
 	const columns: ColumnDef<Task>[] = [
 		{
 			id: 'select',
 			cell: ({ row }) =>
 				renderComponent(TaskTableCheckbox, {
-					checked: row.original.status === 'completed',
-					onCheckedChange: (value: unknown) => {
+					checked: row.original.taskStatus === 'completed',
+					onCheckedChange: async (value: unknown) => {
 						const isCompleted = !!value;
-						const newStatus: Task['status'] = isCompleted ? 'completed' : 'pending';
-						tasksStore.update((tasks) => {
-							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
-							if (taskIndex !== -1) {
-								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
-							}
-							return [...tasks];
-						});
+						const newStatus: Task['taskStatus'] = isCompleted ? 'completed' : 'pending';
+						await updateTaskStatus(row.original.id as string, newStatus);
 					},
 					'aria-label': 'Mark as completed',
 				}),
@@ -68,13 +170,14 @@
 			enableHiding: false,
 			cell: ({ row }) =>
 				renderComponent(TaskTableDesc, {
-					category: row.original.category,
-					description: row.original.description,
-					status: row.original.status,
+					category: row.original.taskCategory,
+					description: row.original.taskDescription,
+					status: row.original.taskStatus,
 				}),
 		},
 		{
-			accessorKey: 'dueDate',
+			id: 'dueDate',
+			accessorKey: 'taskDueDate',
 			header: () => {
 				const dateHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -84,7 +187,7 @@
 				return renderSnippet(dateHeaderSnippet, '');
 			},
 			cell: ({ row }) => {
-				const taskSnippet = createRawSnippet<[string]>((getDate) => {
+				const dateSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
 						render: () =>
@@ -92,11 +195,18 @@
 					};
 				});
 
-				return renderSnippet(taskSnippet, row.getValue('dueDate'));
+				const dateValue = row.original.taskDueDate;
+				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'short',
+					year: 'numeric',
+				});
+
+				return renderSnippet(dateSnippet, formattedDate);
 			},
 		},
 		{
-			accessorKey: 'priority',
+			accessorKey: 'Priority',
 			header: () => {
 				const priorityHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -107,34 +217,47 @@
 			},
 			cell: ({ row }) =>
 				renderComponent(TaskTablePriority, {
-					priority: row.original.priority,
+					priority: row.original.taskPriority,
 				}),
 		},
 
 		{
+			id: 'status',
+			accessorKey: 'taskStatus',
+			header: () => {
+				const statusHeaderSnippet = createRawSnippet(() => {
+					return {
+						render: () => `<div class="font-semibold w-36">Status</div>`,
+					};
+				});
+				return renderSnippet(statusHeaderSnippet, '');
+			},
+			enableHiding: false,
+			cell: ({ row }) =>
+				renderComponent(TaskTableActions, {
+					status: row.original.taskStatus,
+					onChange: async (newStatus: Task['taskStatus']) => {
+						await updateTaskStatus(row.original.id as string, newStatus);
+					},
+				}),
+		},
+		{
 			id: 'actions',
-			accessorKey: 'status',
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-38">Status</div>`,
+						render: () => `<div class="font-semibold text-center">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
 			},
 			enableHiding: false,
 			cell: ({ row }) =>
-				renderComponent(TaskTableActions, {
-					status: row.original.status,
-					onChange: (newStatus: Task['status']) => {
-						tasksStore.update((tasks) => {
-							const taskIndex = tasks.findIndex((task) => task.id === row.original.id);
-							if (taskIndex !== -1) {
-								tasks[taskIndex] = { ...tasks[taskIndex], status: newStatus };
-							}
-							return [...tasks];
-						});
-					},
+				renderComponent(TaskTableActionsGroup, {
+					task: row.original,
+					data,
+					onUpdate: updateTask,
+					onDelete: deleteTask,
 				}),
 		},
 	];
@@ -246,7 +369,6 @@
 				<DropdownMenu.Content align="end">
 					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
 						<DropdownMenu.CheckboxItem
-							class="capitalize"
 							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
 						>
 							{column.id}
@@ -254,12 +376,15 @@
 					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
-			<Dialog.Root>
+			<Dialog.Root bind:open>
 				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Add Task</span>
 				</Dialog.Trigger>
-				<DialogTask {data} />
+				<DialogTask
+					{data}
+					bind:open
+				/>
 			</Dialog.Root>
 		</ButtonGroup.Root>
 	</div>
@@ -306,8 +431,7 @@
 	</div>
 	<div class="flex items-center justify-end space-x-2 pt-4">
 		<div class="text-muted-foreground flex-1 text-sm">
-			{table.getFilteredSelectedRowModel().rows.length} of
-			{table.getFilteredRowModel().rows.length} row(s) selected.
+			{table.getFilteredRowModel().rows.length} row(s) displayed.
 		</div>
 		<div class="space-x-2">
 			<Button

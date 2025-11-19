@@ -3,8 +3,8 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { passwordResetRequestSchema } from '$lib/validation/auth';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { forgotPasswordSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
 		handleSupabaseAuthError,
@@ -15,7 +15,7 @@
 	let { data } = $props();
 
 	const form = superForm(data.forgotPasswordForm, {
-		validators: zodClient(passwordResetRequestSchema as any),
+		validators: valibot(forgotPasswordSchema),
 		onResult: ({ result }) => {
 			if (result.type === 'success') {
 				// Success handled by redirect, but show toast for immediate feedback

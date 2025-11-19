@@ -3,30 +3,29 @@
 	import { expenseStatusOptions } from '$lib/constants/constants';
 	import type { Expense } from '$lib/types';
 
-	export let status: Expense['payment-status'];
-	export let onChange: (newStatus: Expense['payment-status']) => void;
-
-	function getColor(status: Expense['payment-status']) {
+	export let status: Expense['expensePaymentStatus'];
+	export let onChange: (newPaymentStatus: Expense['expensePaymentStatus']) => void;
+	function getActionData(paymentStatus: Expense['expensePaymentStatus']) {
 		return (
-			expenseStatusOptions.find((s) => s.value === status)?.color ??
-			'bg-neutral-100 text-neutral-800'
+			expenseStatusOptions.find((s) => s.value === paymentStatus) ?? {
+				label: '-',
+				color: 'bg-gray-200 text-gray-800',
+				icon: 'i-lucide:minus',
+			}
 		);
 	}
-	function getIcon(status: Expense['payment-status']) {
-		return expenseStatusOptions.find((s) => s.value === status)?.icon ?? '';
-	}
-	function getLabel(status: Expense['payment-status']) {
-		return expenseStatusOptions.find((s) => s.value === status)?.label ?? '';
-	}
+
+	$: statusData = getActionData(status);
 </script>
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
 		<div
-			class={`rounded-md px-3 inline-flex items-center gap-2 py-1 text-sm font-medium ${getColor(status)}`}
+			class="rounded-md px-3 inline-flex items-center gap-2 py-1 text-sm font-medium {statusData.color}"
 		>
-			<div class={`${getIcon(status)}`}></div>
-			{getLabel(status)}
+			<div class={statusData.icon}></div>
+			{statusData.label}
+			<div class="i-lucide:chevron-down"></div>
 		</div>
 	</DropdownMenu.Trigger>
 

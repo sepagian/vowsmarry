@@ -5,8 +5,8 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { registrationSchema } from '$lib/validation/auth';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { registerSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
 		handleSupabaseAuthError,
@@ -17,7 +17,7 @@
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
-		validators: zodClient(registrationSchema as any),
+		validators: valibot(registerSchema),
 		onResult: ({ result }) => {
 			// Always dismiss the loading toast first
 

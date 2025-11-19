@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
-import { zod4 } from 'sveltekit-superforms/adapters';
-import { registrationSchema } from '$lib/validation/auth';
+import { valibot } from 'sveltekit-superforms/adapters';
+import { registerSchema } from '$lib/validation/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user } }) => {
@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ locals: { user } }) => {
 		redirect(302, '/dashboard');
 	}
 
-	const registrationForm = await superValidate(zod4(registrationSchema as any));
+	const registrationForm = await superValidate(valibot(registerSchema));
 	return { registrationForm };
 };
 
@@ -73,7 +73,10 @@ export const actions: Actions = {
 			console.error('Registration error:', error);
 
 			// Handle specific registration errors
-			if (error.message.includes('already registered') || error.message.includes('already exists')) {
+			if (
+				error.message.includes('already registered') ||
+				error.message.includes('already exists')
+			) {
 				return fail(400, {
 					error: 'An account with this email already exists. Try logging in instead.',
 					errorType: 'email_already_exists',
@@ -81,7 +84,10 @@ export const actions: Actions = {
 					lastName,
 					email,
 				});
-			} else if (error.message.includes('password') && (error.message.includes('weak') || error.message.includes('strength'))) {
+			} else if (
+				error.message.includes('password') &&
+				(error.message.includes('weak') || error.message.includes('strength'))
+			) {
 				return fail(400, {
 					error: 'Password is too weak. Please choose a stronger password.',
 					errorType: 'weak_password',

@@ -1,3 +1,29 @@
+// Form data types inferred from validation schemas
+import type {
+	LoginData,
+	RegisterData,
+	ForgotPasswordData,
+	ResetPasswordData,
+	WeddingData,
+	UserData,
+	TaskData,
+	DocumentData,
+	ExpenseData,
+	SavingData,
+	VendorData,
+	ScheduleData,
+	DowryData,
+	SouvenirData,
+	DresscodeData,
+} from '$lib/validation';
+
+// Re-export form data types with better naming
+export type TaskFormData = TaskData;
+export type { LoginData, RegisterData, ForgotPasswordData, ResetPasswordData };
+export type { WeddingData, UserData, DocumentData, ExpenseData };
+export type { SavingData, VendorData, ScheduleData, DowryData };
+export type { SouvenirData, DresscodeData };
+
 export type Option<T> = {
 	value: T;
 	label: string;
@@ -6,6 +32,7 @@ export type Option<T> = {
 };
 
 // Card types for overview sections
+
 export type OverviewCard = {
 	title: string;
 	description: string;
@@ -16,6 +43,7 @@ export type OverviewCard = {
 };
 
 // Global category export types
+
 export type Category =
 	| 'accommodation'
 	| 'catering'
@@ -28,77 +56,90 @@ export type Category =
 	| 'miscellaneous'
 	| 'other';
 
-// Tasks
+// TASKS
+
 export type Task = {
-	id: string;
-	weddingId: string;
-	description: string;
-	category: Category;
-	priority: TaskPriority;
-	status: TaskStatus;
-	dueDate: string;
+	id?: string;
+	taskDescription: string;
+	taskCategory: Category;
+	taskPriority: TaskPriority;
+	taskStatus: TaskStatus;
+	taskDueDate: string;
 	completedAt?: Date | null;
-	assignedTo?: string | null;
-	createdBy: string;
-	createdAt: Date;
-	updatedAt: Date;
 };
 
 export type TaskStatus = 'pending' | 'on_progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high';
 export type Filter = 'all' | 'active' | 'completed';
 
-// Docs
+// DOCUMENT
+
 export type Document = {
-	id: string;
-	description: string;
-	date: string;
-	category: DocType;
+	id?: string;
+	documentName: string;
+	documentCategory: DocumentCategory;
+	documentDate: string;
+	documentStatus: DocumentStatus;
+	documentDueDate?: string | null;
+	fileUrl: string;
+	fileName: string;
+	fileSize: number;
+	mimeType: string;
 };
 
-export type DocType = 'legal-formal' | 'vendor-finance' | 'guest-ceremony' | 'personal-keepsake';
+export type DocumentCategory =
+	| 'legal_formal'
+	| 'vendor_finance'
+	| 'guest_ceremony'
+	| 'personal_keepsake';
 
-// Expenses
+export type DocumentStatus = 'pending' | 'approved' | 'rejected';
+
+// EXPENSES
+
 export type Expense = {
-	id: string;
-	date: string;
-	category: string;
-	description: string;
-	amount: number;
-	'payment-status': ExpenseStatus;
+	id?: string;
+	expenseDescription: string;
+	expenseCategory: Category;
+	expenseAmount: string;
+	expensePaymentStatus: ExpenseStatus;
+	expenseDueDate: string;
 };
 
-export type ExpenseStatus = 'pending' | 'paid';
+export type ExpenseStatus = 'unpaid' | 'paid';
 
-// Vendors
+// VENDOR
+
 export type Vendor = {
+	id?: string;
 	vendorName: string;
 	vendorCategory: Category;
-	vendorEmail?: string;
-	vendorPhone?: string;
-	vendorWebsite?: string;
-	vendorPrice?: string;
-	vendorDesc?: string;
-	vendorRating?: VendorRating;
+	vendorInstagram?: string | null;
+	vendorEmail?: string | null;
+	vendorPhone?: string | null;
+	vendorWebsite?: string | null;
 	vendorStatus: VendorStatus;
+	vendorRating: VendorRating;
 };
 
 export type VendorStatus = 'researching' | 'contacted' | 'quoted' | 'booked';
-export type VendorRating = 1 | 2 | 3 | 4 | 5;
+export type VendorRating = '1' | '2' | '3' | '4' | '5';
 
-//Rundowns
-export type Rundown = {
-	id: string;
-	title: string;
-	description?: string;
-	category: RundownCategory;
-	startTime: string;
-	endTime: string;
-	location?: string;
-	attendees?: string;
+// SCHEDULE
+
+export type Schedule = {
+	id?: string;
+	scheduleName: string;
+	scheduleCategory: ScheduleCategory;
+	scheduleDate: string;
+	scheduleStartTime: string;
+	scheduleEndTime: string;
+	scheduleLocation: string;
+	scheduleVenue: string;
+	scheduleAttendees: string;
 };
 
-export type RundownCategory =
+export type ScheduleCategory =
 	| 'preparation'
 	| 'ceremony'
 	| 'reception'
@@ -109,13 +150,82 @@ export type RundownCategory =
 	| 'closing'
 	| 'miscellaneous';
 
-// Simple Task for overview
-export type SimpleTask = {
+// CALENDAR
+
+import type { Temporal } from 'temporal-polyfill';
+
+export type CalendarEventSource = 'schedule' | 'task' | 'expense';
+
+export interface UnifiedCalendarEvent {
 	id: string;
 	title: string;
 	description?: string;
-	done: boolean;
+	start: Temporal.ZonedDateTime | Temporal.PlainDate;
+	end: Temporal.ZonedDateTime | Temporal.PlainDate;
+	calendarId: string;
+	source: CalendarEventSource;
+	sourceData: Schedule | Task | Expense;
+	isOverdue?: boolean;
+}
+
+// DOWRY
+
+export type Dowry = {
+	id?: string;
+	dowryDescription: string;
+	dowryCategory: DowryCategory;
+	dowryPrice: string;
+	dowryQuantity: number;
+	dowryStatus: DowryStatus;
+	dowryDateReceived: string;
+	dowryRecipient: DowryRecipient;
 };
+
+export type DowryCategory =
+	| 'cash'
+	| 'gold'
+	| 'jewelry'
+	| 'fashion'
+	| 'beauty'
+	| 'furniture'
+	| 'property'
+	| 'other';
+
+export type DowryStatus = 'pending' | 'delivered' | 'received';
+
+export type DowryRecipient = 'groom' | 'bride';
+
+// DRESSCODE
+
+export type Dresscode = {
+	id?: string;
+	dresscodeDescription: string;
+	dresscodeRole: DresscodeRole;
+	dresscodeImageUrl?: string;
+};
+
+export type DresscodeRole =
+	| 'groom'
+	| 'bride'
+	| 'groom_family'
+	| 'bride_family'
+	| 'bridesmaids'
+	| 'groomsmen'
+	| 'others';
+
+// SOUVENIR
+
+export type Souvenir = {
+	id?: string;
+	souvenirName: string;
+	souvenirQuantity: number;
+	souvenirPrice: string;
+	souvenirTotalCost: string;
+	souvenirStatus: SouvenirStatus;
+	souvenirOrderDate?: Date;
+};
+
+export type SouvenirStatus = 'planned' | 'ordered' | 'delivered' | 'received';
 
 // DnD
 export type Item = {

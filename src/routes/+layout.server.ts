@@ -8,7 +8,7 @@ export const load: LayoutServerLoad = async ({ locals: { supabase }, cookies }) 
 
 	return {
 		user: error ? null : user,
-		session: null, // Session not needed in client-side code
+		session: null,
 		cookies: cookies.getAll(),
 	};
 };

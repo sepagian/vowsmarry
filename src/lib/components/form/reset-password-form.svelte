@@ -1,13 +1,16 @@
-
 <script lang="ts">
 	import * as Form from '$lib/components/ui/form/index';
 	import * as Password from '$lib/components/ui/password/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
-	import { zodClient } from 'sveltekit-superforms/adapters';
-	import { passwordResetSchema } from '$lib/validation/auth';
-	import { authToasts, handleSupabaseAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { resetPasswordSchema } from '$lib/validation/auth';
+	import {
+		authToasts,
+		handleSupabaseAuthError,
+		handleFormValidationError,
+	} from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
@@ -18,7 +21,7 @@
 	let loadingToastId: string | number | undefined;
 
 	const form = superForm(data.resetPasswordForm, {
-		validators: zodClient(passwordResetSchema as any),
+		validators: valibot(resetPasswordSchema),
 		onSubmit: () => {
 			// Show loading toast and track its ID
 			isSubmitting = true;
@@ -35,12 +38,12 @@
 			if (result.type === 'success') {
 				// Show success toast briefly before redirect
 				toast.success('Password updated successfully! You can now log in with your new password.', {
-					duration: 4000
+					duration: 4000,
 				});
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.message || result.data?.error;
-				
+
 				if (error) {
 					// Use specific error handling for password reset errors
 					if (error.includes('token') || error.includes('expired') || error.includes('invalid')) {
@@ -63,7 +66,7 @@
 				loadingToastId = undefined;
 			}
 			isSubmitting = false;
-			
+
 			// Handle unexpected errors
 			authToasts.error.unexpectedError();
 		},
@@ -85,8 +88,12 @@
 		use:enhance
 	>
 		<!-- Hidden token field -->
-		<input type="hidden" name="token" bind:value={$formData.token} />
-		
+		<input
+			type="hidden"
+			name="token"
+			bind:value={$formData.token}
+		/>
+
 		<Form.Field
 			{form}
 			name="password"
@@ -137,9 +144,12 @@
 			class="w-full cursor-pointer">Update password</Button
 		>
 	</form>
-	
+
 	<div class="text-center">
-		<a href="/login" class="text-sm text-muted-foreground hover:text-primary underline">
+		<a
+			href="/login"
+			class="text-sm text-muted-foreground hover:text-primary underline"
+		>
 			Back to Login
 		</a>
 	</div>

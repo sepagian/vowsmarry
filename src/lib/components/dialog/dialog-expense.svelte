@@ -3,21 +3,24 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import SuperDebug, { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { superForm } from 'sveltekit-superforms';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
-	import { expenseFormSchema, categoryEnum, paymentStatusEnum } from '$lib/validation/index';
+	import { expenseSchema, categoryEnum, expenseStatusEnum } from '$lib/validation/planner';
+	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
 
 	const form = superForm(data.expenseForm, {
-		validators: zod4(expenseFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		validators: valibot(expenseSchema),
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
-				// Use CRUD toast for successful expense creation
-				const expenseDescription = f.data.description || 'Expense';
+				const expenseDescription = f.data.expenseDescription || 'Expense';
 				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -29,15 +32,15 @@
 	const { form: formData, enhance } = form;
 
 	const selectedCategory = $derived(
-		$formData.category
-			? categoryEnum[$formData.category as keyof typeof categoryEnum]
+		$formData.expenseCategory
+			? categoryEnum.find((c) => c.value === $formData.expenseCategory)?.label
 			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
-		$formData.status
-			? paymentStatusEnum[$formData.status as keyof typeof paymentStatusEnum]
-			: 'Select task status',
+		$formData.expensePaymentStatus
+			? expenseStatusEnum.find((s) => s.value === $formData.expensePaymentStatus)?.label
+			: 'Select payment status',
 	);
 </script>
 
@@ -51,11 +54,17 @@
 	<form
 		method="POST"
 		use:enhance
-		class="flex flex-col gap-4 py-4"
+		action="?/createExpenseItem"
+		class="flex flex-col gap-4"
+		onsubmit={(e) => {
+			if (!$formData.valid) {
+				e.preventDefault();
+			}
+		}}
 	>
 		<Form.Field
 			{form}
-			name="description"
+			name="expenseDescription"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -63,7 +72,7 @@
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.description}
+						bind:value={$formData.expenseDescription}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -71,7 +80,7 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="amount"
+			name="expenseAmount"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -80,7 +89,7 @@
 						{...props}
 						type="number"
 						pattern="[0-9]*"
-						bind:value={$formData.amount}
+						bind:value={$formData.expenseAmount}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -89,7 +98,7 @@
 		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="category"
+				name="expenseCategory"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -97,7 +106,7 @@
 						<Form.Label>Category</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.category}
+							bind:value={$formData.expenseCategory}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -107,9 +116,9 @@
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(categoryEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each categoryEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -120,7 +129,7 @@
 			</Form.Field>
 			<Form.Field
 				{form}
-				name="status"
+				name="expensePaymentStatus"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -128,7 +137,7 @@
 						<Form.Label>Payment Status</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.status}
+							bind:value={$formData.expensePaymentStatus}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -138,9 +147,9 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(paymentStatusEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each expenseStatusEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -152,7 +161,7 @@
 		</div>
 		<Form.Field
 			{form}
-			name="date"
+			name="expenseDueDate"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -160,14 +169,14 @@
 					<Input
 						{...props}
 						type="date"
-						bind:value={$formData.date}
+						bind:value={$formData.expenseDueDate}
 					/>
 				{/snippet}
 			</Form.Control>
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 		<Dialog.Footer>
-			<Form.Button type="submit">Add New Expense</Form.Button>
+			<Form.Button>Add New Expense</Form.Button>
 		</Dialog.Footer>
 	</form>
 </Dialog.Content>

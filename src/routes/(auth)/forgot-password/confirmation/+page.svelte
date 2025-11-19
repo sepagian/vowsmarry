@@ -21,8 +21,8 @@
 		</div>
 		<h1 class="text-2xl font-bold">Check your email</h1>
 		<p class="text-muted-foreground text-balance text-sm max-w-md">
-			We've sent a password reset link to your email address. Please check your inbox and click
-			the link to reset your password.
+			We've sent a password reset link to your email address. Please check your inbox and click the
+			link to reset your password.
 		</p>
 	</div>
 
@@ -37,14 +37,26 @@
 		</div>
 
 		<div class="flex flex-col gap-2">
-			<a href="/login" class="w-full">
-				<Button variant="outline" class="w-full">
+			<a
+				href="/login"
+				class="w-full"
+			>
+				<Button
+					variant="outline"
+					class="w-full"
+				>
 					Back to Login
 				</Button>
 			</a>
-			
-			<a href="/forgot-password" class="w-full">
-				<Button variant="ghost" class="w-full text-sm">
+
+			<a
+				href="/forgot-password"
+				class="w-full"
+			>
+				<Button
+					variant="ghost"
+					class="w-full text-sm"
+				>
 					Didn't receive an email? Try again
 				</Button>
 			</a>

@@ -4,7 +4,6 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { ModeWatcher } from 'mode-watcher';
 	import SiteHeader from '$lib/components/sidebar/site-header.svelte';
-	import AuthGuard from '$lib/components/auth-guard.svelte';
 
 	let { children } = $props();
 </script>
@@ -23,21 +22,16 @@
 
 <ModeWatcher />
 
-<AuthGuard
-	requireAuth={true}
-	redirectTo="/login"
->
-	<div class="[--header-height:calc(--spacing(14))]">
-		<Sidebar.Provider class="flex flex-col">
-			<div class="flex flex-1">
-				<AppSidebar />
-				<Sidebar.Inset>
-					<SiteHeader />
-					<main>
-						{@render children()}
-					</main>
-				</Sidebar.Inset>
-			</div>
-		</Sidebar.Provider>
-	</div>
-</AuthGuard>
+<div class="[--header-height:calc(--spacing(14))]">
+	<Sidebar.Provider class="flex flex-col">
+		<div class="flex flex-1">
+			<AppSidebar />
+			<Sidebar.Inset>
+				<SiteHeader />
+				<main>
+					{@render children()}
+				</main>
+			</Sidebar.Inset>
+		</div>
+	</Sidebar.Provider>
+</div>

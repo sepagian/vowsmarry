@@ -2,13 +2,14 @@ import { getErrorConfig } from '$lib/utils/error-messages';
 
 export const load = async ({ url }: { url: URL }) => {
 	// Extract error information from query parameters
+	// Note: Store-based errors are handled in the page component
 	const errorType = url.searchParams.get('type') || 'generic';
 	const message = url.searchParams.get('message') || '';
 	const context = url.searchParams.get('context') || '';
-	
+
 	// Get the error configuration using the utility function
 	const errorConfig = getErrorConfig(errorType);
-	
+
 	// Use custom message if provided, otherwise use default description
 	const finalDescription = message || errorConfig.description;
 
@@ -20,7 +21,7 @@ export const load = async ({ url }: { url: URL }) => {
 			icon: errorConfig.icon,
 			category: errorConfig.category,
 			context,
-			actions: errorConfig.actions
-		}
+			actions: errorConfig.actions,
+		},
 	};
 };

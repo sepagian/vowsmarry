@@ -26,11 +26,82 @@
 		renderComponent,
 		renderSnippet,
 	} from '$lib/components/ui/data-table/index.js';
-	import DialogExpense from '../dialog/dialog-expense.svelte';
+	import DialogExpense from '$lib/components/dialog/dialog-expense.svelte';
+	import ExpenseTableActionsGroup from './expense-table-actions-group.svelte';
 	import { expensesStore } from '$lib/stores/expenses';
 	import type { Expense } from '$lib/types';
+	import { invalidate } from '$app/navigation';
+	import { CrudToasts } from '$lib/utils/crud-toasts';
 
-	let { data } = $props();
+	let { data, allowAdd } = $props();
+
+	async function updatePaymentStatus(
+		expenseId: string,
+		newPaymentStatus: Expense['expensePaymentStatus'],
+	) {
+		try {
+			// Optimistic update
+			const originalExpense = $expensesStore.find((expense) => expense.id === expenseId);
+			expensesStore.update((expenses) => {
+				const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
+				if (expenseIndex !== -1) {
+					expenses[expenseIndex] = {
+						...expenses[expenseIndex],
+						expensePaymentStatus: newPaymentStatus,
+					};
+				}
+				return [...expenses];
+			});
+
+			const formData = new FormData();
+			formData.append('id', expenseId);
+			formData.append('paymentStatus', newPaymentStatus);
+
+			const response = await fetch('?/updatePaymentStatus', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (result.type === 'success') {
+				CrudToasts.success('update', 'expense');
+				await invalidate('expense:list');
+				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
+			} else {
+				// Revert optimistic update on error
+				if (originalExpense) {
+					expensesStore.update((expenses) => {
+						const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
+						if (expenseIndex !== -1) {
+							expenses[expenseIndex] = originalExpense;
+						}
+						return [...expenses];
+					});
+				}
+				CrudToasts.error('update', result.error || 'Failed to update payment status', 'expense');
+			}
+		} catch (error) {
+			CrudToasts.error('update', 'Network error occurred', 'expense');
+		}
+	}
+
+	async function updateExpense(expenseId: string, updatedData: any) {
+		// This function is passed to the actions group component
+		// The actual update is handled by the form submission in the dialog
+		await invalidate('expense:list');
+		await invalidate('dashboard:data');
+		await invalidate('calendar:data');
+	}
+
+	async function deleteExpense(expenseId: string) {
+		// This function is passed to the actions group component
+		// The actual delete is handled by the delete dialog in the actions group
+		await invalidate('expense:list');
+		await invalidate('dashboard:data');
+		await invalidate('calendar:data');
+	}
 
 	const columns: ColumnDef<Expense>[] = [
 		{
@@ -45,13 +116,14 @@
 			},
 			cell: ({ row }) =>
 				renderComponent(ExpenseTableDesc, {
-					category: row.original.category,
-					description: row.original.description,
-					status: row.original['payment-status'],
+					category: row.original.expenseCategory,
+					description: row.original.expenseDescription,
+					status: row.original['expensePaymentStatus'],
 				}),
 		},
 		{
-			accessorKey: 'date',
+			id: 'dueDate',
+			accessorKey: 'expenseDueDate',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -61,18 +133,26 @@
 				return renderSnippet(amountHeaderSnippet, '');
 			},
 			cell: ({ row }) => {
-				const emailSnippet = createRawSnippet<[string]>((getDate) => {
+				const dateSnippet = createRawSnippet<[string]>((getDate) => {
 					const date = getDate();
 					return {
-						render: () => `<div class="">${date}</div>`,
+						render: () =>
+							`<div class="flex flex-row gap-2 items-center"><div class="i-lucide:calendar"></div>${date}</div>`,
 					};
 				});
 
-				return renderSnippet(emailSnippet, row.getValue('date'));
+				const dateValue = row.original.expenseDueDate;
+				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
+					day: '2-digit',
+					month: 'short',
+					year: 'numeric',
+				});
+
+				return renderSnippet(dateSnippet, formattedDate);
 			},
 		},
 		{
-			accessorKey: 'amount',
+			accessorKey: 'expenseAmount',
 			header: () => {
 				const amountHeaderSnippet = createRawSnippet(() => {
 					return {
@@ -97,34 +177,47 @@
 
 				return renderSnippet(
 					amountCellSnippet,
-					formatter.format(Number.parseFloat(row.getValue('amount'))),
+					formatter.format(Number.parseFloat(row.getValue('expenseAmount'))),
 				);
 			},
 		},
 		{
+			id: 'status',
+			accessorKey: 'expensePaymentStatus',
+			header: () => {
+				const statusHeaderSnippet = createRawSnippet(() => {
+					return {
+						render: () => `<div class="font-semibold w-32">Payment Status</div>`,
+					};
+				});
+				return renderSnippet(statusHeaderSnippet, '');
+			},
+			enableHiding: false,
+			cell: ({ row }) =>
+				renderComponent(ExpenseTableActions, {
+					status: row.original.expensePaymentStatus,
+					onChange: async (newPaymentStatus: Expense['expensePaymentStatus']) => {
+						await updatePaymentStatus(row.original.id as string, newPaymentStatus);
+					},
+				}),
+		},
+		{
 			id: 'actions',
-			accessorKey: 'status',
 			header: () => {
 				const actionsHeaderSnippet = createRawSnippet(() => {
 					return {
-						render: () => `<div class="font-semibold w-32">Payment Status</div>`,
+						render: () => `<div class="font-semibold text-center">Actions</div>`,
 					};
 				});
 				return renderSnippet(actionsHeaderSnippet, '');
 			},
 			enableHiding: false,
 			cell: ({ row }) =>
-				renderComponent(ExpenseTableActions, {
-					status: row.original['payment-status'],
-					onChange: (newStatus: Expense['payment-status']) => {
-						expensesStore.update((expenses) => {
-							const expenseIndex = expenses.findIndex((expense) => expense.id === row.original.id);
-							if (expenseIndex !== -1) {
-								expenses[expenseIndex] = { ...expenses[expenseIndex], 'payment-status': newStatus };
-							}
-							return [...expenses];
-						});
-					},
+				renderComponent(ExpenseTableActionsGroup, {
+					expense: row.original,
+					data,
+					onUpdate: updateExpense,
+					onDelete: deleteExpense,
 				}),
 		},
 	];
@@ -242,13 +335,15 @@
 					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
-			<Dialog.Root>
-				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
-					<div class="i-lucide:plus p-2"></div>
-					<span class="hidden lg:inline">Add Expense</span>
-				</Dialog.Trigger>
-				<DialogExpense {data} />
-			</Dialog.Root>
+			{#if allowAdd}
+				<Dialog.Root>
+					<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
+						<div class="i-lucide:plus p-2"></div>
+						<span class="hidden lg:inline">Add Expense</span>
+					</Dialog.Trigger>
+					<DialogExpense {data} />
+				</Dialog.Root>
+			{:else}{/if}
 		</ButtonGroup.Root>
 	</div>
 	<div class="rounded-md border">
@@ -294,8 +389,7 @@
 	</div>
 	<div class="flex items-center justify-end space-x-2 pt-4">
 		<div class="text-muted-foreground flex-1 text-sm">
-			{table.getFilteredSelectedRowModel().rows.length} of
-			{table.getFilteredRowModel().rows.length} row(s) selected.
+			{table.getFilteredRowModel().rows.length} row(s) displayed.
 		</div>
 		<div class="space-x-2">
 			<Button

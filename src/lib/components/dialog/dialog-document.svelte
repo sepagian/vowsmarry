@@ -11,39 +11,41 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { superForm, filesProxy } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import { toastService } from '$lib/utils/toast-service';
-	import { documentFormSchema, documentCategoryEnum } from '$lib/validation/index';
+	import { documentSchema, documentCategoryEnum } from '$lib/validation/planner';
 
 	let { data } = $props();
 
-	// Create form submission promise for toast integration
 	let formSubmissionPromise: Promise<any> | null = null;
 
 	const form = superForm(data.documentForm, {
-		validators: zod4(documentFormSchema as any),
+		validators: valibot(documentSchema),
 		onSubmit: ({ formData, cancel }) => {
-			// Get file information for enhanced toast messaging from the form data
+			console.log('Form submission started');
+			console.log('Form data entries:', Array.from(formData.entries()).map(([k, v]) => [k, v instanceof File ? `File: ${v.name}` : v]));
+			
 			const file = formData.get('file') as File;
-			const documentName = (formData.get('name') as string) || (file ? file.name : 'Document');
+			const documentName =
+				(formData.get('documentName') as string) || (file ? file.name : 'Document');
 
-			// Create a promise for the form submission to use with toast.promise()
 			formSubmissionPromise = new Promise((resolve, reject) => {
-				// Store resolve/reject functions to call them in onUpdate/onError
 				(window as any).__documentFormResolve = resolve;
 				(window as any).__documentFormReject = reject;
 			});
 
 			// Use promise-based toast for document upload with file information
 			if (file && file.size > 0) {
+				console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
 				toastService.form.promise(formSubmissionPromise, {
 					loading: `Uploading ${file.name}...`,
 					success: `${documentName} uploaded successfully!`,
 					error: `Failed to upload ${file.name}`,
 				});
 			} else {
+				console.log('No file detected in form data');
 				toastService.form.promise(formSubmissionPromise, {
 					loading: 'Creating document...',
 					success: `${documentName} created successfully!`,
@@ -51,19 +53,26 @@
 				});
 			}
 		},
-		onUpdate: ({ form: f }) => {
+		onUpdate: async ({ form: f }) => {
+			console.log('Form update received:', { valid: f.valid, errors: f.errors });
+			
 			const resolve = (window as any).__documentFormResolve;
 			const reject = (window as any).__documentFormReject;
 
 			if (f.valid) {
-				// Success - resolve promise for toast
+				console.log('Form validation passed, document created successfully');
 				if (resolve) {
 					resolve({ success: true, data: f.data });
 					delete (window as any).__documentFormResolve;
 					delete (window as any).__documentFormReject;
 				}
+
+				// Invalidate document list to refresh data from server
+				await import('$app/navigation').then(({ invalidate }) => {
+					invalidate('document:list');
+				});
 			} else {
-				// Validation errors - show form validation error and reject promise
+				console.error('Form validation failed:', f.errors);
 				FormToasts.emptyFormError({
 					formName: 'document',
 					requiredFields: ['name', 'category', 'date'],
@@ -77,6 +86,8 @@
 			}
 		},
 		onError: ({ result }) => {
+			console.error('Form submission error:', result);
+			
 			const reject = (window as any).__documentFormReject;
 
 			// Use CRUD toast for server errors
@@ -93,8 +104,8 @@
 	const { form: formData, enhance } = form;
 
 	const selectedCategory = $derived(
-		$formData.category
-			? documentCategoryEnum[$formData.category as keyof typeof documentCategoryEnum]
+		$formData.documentCategory
+			? documentCategoryEnum.find((c) => c.value === $formData.documentCategory)?.label
 			: 'Choose category',
 	);
 
@@ -124,12 +135,13 @@
 	<form
 		use:enhance
 		method="POST"
+		action="?/create"
 		enctype="multipart/form-data"
-		class="flex flex-col gap-2 py-4"
+		class="flex flex-col gap-2"
 	>
 		<Form.Field
 			{form}
-			name="name"
+			name="documentName"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -137,7 +149,7 @@
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.name}
+						bind:value={$formData.documentName}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -145,14 +157,14 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="category"
+			name="documentCategory"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Category</Form.Label>
 					<Select.Root
 						type="single"
-						bind:value={$formData.category}
+						bind:value={$formData.documentCategory}
 						name={props.name}
 					>
 						<Select.Trigger
@@ -162,9 +174,9 @@
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(documentCategoryEnum) as [value, label] (label)}
-								<Select.Item {value}>
-									{label}
+							{#each documentCategoryEnum as option (option.value)}
+								<Select.Item value={option.value}>
+									{option.label}
 								</Select.Item>
 							{/each}
 						</Select.Content>
@@ -175,7 +187,7 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="date"
+			name="documentDate"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -183,7 +195,7 @@
 					<Input
 						{...props}
 						type="date"
-						bind:value={$formData.date}
+						bind:value={$formData.documentDate}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -252,7 +264,7 @@
 		</Form.Field>
 
 		<Dialog.Footer>
-			<Form.Button type="submit">Add Document</Form.Button>
+			<Form.Button>Add Document</Form.Button>
 		</Dialog.Footer>
 	</form>
 </Dialog.Content>

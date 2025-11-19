@@ -19,11 +19,11 @@ export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high'
 export const documentCategoryEnum = pgEnum('document_category', [
 	'legal_formal',
 	'vendor_finance',
-	'guest-ceremony',
-	'personal-keepsake',
-	'miscellaneous',
-	'other',
+	'guest_ceremony',
+	'personal_keepsake',
 ]);
+
+export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved', 'rejected']);
 
 export const expensePaymentStatusEnum = pgEnum('expense_payment_status', ['paid', 'unpaid']);
 
@@ -33,6 +33,8 @@ export const vendorStatusEnum = pgEnum('vendor_status', [
 	'quoted',
 	'booked',
 ]);
+
+export const vendorRatingEnum = pgEnum('vendor_rating', ['1', '2', '3', '4', '5']);
 
 export const rundownTypeEnum = pgEnum('rundown_type', [
 	'preparation',
@@ -44,7 +46,6 @@ export const rundownTypeEnum = pgEnum('rundown_type', [
 	'paperwork',
 	'closing',
 	'miscellaneous',
-	'other',
 ]);
 
 export const dowryTypeEnum = pgEnum('dowry_type', [
@@ -89,4 +90,4 @@ export const galleryTypeEnum = pgEnum('gallery_type', ['photo', 'video']);
 
 export const giftTypeEnum = pgEnum('gift_type', ['digital wallet', 'registry']);
 
-export const userRoleEnum = pgEnum('user_role', ['owner', 'collaborator']);
+export const userRoleEnum = pgEnum('user_role', ['partner', 'planner', 'collaborator']);

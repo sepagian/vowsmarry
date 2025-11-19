@@ -3,53 +3,55 @@
 	import TaskTable from '$lib/components/table/task-table.svelte';
 
 	import { tasksStore } from '$lib/stores/tasks';
-	import { onMount } from 'svelte';
+	import { formatDistanceToNow } from 'date-fns';
 
 	const overviewTitle = 'Task Overview';
 	let { data } = $props();
 
-	onMount(() => {
-		if (data.tasks && data.tasks.length > 0) {
+	// Update store whenever data changes (including after invalidation)
+	$effect(() => {
+		if (data.tasks) {
 			tasksStore.set(data.tasks);
 		}
 	});
 
-	// Reactive overviewCards based on the store
 	let overviewCards = $derived(() => {
-		const tasks = $tasksStore;
-		const completed = tasks.filter((task) => task.status === 'completed').length;
-		const pending = tasks.filter((task) => task.status === 'pending').length;
-		const onprogress = tasks.filter((task) => task.status === 'on_progress').length;
-		const total = tasks.length;
-
 		return [
 			{
-				title: total.toString(),
+				title: $tasksStore.length.toString(),
 				description: 'Total',
 				actionClass: 'i-lucide:badge-info',
 				actionColor: 'bg-blue-500 text-white',
-				footer: 'Updated just now',
+				footer: data.taskStats.total && data.update.total
+					? `Last updated ${formatDistanceToNow(new Date(data.update.total), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: pending.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'pending').length.toString(),
 				description: 'Pending',
 				actionClass: 'i-lucide:badge-minus',
 				actionColor: 'bg-gray-500 text-white',
-				footer: 'Updated just now',
+				footer: data.taskStats.pending && data.update.pending
+					? `Last updated ${formatDistanceToNow(new Date(data.update.pending), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: onprogress.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'on_progress').length.toString(),
 				description: 'On Progress',
 				actionClass: 'i-lucide:badge-alert',
 				actionColor: 'bg-yellow-500 text-white',
-				footer: 'Updated just now',
+				footer: data.taskStats.onProgress && data.update.onProgress
+					? `Last updated ${formatDistanceToNow(new Date(data.update.onProgress), { addSuffix: true })}`
+					: 'No data yet',
 			},
 			{
-				title: completed.toString(),
+				title: $tasksStore.filter((task) => task.taskStatus === 'completed').length.toString(),
 				description: 'Completed',
 				actionClass: 'i-lucide:badge-check',
 				actionColor: 'bg-green-500 text-white',
-				footer: 'Updated just now',
+				footer: data.taskStats.completed && data.update.completed
+					? `Last updated ${formatDistanceToNow(new Date(data.update.completed), { addSuffix: true })}`
+					: 'No data yet',
 			},
 		];
 	});

@@ -1,4 +1,5 @@
-import { z } from 'zod/v4';
+import * as v from 'valibot';
+import { sanitizeByType, sanitizationConfig } from './sanitization';
 
 /**
  * Context-specific error messages for form validation
@@ -288,7 +289,7 @@ export const applyValidationMessage = (
 };
 
 /**
- * Helper function to create Zod string validators with consistent error messages
+ * Helper function to create Valibot string validators with consistent error messages
  */
 export const createStringValidator = (
 	schemaName: string,
@@ -301,52 +302,66 @@ export const createStringValidator = (
 		url?: boolean;
 		regex?: { pattern: RegExp; errorType: string };
 		transform?: (value: string) => string;
+		sanitize?: keyof typeof sanitizationConfig;
 	} = {},
 ) => {
-	let validator: any = z.string();
+	const validations: any[] = [];
+
+	// Add sanitization first if specified
+	if (options.sanitize) {
+		validations.push(v.transform((value: string) => sanitizeByType(value, options.sanitize!)));
+	}
 
 	if (options.required) {
-		validator = validator.min(1, applyValidationMessage(schemaName, fieldName, 'required'));
+		validations.push(
+			v.minLength(1, applyValidationMessage(schemaName, fieldName, 'required').message),
+		);
 	}
 
 	if (options.minLength) {
-		validator = validator.min(
-			options.minLength,
-			applyValidationMessage(schemaName, fieldName, 'minLength'),
+		validations.push(
+			v.minLength(
+				options.minLength,
+				applyValidationMessage(schemaName, fieldName, 'minLength').message,
+			),
 		);
 	}
 
 	if (options.maxLength) {
-		validator = validator.max(
-			options.maxLength,
-			applyValidationMessage(schemaName, fieldName, 'maxLength'),
+		validations.push(
+			v.maxLength(
+				options.maxLength,
+				applyValidationMessage(schemaName, fieldName, 'maxLength').message,
+			),
 		);
 	}
 
 	if (options.email) {
-		validator = validator.email(applyValidationMessage(schemaName, fieldName, 'format'));
+		validations.push(v.email(applyValidationMessage(schemaName, fieldName, 'format').message));
 	}
 
 	if (options.url) {
-		validator = validator.url(applyValidationMessage(schemaName, fieldName, 'format'));
+		validations.push(v.url(applyValidationMessage(schemaName, fieldName, 'format').message));
 	}
 
 	if (options.regex) {
-		validator = validator.regex(
-			options.regex.pattern,
-			applyValidationMessage(schemaName, fieldName, options.regex.errorType),
+		validations.push(
+			v.regex(
+				options.regex.pattern,
+				applyValidationMessage(schemaName, fieldName, options.regex.errorType).message,
+			),
 		);
 	}
 
 	if (options.transform) {
-		validator = validator.transform(options.transform);
+		validations.push(v.transform(options.transform));
 	}
 
-	return validator;
+	return v.pipe(v.string(), ...validations);
 };
 
 /**
- * Helper function to create Zod number validators with consistent error messages
+ * Helper function to create Valibot number validators with consistent error messages
  */
 export const createNumberValidator = (
 	schemaName: string,
@@ -358,21 +373,28 @@ export const createNumberValidator = (
 		coerce?: boolean;
 	} = {},
 ) => {
-	let validator = options.coerce ? z.coerce.number() : z.number();
+	const base = options.coerce ? v.pipe(v.unknown(), v.transform(Number), v.number()) : v.number();
+	const validations: any[] = [];
 
 	if (options.required) {
-		validator = validator.min(0.01, applyValidationMessage(schemaName, fieldName, 'required'));
+		validations.push(
+			v.minValue(0.01, applyValidationMessage(schemaName, fieldName, 'required').message),
+		);
 	}
 
 	if (options.min !== undefined) {
-		validator = validator.min(options.min, applyValidationMessage(schemaName, fieldName, 'min'));
+		validations.push(
+			v.minValue(options.min, applyValidationMessage(schemaName, fieldName, 'min').message),
+		);
 	}
 
 	if (options.max !== undefined) {
-		validator = validator.max(options.max, applyValidationMessage(schemaName, fieldName, 'max'));
+		validations.push(
+			v.maxValue(options.max, applyValidationMessage(schemaName, fieldName, 'max').message),
+		);
 	}
 
-	return validator;
+	return v.pipe(base, ...validations);
 };
 
 /**
@@ -384,11 +406,11 @@ export const createEnumValidator = <T extends readonly [string, ...string[]]>(
 	enumValues: T,
 	errorType: string = 'invalid',
 ) => {
-	return z.enum(enumValues, applyValidationMessage(schemaName, fieldName, errorType));
+	return v.picklist(enumValues, applyValidationMessage(schemaName, fieldName, errorType).message);
 };
 
 /**
- * Helper function to create Zod date validators with consistent error messages
+ * Helper function to create Valibot date validators with consistent error messages
  * Uses ISO date strings (YYYY-MM-DD) for better form compatibility
  */
 export const createDateValidator = (
@@ -402,40 +424,50 @@ export const createDateValidator = (
 		customErrorType?: string;
 	} = {},
 ) => {
-	let validator = z.iso.date(applyValidationMessage(schemaName, fieldName, 'format'));
+	const validations: any[] = [];
 
 	if (options.future) {
-		validator = validator.refine(
-			(dateString) => {
-				const inputDate = new Date(dateString);
-				const today = new Date();
-				today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
-				return inputDate >= today;
-			},
-			applyValidationMessage(schemaName, fieldName, 'future'),
+		validations.push(
+			v.check(
+				(dateString: string) => {
+					const inputDate = new Date(dateString);
+					const today = new Date();
+					today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+					return inputDate >= today;
+				},
+				applyValidationMessage(schemaName, fieldName, 'future').message,
+			),
 		);
 	}
 
 	if (options.past) {
-		validator = validator.refine(
-			(dateString) => {
-				const inputDate = new Date(dateString);
-				const today = new Date();
-				today.setHours(23, 59, 59, 999); // Set to end of day for comparison
-				return inputDate <= today;
-			},
-			applyValidationMessage(schemaName, fieldName, 'past'),
+		validations.push(
+			v.check(
+				(dateString: string) => {
+					const inputDate = new Date(dateString);
+					const today = new Date();
+					today.setHours(23, 59, 59, 999); // Set to end of day for comparison
+					return inputDate <= today;
+				},
+				applyValidationMessage(schemaName, fieldName, 'past').message,
+			),
 		);
 	}
 
 	if (options.customValidation && options.customErrorType) {
-		validator = validator.refine(
-			options.customValidation,
-			applyValidationMessage(schemaName, fieldName, options.customErrorType),
+		validations.push(
+			v.check(
+				options.customValidation,
+				applyValidationMessage(schemaName, fieldName, options.customErrorType).message,
+			),
 		);
 	}
 
-	return validator;
+	return v.pipe(
+		v.string(),
+		v.isoDate(applyValidationMessage(schemaName, fieldName, 'format').message),
+		...validations,
+	);
 };
 
 /**

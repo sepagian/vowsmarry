@@ -4,25 +4,36 @@
 	import * as Select from '$lib/components/ui/select/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import {
-		taskFormSchema,
+		taskSchema,
 		categoryEnum,
 		taskPriorityEnum,
 		taskStatusEnum,
-	} from '$lib/validation/index';
+	} from '$lib/validation/planner';
+	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.taskForm, {
-		validators: zod4(taskFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		validators: valibot(taskSchema),
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful task creation
-				const taskName = f.data.description || 'Task';
+				const taskName = f.data.taskDescription || 'Task';
 				CrudToasts.success('create', 'task', { itemName: taskName });
+				// Invalidate to refetch all task data including stats
+				await invalidate('task:list');
+				await invalidate('calendar:data');
+				// Close dialog after successful creation
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -35,20 +46,20 @@
 	const { form: formData, enhance } = form;
 
 	const selectedCategory = $derived(
-		$formData.category
-			? categoryEnum[$formData.category as keyof typeof categoryEnum]
+		$formData.taskCategory
+			? categoryEnum.find((c) => c.value === $formData.taskCategory)?.label
 			: 'Choose category',
 	);
 
 	const selectedPriority = $derived(
-		$formData.priority
-			? taskPriorityEnum[$formData.priority as keyof typeof taskPriorityEnum]
+		$formData.taskPriority
+			? taskPriorityEnum.find((p) => p.value === $formData.taskPriority)?.label
 			: 'Select priority',
 	);
 
 	const selectedStatus = $derived(
-		$formData.status
-			? taskStatusEnum[$formData.status as keyof typeof taskStatusEnum]
+		$formData.taskStatus
+			? taskStatusEnum.find((s) => s.value === $formData.taskStatus)?.label
 			: 'Select task status',
 	);
 </script>
@@ -57,7 +68,13 @@
 	<form
 		use:enhance
 		method="POST"
-		class="flex flex-col gap-4 py-4"
+		action="?/create"
+		class="flex flex-col gap-4"
+		onsubmit={(e) => {
+			if (!$formData.valid) {
+				e.preventDefault();
+			}
+		}}
 	>
 		<Dialog.Header>
 			<Dialog.Title>Add New Task</Dialog.Title>
@@ -67,7 +84,7 @@
 		</Dialog.Header>
 		<Form.Field
 			{form}
-			name="description"
+			name="taskDescription"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -75,7 +92,7 @@
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.description}
+						bind:value={$formData.taskDescription}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -83,14 +100,14 @@
 		</Form.Field>
 		<Form.Field
 			{form}
-			name="category"
+			name="taskCategory"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Category</Form.Label>
 					<Select.Root
 						type="single"
-						bind:value={$formData.category}
+						bind:value={$formData.taskCategory}
 						name={props.name}
 					>
 						<Select.Trigger
@@ -100,9 +117,9 @@
 							{selectedCategory}
 						</Select.Trigger>
 						<Select.Content>
-							{#each Object.entries(categoryEnum) as [value, label] (label)}
-								<Select.Item {value}>
-									{label}
+							{#each categoryEnum as option (option.value)}
+								<Select.Item value={option.value}>
+									{option.label}
 								</Select.Item>
 							{/each}
 						</Select.Content>
@@ -114,7 +131,7 @@
 		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="priority"
+				name="taskPriority"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -122,7 +139,7 @@
 						<Form.Label>Priority</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.priority}
+							bind:value={$formData.taskPriority}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -132,9 +149,9 @@
 								{selectedPriority}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(taskPriorityEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each taskPriorityEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -145,7 +162,7 @@
 			</Form.Field>
 			<Form.Field
 				{form}
-				name="status"
+				name="taskStatus"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -153,7 +170,7 @@
 						<Form.Label>Status</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.status}
+							bind:value={$formData.taskStatus}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -163,9 +180,9 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(taskStatusEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each taskStatusEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -178,7 +195,7 @@
 
 		<Form.Field
 			{form}
-			name="date"
+			name="taskDueDate"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -186,7 +203,7 @@
 					<Input
 						{...props}
 						type="date"
-						bind:value={$formData.date}
+						bind:value={$formData.taskDueDate}
 					/>
 				{/snippet}
 			</Form.Control>

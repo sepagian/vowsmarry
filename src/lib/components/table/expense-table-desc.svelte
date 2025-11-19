@@ -2,10 +2,10 @@
 	import { categoryOptions } from '$lib/constants/constants';
 	import type { Expense } from '$lib/types';
 
-	export let description: Expense['description'];
-	export let category: Expense['category'];
+	export let description: Expense['expenseDescription'];
+	export let category: Expense['expenseCategory'];
 
-	function getCategoryData(category: Expense['category']) {
+	function getCategoryData(category: Expense['expenseCategory']) {
 		return (
 			categoryOptions.find((c) => c.value === category) ?? {
 				color: 'bg-gray-200 text-gray-800',
@@ -14,7 +14,7 @@
 		);
 	}
 
-	function getLabel(category: Expense['category']) {
+	function getLabel(category: Expense['expenseCategory']) {
 		return categoryOptions.find((s) => s.value === category)?.label ?? category;
 	}
 

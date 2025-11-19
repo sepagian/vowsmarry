@@ -4,25 +4,35 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
-	import { zod4 } from 'sveltekit-superforms/adapters';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { CrudToasts } from '$lib/utils/crud-toasts';
 	import FormToasts from '$lib/utils/form-toasts';
 	import {
-		vendorFormSchema,
+		vendorSchema,
 		categoryEnum,
 		vendorStatusEnum,
 		vendorRatingEnum,
-	} from '$lib/validation/index';
+	} from '$lib/validation/planner';
+	import { invalidate } from '$app/navigation';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.vendorForm, {
-		validators: zod4(vendorFormSchema as any),
-		onUpdate: ({ form: f }) => {
+		validators: valibot(vendorSchema),
+		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
 				// Use CRUD toast for successful vendor creation
-				const vendorName = f.data.name || 'Vendor';
+				const vendorName = f.data.vendorName || 'Vendor';
 				CrudToasts.success('create', 'vendor', { itemName: vendorName });
+				// Invalidate to refetch all vendor data including stats
+				await invalidate('vendor:list');
+				// Close dialog after successful creation
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -35,20 +45,20 @@
 	const { form: formData, enhance } = form;
 
 	const selectedCategory = $derived(
-		$formData.category
-			? categoryEnum[$formData.category as keyof typeof categoryEnum]
+		$formData.vendorCategory
+			? categoryEnum.find((c) => c.value === $formData.vendorCategory)?.label
 			: 'Choose category',
 	);
 
 	const selectedStatus = $derived(
-		$formData.status
-			? vendorStatusEnum[$formData.status as keyof typeof vendorStatusEnum]
+		$formData.vendorStatus
+			? vendorStatusEnum.find((s) => s.value === $formData.vendorStatus)?.label
 			: 'Select progress status',
 	);
 
 	const selectedRating = $derived(
-		$formData.rating
-			? vendorRatingEnum[$formData.rating as keyof typeof vendorRatingEnum]
+		$formData.vendorRating
+			? vendorRatingEnum.find((r) => r.value === $formData.vendorRating)?.label
 			: 'Select vendor rating',
 	);
 </script>
@@ -63,11 +73,17 @@
 	<form
 		use:enhance
 		method="POST"
-		class="flex flex-col gap-4 py-4"
+		action="?/createVendor"
+		class="flex flex-col gap-4"
+		onsubmit={(e) => {
+			if (!$formData.valid) {
+				e.preventDefault();
+			}
+		}}
 	>
 		<Form.Field
 			{form}
-			name="name"
+			name="vendorName"
 		>
 			<Form.Control>
 				{#snippet children({ props })}
@@ -75,7 +91,7 @@
 					<Input
 						{...props}
 						type="text"
-						bind:value={$formData.name}
+						bind:value={$formData.vendorName}
 					/>
 				{/snippet}
 			</Form.Control>
@@ -92,7 +108,7 @@
 						<Form.Label>Category</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.category}
+							bind:value={$formData.vendorCategory}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -102,9 +118,9 @@
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(categoryEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each categoryEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -115,7 +131,7 @@
 			</Form.Field>
 			<Form.Field
 				{form}
-				name="instagram"
+				name="vendorInstagram"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -124,7 +140,7 @@
 						<Input
 							{...props}
 							type="text"
-							bind:value={$formData.instagram}
+							bind:value={$formData.vendorInstagram}
 						/>
 					{/snippet}
 				</Form.Control>
@@ -134,25 +150,7 @@
 		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="price"
-				class="flex flex-col w-full"
-			>
-				<Form.Control>
-					{#snippet children({ props })}
-						<Form.Label>Price</Form.Label>
-						<Input
-							{...props}
-							type="number"
-							inputmode="decimal"
-							bind:value={$formData.price}
-						/>
-					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
-			</Form.Field>
-			<Form.Field
-				{form}
-				name="status"
+				name="vendorStatus"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -160,7 +158,7 @@
 						<Form.Label>Status</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.status}
+							bind:value={$formData.vendorStatus}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -170,9 +168,9 @@
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(vendorStatusEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label}
+								{#each vendorStatusEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label}
 									</Select.Item>
 								{/each}
 							</Select.Content>
@@ -181,11 +179,9 @@
 				</Form.Control>
 				<Form.FieldErrors class="text-xs" />
 			</Form.Field>
-		</div>
-		<div class="flex w-full gap-4">
 			<Form.Field
 				{form}
-				name="rating"
+				name="vendorRating"
 				class="flex flex-col w-full"
 			>
 				<Form.Control>
@@ -193,7 +189,7 @@
 						<Form.Label>Rating</Form.Label>
 						<Select.Root
 							type="single"
-							bind:value={$formData.rating}
+							bind:value={$formData.vendorRating}
 							name={props.name}
 						>
 							<Select.Trigger
@@ -203,9 +199,9 @@
 								{selectedRating} stars
 							</Select.Trigger>
 							<Select.Content>
-								{#each Object.entries(vendorRatingEnum) as [value, label] (label)}
-									<Select.Item {value}>
-										{label} stars
+								{#each vendorRatingEnum as option (option.value)}
+									<Select.Item value={option.value}>
+										{option.label} stars
 									</Select.Item>
 								{/each}
 							</Select.Content>
