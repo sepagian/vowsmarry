@@ -26,6 +26,7 @@
 				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
 				// Invalidate to refetch the rundown list
 				await invalidate('rundown:list');
+				await invalidate('calendar:data');
 				// Close dialog after successful creation
 				await wait(500);
 				open = false;

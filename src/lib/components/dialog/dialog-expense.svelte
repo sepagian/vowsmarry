@@ -20,6 +20,7 @@
 				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
 				await invalidate('expense:list');
 				await invalidate('dashboard:data');
+				await invalidate('calendar:data');
 			} else {
 				FormToasts.emptyFormError();
 			}

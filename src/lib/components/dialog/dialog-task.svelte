@@ -30,6 +30,7 @@
 				CrudToasts.success('create', 'task', { itemName: taskName });
 				// Invalidate to refetch all task data including stats
 				await invalidate('task:list');
+				await invalidate('calendar:data');
 				// Close dialog after successful creation
 				await wait(500);
 				open = false;
