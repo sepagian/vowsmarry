@@ -4,11 +4,12 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
 import { plannerDb } from '$lib/server/db';
-import { schedules, weddings } from '$lib/server/db/schema/planner';
+import { schedules, weddings, tasks, expenseItems } from '$lib/server/db/schema/planner';
 import { eq, count, and, sql } from 'drizzle-orm';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
 	depends('schedule:list');
+	depends('calendar:data');
 	const scheduleForm = await superValidate(valibot(scheduleSchema));
 
 	const {
@@ -28,6 +29,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		return {
 			scheduleForm,
 			schedules: [],
+			tasks: [],
+			expenses: [],
 			stats: {
 				totalEvents: 0,
 				completedEvents: 0,
@@ -39,10 +42,20 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const [rundownList, completedEventsCount, nextEvent, totalEvents] = await Promise.all([
+	const [rundownList, tasksList, expensesList, completedEventsCount, nextEvent, totalEvents] = await Promise.all([
 		plannerDb.query.schedules.findMany({
 			where: eq(schedules.weddingId, wedding.id),
 			orderBy: (schedules, { asc }) => [asc(schedules.scheduleDate), asc(schedules.scheduleStartTime)],
+		}),
+
+		plannerDb.query.tasks.findMany({
+			where: eq(tasks.weddingId, wedding.id),
+			orderBy: (tasks, { asc }) => [asc(tasks.taskDueDate)],
+		}),
+
+		plannerDb.query.expenseItems.findMany({
+			where: eq(expenseItems.weddingId, wedding.id),
+			orderBy: (expenseItems, { asc }) => [asc(expenseItems.expenseDueDate)],
 		}),
 
 		plannerDb
@@ -76,6 +89,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	return {
 		scheduleForm,
 		schedules: rundownList,
+		tasks: tasksList,
+		expenses: expensesList,
 		stats: {
 			totalEvents,
 			completedEvents: completedEventsCount,
