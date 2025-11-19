@@ -10,6 +10,7 @@ import type { ExpenseData, ExpenseStatus } from '$lib/types';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
 	depends('expense:list');
+	depends('calendar:data');
 	const expenseForm = await superValidate(valibot(expenseSchema));
 
 	const {
