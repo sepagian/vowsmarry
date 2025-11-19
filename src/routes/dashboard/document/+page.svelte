@@ -2,7 +2,11 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
 	import { documentsStore } from '$lib/stores/documents';
+<<<<<<< HEAD
 	import type { DocumentCategory } from '$lib/types';
+=======
+	import type { DocType } from '$lib/types';
+>>>>>>> dev
 
 	import { docTypeOptions } from '$lib/constants/constants';
 

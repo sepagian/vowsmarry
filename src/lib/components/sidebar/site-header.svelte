@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
+	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import AppearanceSwitcher from '../appearance-switcher.svelte';
 	import { page } from '$app/state';
