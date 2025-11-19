@@ -1,10 +1,11 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
-	import TimelineDnd from '$lib/components/dnd/timeline-dnd.svelte';
+	import ScheduleCalendar from '$lib/components/dnd/schedule-calendar.svelte';
 	import { rundownsStore } from '$lib/stores/rundowns';
 
 	let { data } = $props();
 
+	// Update rundownsStore for backward compatibility with existing components
 	$effect(() => {
 		if (data.schedules) {
 			rundownsStore.set(data.schedules);
@@ -15,8 +16,6 @@
 	const daysUntilWedding = weddingDate
 		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
 		: '0';
-
-	let items = $derived($rundownsStore);
 
 	let overviewCards = $derived(() => {
 		const nextEventTitle = data.stats.nextEvent ? data.stats.nextEvent.startTime : 'No events';
@@ -64,8 +63,9 @@
 		{overviewCards}
 		{overviewTitle}
 	/>
-	<TimelineDnd
-		{items}
-		{data}
+	<ScheduleCalendar 
+		schedules={data.schedules}
+		tasks={data.tasks}
+		expenses={data.expenses}
 	/>
 </div>
