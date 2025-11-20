@@ -6,4 +6,6 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare",
 	},
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_flags": ["nodejs_compat"],
 }
