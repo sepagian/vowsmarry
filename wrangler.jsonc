@@ -8,4 +8,10 @@
 	},
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"compatibility_flags": ["nodejs_compat"],
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "0ad962c5290c43bb8c983a86041101bb",
+		},
+	],
 }
