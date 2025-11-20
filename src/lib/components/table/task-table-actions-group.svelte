@@ -18,7 +18,7 @@
 	/>
 	<TaskTableDelete
 		taskId={task.id}
-		taskDescription={task.description}
+		taskDescription={task.taskDescription}
 		{onDelete}
 	/>
 </div>
