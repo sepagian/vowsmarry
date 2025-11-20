@@ -45,7 +45,7 @@
 	const { form: formData, enhance } = form;
 
 	function openEditDialog() {
-		$formData.description = expense.description;
+		$formData.description = expense.expenseDescription;
 		$formData.category = expense.category;
 		$formData.amount = expense.amount;
 		$formData.paymentStatus = expense.paymentStatus;
@@ -264,8 +264,8 @@
 		<AlertDialog.Header>
 			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
 			<AlertDialog.Description>
-				This will permanently delete the expense "{expense.description}". This action cannot be
-				undone.
+				This will permanently delete the expense "{expense.expenseDescription}". This action cannot
+				be undone.
 			</AlertDialog.Description>
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
