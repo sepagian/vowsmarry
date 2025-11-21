@@ -2,6 +2,19 @@ import { createServerClient } from '@supabase/ssr';
 import { type Handle, redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { getDb } from '$lib/server/db';
+
+const database: Handle = async ({ event, resolve }) => {
+	// Initialize Kysely database instances from platform bindings
+	if (event.platform?.env) {
+		// Both plannerDb and invitationDb use the same D1 database (vowsmarry)
+		const db = getDb(event.platform.env.vowsmarry);
+		event.plannerDb = db;
+		event.invitationDb = db;
+	}
+
+	return resolve(event);
+};
 
 const supabase: Handle = async ({ event, resolve }) => {
 	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
@@ -45,4 +58,4 @@ const authGuard: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-export const handle: Handle = sequence(supabase, authGuard);
+export const handle: Handle = sequence(database, supabase, authGuard);
