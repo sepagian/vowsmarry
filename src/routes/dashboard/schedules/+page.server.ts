@@ -3,11 +3,9 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
-import { plannerDb } from '$lib/server/db';
-import { schedules, weddings, tasks, expenseItems } from '$lib/server/db/schema/planner';
-import { eq, count, and, sql } from 'drizzle-orm';
+import { sql } from 'kysely';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('schedule:list');
 	depends('calendar:data');
 	const scheduleForm = await superValidate(valibot(scheduleSchema));
@@ -21,9 +19,11 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		redirect(302, '/login');
 	}
 
-	const wedding = await plannerDb.query.weddings.findFirst({
-		where: eq(weddings.userId, user.id),
-	});
+	const wedding = await plannerDb
+		.selectFrom('weddings')
+		.selectAll()
+		.where('userId', '=', user.id)
+		.executeTakeFirst();
 
 	if (!wedding) {
 		return {
@@ -43,45 +43,51 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	}
 
 	const [rundownList, tasksList, expensesList, completedEventsCount, nextEvent, totalEvents] = await Promise.all([
-		plannerDb.query.schedules.findMany({
-			where: eq(schedules.weddingId, wedding.id),
-			orderBy: (schedules, { asc }) => [asc(schedules.scheduleDate), asc(schedules.scheduleStartTime)],
-		}),
-
-		plannerDb.query.tasks.findMany({
-			where: eq(tasks.weddingId, wedding.id),
-			orderBy: (tasks, { asc }) => [asc(tasks.taskDueDate)],
-		}),
-
-		plannerDb.query.expenseItems.findMany({
-			where: eq(expenseItems.weddingId, wedding.id),
-			orderBy: (expenseItems, { asc }) => [asc(expenseItems.expenseDueDate)],
-		}),
+		plannerDb
+			.selectFrom('schedules')
+			.selectAll()
+			.where('weddingId', '=', wedding.id)
+			.orderBy('scheduleDate', 'asc')
+			.orderBy('scheduleStartTime', 'asc')
+			.execute(),
 
 		plannerDb
-			.select({ count: count() })
-			.from(schedules)
-			.where(
-				and(
-					eq(schedules.weddingId, wedding.id),
-					sql`(${schedules.scheduleDate} + ${schedules.scheduleEndTime}) < CURRENT_TIMESTAMP`,
-				),
-			)
-			.then((result) => result[0]?.count ?? 0),
-
-		plannerDb.query.schedules.findFirst({
-			where: and(
-				eq(schedules.weddingId, wedding.id),
-				sql`(${schedules.scheduleDate} + ${schedules.scheduleStartTime}) > CURRENT_TIMESTAMP`,
-			),
-			orderBy: (schedules, { asc }) => [asc(schedules.scheduleDate), asc(schedules.scheduleStartTime)],
-		}),
+			.selectFrom('tasks')
+			.selectAll()
+			.where('weddingId', '=', wedding.id)
+			.orderBy('taskDueDate', 'asc')
+			.execute(),
 
 		plannerDb
-			.select({ count: count() })
-			.from(schedules)
-			.where(eq(schedules.weddingId, wedding.id))
-			.then((result) => result[0]?.count ?? 0),
+			.selectFrom('expense_items')
+			.selectAll()
+			.where('weddingId', '=', wedding.id)
+			.orderBy('expenseDueDate', 'asc')
+			.execute(),
+
+		plannerDb
+			.selectFrom('schedules')
+			.select((eb) => eb.fn.countAll<number>().as('count'))
+			.where('weddingId', '=', wedding.id)
+			.where(sql`datetime(scheduleDate || ' ' || scheduleEndTime)`, '<', sql`datetime('now')`)
+			.executeTakeFirst()
+			.then((result) => result?.count ?? 0),
+
+		plannerDb
+			.selectFrom('schedules')
+			.selectAll()
+			.where('weddingId', '=', wedding.id)
+			.where(sql`datetime(scheduleDate || ' ' || scheduleStartTime)`, '>', sql`datetime('now')`)
+			.orderBy('scheduleDate', 'asc')
+			.orderBy('scheduleStartTime', 'asc')
+			.executeTakeFirst(),
+
+		plannerDb
+			.selectFrom('schedules')
+			.select((eb) => eb.fn.countAll<number>().as('count'))
+			.where('weddingId', '=', wedding.id)
+			.executeTakeFirst()
+			.then((result) => result?.count ?? 0),
 	]);
 
 	const remainingEventsCount = totalEvents - completedEventsCount;
@@ -108,16 +114,18 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 };
 
 export const actions: Actions = {
-	createRundown: async ({ request, locals: { supabase } }) => {
+	createRundown: async ({ request, locals: { supabase }, plannerDb }) => {
 		const {
 			data: { user },
 		} = await supabase.auth.getUser();
 
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
+		const wedding = await plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst();
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
@@ -138,8 +146,9 @@ export const actions: Actions = {
 
 		try {
 			const newSchedule = await plannerDb
-				.insert(schedules)
+				.insertInto('schedules')
 				.values({
+					id: crypto.randomUUID(),
 					weddingId: wedding.id,
 					scheduleName,
 					scheduleCategory,
@@ -149,11 +158,14 @@ export const actions: Actions = {
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,
-					isPublic,
+					isPublic: isPublic ? 1 : 0,
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
-			return { form, success: true, schedule: newSchedule[0] };
+			return { form, success: true, schedule: newSchedule };
 		} catch (error) {
 			return fail(500, {
 				form,
@@ -161,16 +173,18 @@ export const actions: Actions = {
 			});
 		}
 	},
-	editRundown: async ({ request, locals: { supabase } }) => {
+	editRundown: async ({ request, locals: { supabase }, plannerDb }) => {
 		const {
 			data: { user },
 		} = await supabase.auth.getUser();
 
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
+		const wedding = await plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst();
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
@@ -194,7 +208,7 @@ export const actions: Actions = {
 
 		try {
 			const updatedRundown = await plannerDb
-				.update(schedules)
+				.updateTable('schedules')
 				.set({
 					scheduleName,
 					scheduleCategory,
@@ -204,17 +218,19 @@ export const actions: Actions = {
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,
-					isPublic,
+					isPublic: isPublic ? 1 : 0,
 					updatedAt: new Date(),
 				})
-				.where(and(eq(schedules.id, scheduleId), eq(schedules.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', scheduleId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
-			if (updatedRundown.length === 0) {
+			if (!updatedRundown) {
 				return fail(404, { error: 'Rundown not found' });
 			}
 
-			return { success: true, rundown: updatedRundown[0] };
+			return { success: true, rundown: updatedRundown };
 		} catch (error) {
 			console.error('Rundown update error:', error);
 			return fail(500, {
@@ -222,16 +238,18 @@ export const actions: Actions = {
 			});
 		}
 	},
-	deleteRundown: async ({ request, locals: { supabase } }) => {
+	deleteRundown: async ({ request, locals: { supabase }, plannerDb }) => {
 		const {
 			data: { user },
 		} = await supabase.auth.getUser();
 
 		if (!user) return fail(401, { error: 'Unauthorized' });
 
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
+		const wedding = await plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst();
 
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
@@ -240,11 +258,13 @@ export const actions: Actions = {
 
 		try {
 			const deletedRundown = await plannerDb
-				.delete(schedules)
-				.where(and(eq(schedules.id, scheduleId), eq(schedules.weddingId, wedding.id)))
-				.returning();
+				.deleteFrom('schedules')
+				.where('id', '=', scheduleId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
-			if (deletedRundown.length === 0) {
+			if (!deletedRundown) {
 				return fail(404, { error: 'Rundown not found' });
 			}
 
