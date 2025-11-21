@@ -1,49 +1,43 @@
-import {
-	pgTable,
-	jsonb,
-	uuid,
-	date,
-	timestamp,
-	varchar,
-	text,
-	numeric,
-	boolean,
-	integer,
-	index,
-} from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 import { weddings } from './planner';
 import {
-	invitationStatusEnum,
-	guestCategoryEnum,
-	rsvpStatusEnum,
-	giftTypeEnum,
-	galleryTypeEnum,
+	invitationStatusValues,
+	guestCategoryValues,
+	rsvpStatusValues,
+	giftTypeValues,
+	galleryTypeValues,
 } from './enums';
 import { users } from './planner';
 
 // INVITATIONS MODULE
 
-export const invitations = pgTable(
+export const invitations = sqliteTable(
 	'invitations',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		slug: varchar('slug', { length: 255 }).notNull().unique(),
-		template: varchar('template', { length: 255 }).notNull(),
-		status: invitationStatusEnum('status').default('draft'),
-		coupleDetails: jsonb('couple_details').notNull(),
-		eventDetails: jsonb('event_details').notNull(),
-		customizations: jsonb('customizations').notNull(),
+		slug: text('slug').notNull().unique(),
+		template: text('template').notNull(),
+		status: text('status', { enum: invitationStatusValues }).default('draft'),
+		coupleDetails: text('couple_details', { mode: 'json' }).notNull(),
+		eventDetails: text('event_details', { mode: 'json' }).notNull(),
+		customizations: text('customizations', { mode: 'json' }).notNull(),
 		maxGuestCount: integer('max_guest_count').notNull(),
-		isPublic: boolean('is_public').default(false).notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
 		viewCount: integer('view_count').default(0).notNull(),
-		publishedAt: timestamp('published_at'),
-		expiredAt: timestamp('expired_at'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		publishedAt: integer('published_at', { mode: 'timestamp' }),
+		expiredAt: integer('expired_at', { mode: 'timestamp' }),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		slugIdx: index('invitations_slug_idx').on(table.slug),
@@ -54,20 +48,26 @@ export const invitations = pgTable(
 
 // GUESTS MODULE
 
-export const guests = pgTable(
+export const guests = sqliteTable(
 	'guests',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		invitationId: uuid('invitation_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		invitationId: text('invitation_id')
 			.notNull()
 			.references(() => invitations.id, { onDelete: 'cascade' }),
-		name: varchar('name', { length: 255 }).notNull(),
-		phone: varchar('phone', { length: 50 }),
-		email: varchar('email', { length: 255 }),
-		invitationToken: varchar('invitation_token', { length: 255 }).unique(),
-		category: guestCategoryEnum('category'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		name: text('name').notNull(),
+		phone: text('phone'),
+		email: text('email'),
+		invitationToken: text('invitation_token').unique(),
+		category: text('category', { enum: guestCategoryValues }),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		invitationIdIdx: index('guests_invitation_id_idx').on(table.invitationId),
@@ -79,21 +79,29 @@ export const guests = pgTable(
 
 // RSVPS MODULE
 
-export const rsvps = pgTable(
+export const rsvps = sqliteTable(
 	'rsvps',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		guestId: uuid('guest_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		guestId: text('guest_id')
 			.notNull()
 			.references(() => guests.id, { onDelete: 'cascade' }),
-		status: rsvpStatusEnum('status').notNull(), // attending, declined
+		status: text('status', { enum: rsvpStatusValues }).notNull(), // attending, declined
 		plusOneCount: integer('plus_one_count').default(0).notNull(),
-		plusOneNames: jsonb('plus_one_names'), // array of names
+		plusOneNames: text('plus_one_names', { mode: 'json' }), // array of names
 		guestMessage: text('guest_message'),
-		submittedAt: timestamp('submitted_at').defaultNow().notNull(),
-		isPublic: boolean('is_public').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		submittedAt: integer('submitted_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		guestIdIdx: index('rsvps_guest_id_idx').on(table.guestId),
@@ -103,25 +111,31 @@ export const rsvps = pgTable(
 
 // GALLERY MODULE
 
-export const gallery = pgTable(
+export const gallery = sqliteTable(
 	'gallery',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		invitationId: uuid('invitation_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		invitationId: text('invitation_id')
 			.notNull()
 			.references(() => invitations.id, { onDelete: 'cascade' }),
-		type: galleryTypeEnum('type').notNull(),
-		url: varchar('url', { length: 255 }).notNull(),
+		type: text('type', { enum: galleryTypeValues }).notNull(),
+		url: text('url').notNull(),
 		description: text('description'),
-		fileName: varchar('file_name', { length: 255 }).notNull(),
+		fileName: text('file_name').notNull(),
 		fileSize: integer('filesize').notNull(),
-		mimeType: varchar('mime_type', { length: 255 }).notNull(),
-		caption: varchar('caption', { length: 255 }),
+		mimeType: text('mime_type').notNull(),
+		caption: text('caption'),
 		sortOrder: integer('sort_order').notNull(),
-		isPublic: boolean('is_public').default(false).notNull(),
-		uploadedBy: uuid('uploaded_by').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
+		uploadedBy: text('uploaded_by').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		invitationIdIdx: index('gallery_invitation_id_idx').on(table.invitationId),
@@ -132,22 +146,28 @@ export const gallery = pgTable(
 
 // LOVE STORY MODULE
 
-export const love_story = pgTable(
+export const love_story = sqliteTable(
 	'love_story',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		invitationId: uuid('invitation_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		invitationId: text('invitation_id')
 			.notNull()
 			.references(() => invitations.id, { onDelete: 'cascade' }),
-		title: varchar('title', { length: 200 }).notNull(),
+		title: text('title').notNull(),
 		content: text('content').notNull(),
-		date: date('date'),
+		date: text('date'), // ISO date string (YYYY-MM-DD)
 		mediaUrl: text('media_url'),
-		mediaType: varchar('media_type', { length: 20 }), // photo, video
+		mediaType: text('media_type'), // photo, video
 		sortOrder: integer('sort_order').notNull(),
-		isPublic: boolean('is_public').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		invitationIdIdx: index('love_story_invitation_id_idx').on(table.invitationId),
@@ -158,24 +178,30 @@ export const love_story = pgTable(
 
 // GIFTS MODULE
 
-export const gifts = pgTable(
+export const gifts = sqliteTable(
 	'gifts',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		invitationId: uuid('invitation_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		invitationId: text('invitation_id')
 			.notNull()
 			.references(() => invitations.id, { onDelete: 'cascade' }),
-		type: giftTypeEnum('type').notNull(),
-		title: varchar('title', { length: 200 }).notNull(),
+		type: text('type', { enum: giftTypeValues }).notNull(),
+		title: text('title').notNull(),
 		description: text('description'),
-		bankAccount: varchar('bank_account', { length: 30 }),
-		bankNumber: numeric('bank_number'),
-		registryURL: varchar('registry_url', { length: 255 }),
-		isActive: boolean('is_active').default(true).notNull(),
-		isPublic: boolean('is_public').default(false).notNull(),
+		bankAccount: text('bank_account'),
+		bankNumber: real('bank_number'),
+		registryURL: text('registry_url'),
+		isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
 		sortOrder: integer('sort_order').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		invitationIdIdx: index('gifts_invitation_id_idx').on(table.invitationId),
