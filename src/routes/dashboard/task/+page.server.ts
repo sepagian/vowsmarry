@@ -3,12 +3,11 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { taskSchema } from '$lib/validation/planner';
-import { plannerDb } from '$lib/server/db';
-import { tasks, weddings } from '$lib/server/db/schema/planner';
-import { eq, and } from 'drizzle-orm';
 import type { TaskStatus } from '$lib/types';
+import type { Kysely } from 'kysely';
+import type { Database } from '$lib/server/db/schema/types';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('task:list');
 	depends('calendar:data');
 
@@ -21,9 +20,11 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 
 	const [taskForm, wedding] = await Promise.all([
 		superValidate(valibot(taskSchema)),
-		plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		}),
+		plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst(),
 	]);
 
 	if (!wedding) {
@@ -35,10 +36,12 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const tasksList = await plannerDb.query.tasks.findMany({
-		where: eq(tasks.weddingId, wedding.id),
-		orderBy: (tasks, { asc }) => [asc(tasks.taskDueDate)],
-	});
+	const tasksList = await plannerDb
+		.selectFrom('tasks')
+		.selectAll()
+		.where('weddingId', '=', wedding.id)
+		.orderBy('taskDueDate', 'asc')
+		.execute();
 
 	const taskStats = tasksList.reduce(
 		(acc, task) => {
@@ -69,13 +72,15 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	};
 };
 
-async function getWedding(userId: string) {
-	return plannerDb.query.weddings.findFirst({
-		where: eq(weddings.userId, userId),
-	});
+async function getWedding(userId: string, plannerDb: Kysely<Database>) {
+	return plannerDb
+		.selectFrom('weddings')
+		.selectAll()
+		.where('userId', '=', userId)
+		.executeTakeFirst();
 }
 
-async function getUser(supabase: any) {
+async function getUser(supabase: { auth: { getUser: () => Promise<{ data: { user: { id: string } | null } }> } }) {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
@@ -84,27 +89,33 @@ async function getUser(supabase: any) {
 }
 
 export const actions: Actions = {
-	create: async ({ request, locals: { supabase } }) => {
+	create: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
 
 		try {
-			const [newTask] = await plannerDb
-				.insert(tasks)
+			const newTask = await plannerDb
+				.insertInto('tasks')
 				.values({
+					id: crypto.randomUUID(),
 					weddingId: wedding.id,
 					taskDescription: form.data.taskDescription,
 					taskCategory: form.data.taskCategory,
 					taskPriority: form.data.taskPriority,
 					taskStatus: form.data.taskStatus,
 					taskDueDate: form.data.taskDueDate.toString(),
+					completedAt: null,
+					assignedTo: null,
 					createdBy: user.id,
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			return { form, success: true, task: newTask };
 		} catch (error) {
@@ -113,9 +124,9 @@ export const actions: Actions = {
 		}
 	},
 
-	updateStatus: async ({ request, locals: { supabase } }) => {
+	updateStatus: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
 		const formData = await request.formData();
@@ -123,15 +134,17 @@ export const actions: Actions = {
 		const newStatus = formData.get('status') as TaskStatus;
 
 		try {
-			const [updatedTask] = await plannerDb
-				.update(tasks)
+			const updatedTask = await plannerDb
+				.updateTable('tasks')
 				.set({
 					taskStatus: newStatus,
 					completedAt: newStatus === 'completed' ? new Date() : null,
 					updatedAt: new Date(),
 				})
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
 			if (!updatedTask) return fail(404, { error: 'Task not found' });
 
@@ -142,9 +155,9 @@ export const actions: Actions = {
 		}
 	},
 
-	update: async ({ request, locals: { supabase } }) => {
+	update: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
 		const clonedRequest = request.clone();
@@ -156,15 +169,17 @@ export const actions: Actions = {
 		if (!form.valid) return fail(400, { form });
 
 		try {
-			const [updatedTask] = await plannerDb
-				.update(tasks)
+			const updatedTask = await plannerDb
+				.updateTable('tasks')
 				.set({
 					...form.data,
 					completedAt: form.data.taskStatus === 'completed' ? new Date() : null,
 					updatedAt: new Date(),
 				})
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
 			if (!updatedTask) return fail(404, { error: 'Task not found' });
 
@@ -175,19 +190,21 @@ export const actions: Actions = {
 		}
 	},
 
-	delete: async ({ request, locals: { supabase } }) => {
+	delete: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) return fail(403, { error: 'No wedding data found' });
 
 		const formData = await request.formData();
 		const taskId = formData.get('id') as string;
 
 		try {
-			const [deletedTask] = await plannerDb
-				.delete(tasks)
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+			const deletedTask = await plannerDb
+				.deleteFrom('tasks')
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
 			if (!deletedTask) return fail(404, { error: 'Task not found' });
 
