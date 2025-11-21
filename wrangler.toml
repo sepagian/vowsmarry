@@ -1,0 +1,35 @@
+name = "vowsmarry"
+compatibility_date = "2025-11-20"
+compatibility_flags = ["nodejs_compat"]
+"$schema" = "node_modules/wrangler/config-schema.json"
+"main" = ".svelte-kit/cloudflare/_worker.js"
+
+[assets]
+binding = "ASSETS"
+directory = ".svelte-kit/cloudflare/"
+
+[[d1_databases]]
+binding = "vowsmarry"
+database_name = "vowsmarry"
+database_id = "956e4739-9258-48b0-8d02-4e85f3e26b58"
+migrations_dir = "drizzle"
+
+[[r2_buckets]]
+binding = "VOWSMARRY_BUCKET"
+bucket_name = "vowsmarry"
+
+[observability]
+[observability.logs]
+enabled = false
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+# Build configuration
+[build]
+command = "bun run build"
+
+# Module rules
+[[rules]]
+type = "ESModule"
+globs = ["**/*.js", "**/*.mjs"]
