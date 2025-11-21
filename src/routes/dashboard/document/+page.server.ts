@@ -3,12 +3,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { documentSchema } from '$lib/validation/planner';
-import { plannerDb } from '$lib/server/db';
-import { documents, weddings } from '$lib/server/db/schema/planner';
-import { eq } from 'drizzle-orm';
 import { validateDocumentFile } from '$lib/server/storage/file-validation';
+import type { Kysely } from 'kysely';
+import type { Database } from '$lib/server/db/schema/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('document:list');
 
 	const {
@@ -21,9 +21,11 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	const [documentForm, wedding] = await Promise.all([
 		superValidate(valibot(documentSchema)),
 
-		plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		}),
+		plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst(),
 	]);
 
 	if (!wedding) {
@@ -33,21 +35,25 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const documentList = await plannerDb.query.documents.findMany({
-		where: eq(documents.weddingId, wedding.id),
-		orderBy: (documents, { asc }) => [asc(documents.documentDate)],
-	});
+	const documentList = await plannerDb
+		.selectFrom('documents')
+		.selectAll()
+		.where('weddingId', '=', wedding.id)
+		.orderBy('documentDate', 'asc')
+		.execute();
 
 	return { documents: documentList, documentForm };
 };
 
-async function getWedding(userId: string) {
-	return plannerDb.query.weddings.findFirst({
-		where: eq(weddings.userId, userId),
-	});
+async function getWedding(userId: string, plannerDb: Kysely<Database>) {
+	return plannerDb
+		.selectFrom('weddings')
+		.selectAll()
+		.where('userId', '=', userId)
+		.executeTakeFirst();
 }
 
-async function getUser(supabase: any) {
+async function getUser(supabase: SupabaseClient) {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
@@ -56,10 +62,10 @@ async function getUser(supabase: any) {
 }
 
 export const actions: Actions = {
-	create: async ({ request, locals: { supabase } }) => {
+	create: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
 
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) {
 			return fail(403, { error: 'No wedding data found' });
 		}
@@ -117,8 +123,9 @@ export const actions: Actions = {
 		// Create document record in database with file metadata
 		try {
 			const newDocument = await plannerDb
-				.insert(documents)
+				.insertInto('documents')
 				.values({
+					id: crypto.randomUUID(),
 					weddingId: wedding.id,
 					documentName: form.data.documentName,
 					documentCategory: form.data.documentCategory,
@@ -129,12 +136,16 @@ export const actions: Actions = {
 					fileName: uploadResult.fileName,
 					fileSize: uploadResult.fileSize,
 					mimeType: uploadResult.mimeType,
+					reminderSent: 0,
+					createdAt: new Date(),
+					updatedAt: new Date(),
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			// Remove file from form data to avoid serialization error
 			const { file: _, ...formDataWithoutFile } = form.data;
-			return { form: { ...form, data: formDataWithoutFile }, success: true, document: newDocument[0] };
+			return { form: { ...form, data: formDataWithoutFile }, success: true, document: newDocument };
 		} catch (error) {
 			// Database insertion failed - rollback by deleting uploaded file
 			console.error('Database insertion failed:', error);
@@ -156,10 +167,10 @@ export const actions: Actions = {
 			});
 		}
 	},
-	update: async ({ request, locals: { supabase } }) => {
+	update: async ({ request, locals: { supabase }, plannerDb }) => {
 		const user = await getUser(supabase);
 
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) {
 			return fail(403, { error: 'No wedding data found' });
 		}
@@ -176,9 +187,11 @@ export const actions: Actions = {
 		}
 
 		// Verify user owns the document being updated
-		const existingDocument = await plannerDb.query.documents.findFirst({
-			where: eq(documents.id, documentId),
-		});
+		const existingDocument = await plannerDb
+			.selectFrom('documents')
+			.selectAll()
+			.where('id', '=', documentId)
+			.executeTakeFirst();
 
 		if (!existingDocument) {
 			return fail(404, { error: 'Document not found' });
@@ -249,7 +262,7 @@ export const actions: Actions = {
 			// Update document name, category, dates, status, and notes
 			// Preserve existing file metadata if no new file provided
 			const updatedDocument = await plannerDb
-				.update(documents)
+				.updateTable('documents')
 				.set({
 					documentName: form.data.documentName,
 					documentCategory: form.data.documentCategory,
@@ -257,12 +270,13 @@ export const actions: Actions = {
 					...fileMetadata,
 					updatedAt: new Date(),
 				})
-				.where(eq(documents.id, documentId))
-				.returning();
+				.where('id', '=', documentId)
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			// Remove file from form data to avoid serialization error
 			const { file: _, ...formDataWithoutFile } = form.data;
-			return { form: { ...form, data: formDataWithoutFile }, success: true, document: updatedDocument[0] };
+			return { form: { ...form, data: formDataWithoutFile }, success: true, document: updatedDocument };
 		} catch (error) {
 			console.error('Database update failed:', error);
 			return fail(500, {
@@ -276,11 +290,11 @@ export const actions: Actions = {
 			});
 		}
 	},
-	delete: async ({ request, locals: { supabase } }) => {
+	delete: async ({ request, locals: { supabase }, plannerDb }) => {
 		// Verify user authorization for document deletion
 		const user = await getUser(supabase);
 
-		const wedding = await getWedding(user.id);
+		const wedding = await getWedding(user.id, plannerDb);
 		if (!wedding) {
 			return fail(403, { error: 'No wedding data found' });
 		}
@@ -294,9 +308,11 @@ export const actions: Actions = {
 		}
 
 		// Retrieve document record to get file URL
-		const existingDocument = await plannerDb.query.documents.findFirst({
-			where: eq(documents.id, documentId),
-		});
+		const existingDocument = await plannerDb
+			.selectFrom('documents')
+			.selectAll()
+			.where('id', '=', documentId)
+			.executeTakeFirst();
 
 		if (!existingDocument) {
 			return fail(404, { error: 'Document not found' });
@@ -318,7 +334,10 @@ export const actions: Actions = {
 
 		// Delete document record from database
 		try {
-			await plannerDb.delete(documents).where(eq(documents.id, documentId));
+			await plannerDb
+				.deleteFrom('documents')
+				.where('id', '=', documentId)
+				.execute();
 
 			// Return success response
 			return { success: true, message: 'Document deleted successfully' };
