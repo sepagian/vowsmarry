@@ -1,5 +1,5 @@
 import { S3Client } from '@aws-sdk/client-s3';
-import { env } from '$env/dynamic/private';
+import { env } from 'process';
 
 if (!env.CLOUDFLARE_R2_ACCOUNT_ID) {
 	throw new Error('CLOUDFLARE_R2_ACCOUNT_ID environment variable is required');
