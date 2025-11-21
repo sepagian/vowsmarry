@@ -1,12 +1,15 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as weddings from './schema/planner';
-import * as invitations from './schema/invitation';
-import { env } from '$env/dynamic/private';
+import type { D1Database } from '@cloudflare/workers-types';
+import { Kysely } from 'kysely';
+import { D1Dialect } from 'kysely-d1';
+import type { Database } from './schema/types';
 
-if (!env.HYPERDRIVE_URL) throw new Error('HYPERDRIVE_URL is not set');
-
-const client = postgres(env.HYPERDRIVE_URL, { ssl: 'require' });
-
-export const plannerDb = drizzle(client, { schema: weddings });
-export const invitationDb = drizzle(client, { schema: invitations });
+/**
+ * Creates a Kysely instance for the database
+ * @param d1 - D1Database binding from platform.env
+ * @returns Kysely instance with type-safe query builder
+ */
+export function getDb(d1: D1Database): Kysely<Database> {
+	return new Kysely<Database>({
+		dialect: new D1Dialect({ database: d1 }),
+	});
+}
