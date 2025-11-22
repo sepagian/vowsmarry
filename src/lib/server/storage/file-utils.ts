@@ -609,15 +609,8 @@ export async function replaceFile(
 	file: File,
 	options: UploadOptions
 ): Promise<UploadResult> {
-	let newFileResult: UploadResult;
-
-	try {
-		// Upload new file first - if this fails, old file remains unchanged
-		newFileResult = await uploadFile(file, options);
-	} catch (error) {
-		// Upload failed - old file is retained, no changes made
-		throw error;
-	}
+	// Upload new file first - if this fails, old file remains unchanged
+	const newFileResult = await uploadFile(file, options);
 
 	// New file uploaded successfully, now delete old file
 	try {
