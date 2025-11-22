@@ -104,12 +104,12 @@
 			const formData = new FormData();
 			formData.append('id', documentId);
 
-			const response = await fetch('?/delete', {
+			const response = await fetch('?/deleteDocument', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'document', { itemName: documentName });
