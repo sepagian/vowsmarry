@@ -35,7 +35,7 @@
 					: 'No data yet',
 			},
 			{
-				title: parseFloat(data.stats.expensePaidAmount).toLocaleString('id-ID', {
+				title: parseFloat(data.stats.expensePaidAmount.toString()).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
