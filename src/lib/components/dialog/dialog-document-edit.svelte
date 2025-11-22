@@ -141,7 +141,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/update"
+		action="?/updateDocument"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-2"
 		onsubmit={(e) => {

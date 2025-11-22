@@ -78,12 +78,12 @@
 			form.append('vendorStatus', formData.vendorStatus);
 			form.append('vendorRating', formData.vendorRating);
 
-			const response = await fetch('?/editVendor', {
+			const response = await fetch('?/updateVendor', {
 				method: 'POST',
 				body: form,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'vendor', { itemName: formData.vendorName });

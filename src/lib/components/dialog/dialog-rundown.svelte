@@ -58,7 +58,7 @@
 	<form
 		method="POST"
 		use:enhance
-		action="?/createRundown"
+		action="?/createSchedule"
 		class="flex flex-col gap-4"
 		onsubmit={(e) => {
 			if (!$formData.valid) {

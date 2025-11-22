@@ -135,7 +135,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/create"
+		action="?/createDocument"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-2"
 	>

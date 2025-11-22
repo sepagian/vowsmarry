@@ -68,7 +68,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/create"
+		action="?/createTask"
 		class="flex flex-col gap-4"
 		onsubmit={(e) => {
 			if (!$formData.valid) {
