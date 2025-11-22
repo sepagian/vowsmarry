@@ -4,6 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { expenseSchema } from '$lib/validation/planner';
 import type { ExpenseData, ExpenseStatus } from '$lib/types';
+import { withAuth } from '$lib/server/auth-helpers';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('expense:list');
@@ -115,21 +116,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 };
 
 export const actions: Actions = {
-	createExpenseItem: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -152,36 +139,23 @@ export const actions: Actions = {
 					expenseAmount: expenseAmount,
 					expensePaymentStatus,
 					expenseDueDate,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
 
 			return { form, success: true, expense: newExpense };
 		} catch (error) {
+			console.error('createExpenseItem error:', error);
 			return fail(500, {
 				form,
 				error: 'Failed to create new expense. Please try again.',
 			});
 		}
-	},
+	}),
 
-	updatePaymentStatus: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updatePaymentStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const expenseId = data.get('id') as string;
 		const newPaymentStatus = data.get('paymentStatus') as ExpenseStatus;
@@ -195,7 +169,7 @@ export const actions: Actions = {
 				.updateTable('expense_items')
 				.set({
 					expensePaymentStatus: newPaymentStatus,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
 				.where('weddingId', '=', wedding.id)
@@ -207,27 +181,14 @@ export const actions: Actions = {
 
 			return { success: true, task: updatedPaymentStatus };
 		} catch (error) {
+			console.error('updatePaymentStatus error:', error);
 			return fail(500, {
 				error: 'Failed to update payment status.',
 			});
 		}
-	},
+	}),
 
-	editExpenseItem: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -255,7 +216,7 @@ export const actions: Actions = {
 					expenseAmount: expenseAmount,
 					expensePaymentStatus,
 					expenseDueDate,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
 				.where('weddingId', '=', wedding.id)
@@ -268,28 +229,15 @@ export const actions: Actions = {
 
 			return { form, success: true, expense: updatedExpense };
 		} catch (error) {
+			console.error('editExpenseItem error:', error);
 			return fail(500, {
 				form,
 				error: 'Failed to update expense. Please try again.',
 			});
 		}
-	},
+	}),
 
-	deleteExpenseItem: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	deleteExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const expenseId = data.get('id') as string;
 
@@ -311,9 +259,10 @@ export const actions: Actions = {
 
 			return { success: true };
 		} catch (error) {
+			console.error('deleteExpenseItem error:', error);
 			return fail(500, {
 				error: 'Failed to delete expense. Please try again.',
 			});
 		}
-	},
+	}),
 };
