@@ -4,9 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { documentSchema } from '$lib/validation/planner';
 import { validateDocumentFile } from '$lib/server/storage/file-validation';
-import type { Kysely } from 'kysely';
-import type { Database } from '$lib/server/db/schema/types';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { withAuth } from '$lib/server/auth-helpers';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('document:list');
@@ -45,32 +43,10 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 	return { documents: documentList, documentForm };
 };
 
-async function getWedding(userId: string, plannerDb: Kysely<Database>) {
-	return plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', userId)
-		.executeTakeFirst();
-}
-
-async function getUser(supabase: SupabaseClient) {
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) throw fail(401, { error: 'Unauthorized' });
-	return user;
-}
-
 export const actions: Actions = {
-	create: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) {
-			return fail(403, { error: 'No wedding data found' });
-		}
-
-		const form = await superValidate(request, valibot(documentSchema));
+	createDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+		try {
+			const form = await superValidate(request, valibot(documentSchema));
 		if (!form.valid) return fail(400, { form });
 
 		const file = form.data.file?.[0];
@@ -105,8 +81,11 @@ export const actions: Actions = {
 		let uploadResult;
 		try {
 			// Upload file to R2 storage
-			const { uploadDocumentFile } = await import('$lib/server/storage');
-			uploadResult = await uploadDocumentFile(wedding.id, file);
+			const { uploadFile } = await import('$lib/server/storage');
+			uploadResult = await uploadFile(file, {
+				pathPrefix: 'documents',
+				scopeId: wedding.id,
+			});
 		} catch (error) {
 			console.error('File upload failed:', error);
 			return fail(500, {
@@ -137,8 +116,8 @@ export const actions: Actions = {
 					fileSize: uploadResult.fileSize,
 					mimeType: uploadResult.mimeType,
 					reminderSent: 0,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
@@ -148,7 +127,7 @@ export const actions: Actions = {
 			return { form: { ...form, data: formDataWithoutFile }, success: true, document: newDocument };
 		} catch (error) {
 			// Database insertion failed - rollback by deleting uploaded file
-			console.error('Database insertion failed:', error);
+			console.error('Document create - Database insertion failed:', error);
 			try {
 				const { deleteFileByUrl } = await import('$lib/server/storage');
 				await deleteFileByUrl(uploadResult.fileUrl);
@@ -166,16 +145,14 @@ export const actions: Actions = {
 				},
 			});
 		}
-	},
-	update: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) {
-			return fail(403, { error: 'No wedding data found' });
+		} catch (error) {
+			console.error('Document create - Unexpected error:', error);
+			return fail(500, { error: 'An unexpected error occurred' });
 		}
-
-		const form = await superValidate(request, valibot(documentSchema));
+	}),
+	updateDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+		try {
+			const form = await superValidate(request, valibot(documentSchema));
 		if (!form.valid) return fail(400, { form });
 
 		// Extract document ID from form data
@@ -268,7 +245,7 @@ export const actions: Actions = {
 					documentCategory: form.data.documentCategory,
 					documentDate: form.data.documentDate,
 					...fileMetadata,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', documentId)
 				.returningAll()
@@ -278,7 +255,7 @@ export const actions: Actions = {
 			const { file: _, ...formDataWithoutFile } = form.data;
 			return { form: { ...form, data: formDataWithoutFile }, success: true, document: updatedDocument };
 		} catch (error) {
-			console.error('Database update failed:', error);
+			console.error('Document update - Database update failed:', error);
 			return fail(500, {
 				form: {
 					...form,
@@ -289,17 +266,14 @@ export const actions: Actions = {
 				},
 			});
 		}
-	},
-	delete: async ({ request, locals: { supabase }, plannerDb }) => {
-		// Verify user authorization for document deletion
-		const user = await getUser(supabase);
-
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) {
-			return fail(403, { error: 'No wedding data found' });
+		} catch (error) {
+			console.error('Document update - Unexpected error:', error);
+			return fail(500, { error: 'An unexpected error occurred' });
 		}
-
-		// Extract document ID from form data
+	}),
+	deleteDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+		try {
+			// Extract document ID from form data
 		const formData = await request.formData();
 		const documentId = formData.get('id') as string;
 
@@ -342,8 +316,12 @@ export const actions: Actions = {
 			// Return success response
 			return { success: true, message: 'Document deleted successfully' };
 		} catch (error) {
-			console.error('Database deletion failed:', error);
+			console.error('Document delete - Database deletion failed:', error);
 			return fail(500, { error: 'Failed to delete document. Please try again.' });
 		}
-	},
+		} catch (error) {
+			console.error('Document delete - Unexpected error:', error);
+			return fail(500, { error: 'An unexpected error occurred' });
+		}
+	}),
 };
