@@ -55,12 +55,12 @@
 			formData.append('id', taskId);
 			formData.append('status', newStatus);
 
-			const response = await fetch('?/updateStatus', {
+			const response = await fetch('?/updateTaskStatus', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'task');
@@ -91,12 +91,12 @@
 			const formData = new FormData();
 			formData.append('id', taskId);
 
-			const response = await fetch('?/delete', {
+			const response = await fetch('?/deleteTask', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'task');
@@ -122,12 +122,12 @@
 			formData.append('taskStatus', updatedData.taskStatus);
 			formData.append('taskDueDate', updatedData.taskDueDate);
 
-			const response = await fetch('?/update', {
+			const response = await fetch('?/updateTask', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				await invalidate('task:list');
