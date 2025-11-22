@@ -62,12 +62,12 @@
 			const formData = new FormData();
 			formData.append('id', itemId);
 
-			const response = await fetch('?/deleteRundown', {
+			const response = await fetch('?/deleteSchedule', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'rundown', { itemName });
