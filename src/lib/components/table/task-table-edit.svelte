@@ -83,7 +83,7 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form
-			action="?/update"
+			action="?/updateTask"
 			onsubmit={(e) => {
 				e.preventDefault();
 				handleSubmit();
