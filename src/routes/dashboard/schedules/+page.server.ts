@@ -4,6 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
 import { sql } from 'kysely';
+import { withAuth } from '$lib/server/auth-helpers';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('schedule:list');
@@ -114,21 +115,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 };
 
 export const actions: Actions = {
-	createRundown: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(scheduleSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -159,35 +146,22 @@ export const actions: Actions = {
 					scheduleVenue,
 					scheduleAttendees,
 					isPublic: isPublic ? 1 : 0,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
 
 			return { form, success: true, schedule: newSchedule };
 		} catch (error) {
+			console.error('Create rundown error:', error);
 			return fail(500, {
 				form,
 				error: 'Failed to add new rundown. Please try again.',
 			});
 		}
-	},
-	editRundown: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	}),
+	updateSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(scheduleSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -219,7 +193,7 @@ export const actions: Actions = {
 					scheduleVenue,
 					scheduleAttendees,
 					isPublic: isPublic ? 1 : 0,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', scheduleId)
 				.where('weddingId', '=', wedding.id)
@@ -237,22 +211,8 @@ export const actions: Actions = {
 				error: 'Failed to update rundown. Please try again.',
 			});
 		}
-	},
-	deleteRundown: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	}),
+	deleteSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const scheduleId = data.get('id') as string;
 
@@ -275,5 +235,5 @@ export const actions: Actions = {
 				error: 'Failed to delete rundown. Please try again.',
 			});
 		}
-	},
+	}),
 };
