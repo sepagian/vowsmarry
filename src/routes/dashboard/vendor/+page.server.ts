@@ -4,6 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { vendorSchema, type VendorData } from '$lib/validation/planner';
 import type { Category, VendorStatus, VendorRating } from '$lib/types';
+import { withAuth } from '$lib/server/auth-helpers';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('vendor:list');
@@ -101,21 +102,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 };
 
 export const actions: Actions = {
-	createVendor: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(vendorSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -137,36 +124,23 @@ export const actions: Actions = {
 					vendorStatus,
 					vendorRating,
 					vendorTotalCost: null,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
 
 			return { form, success: true, vendor: newVendor };
 		} catch (error) {
+			console.error('Vendor creation error:', error);
 			return fail(500, {
 				form,
 				error: 'Failed to add new vendor. Please try again.',
 			});
 		}
-	},
+	}),
 
-	editVendor: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(vendorSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -187,7 +161,7 @@ export const actions: Actions = {
 					vendorInstagram,
 					vendorStatus,
 					vendorRating,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', vendorId)
 				.where('weddingId', '=', wedding.id)
@@ -205,23 +179,9 @@ export const actions: Actions = {
 				error: 'Failed to update vendor. Please try again.',
 			});
 		}
-	},
+	}),
 
-	deleteVendor: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	deleteVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const vendorId = data.get('id') as string;
 
@@ -244,23 +204,9 @@ export const actions: Actions = {
 				error: 'Failed to delete vendor. Please try again.',
 			});
 		}
-	},
+	}),
 
-	updateStatus: async ({ request, locals: { supabase }, plannerDb }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateVendorStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const vendorId = data.get('id') as string;
 		const newStatus = data.get('status') as VendorStatus;
@@ -270,7 +216,7 @@ export const actions: Actions = {
 				.updateTable('vendors')
 				.set({
 					vendorStatus: newStatus,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', vendorId)
 				.where('weddingId', '=', wedding.id)
@@ -283,10 +229,10 @@ export const actions: Actions = {
 
 			return { success: true, vendor: updatedVendor };
 		} catch (error) {
-			console.error('Status update error:', error);
+			console.error('Vendor status update error:', error);
 			return fail(500, {
 				error: 'Failed to update vendor status.',
 			});
 		}
-	},
+	}),
 };
