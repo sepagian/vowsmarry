@@ -67,7 +67,7 @@
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				expensesStore.update((expenses) => expenses.filter((e) => e.id !== expense.id));
