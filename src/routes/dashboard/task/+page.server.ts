@@ -4,8 +4,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { taskSchema } from '$lib/validation/planner';
 import type { TaskStatus } from '$lib/types';
-import type { Kysely } from 'kysely';
-import type { Database } from '$lib/server/db/schema/types';
+import { withAuth } from '$lib/server/auth-helpers';
 
 export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
 	depends('task:list');
@@ -72,28 +71,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 	};
 };
 
-async function getWedding(userId: string, plannerDb: Kysely<Database>) {
-	return plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', userId)
-		.executeTakeFirst();
-}
-
-async function getUser(supabase: { auth: { getUser: () => Promise<{ data: { user: { id: string } | null } }> } }) {
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) throw fail(401, { error: 'Unauthorized' });
-	return user;
-}
-
 export const actions: Actions = {
-	create: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createTask: withAuth(async ({ user, wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -111,8 +90,8 @@ export const actions: Actions = {
 					completedAt: null,
 					assignedTo: null,
 					createdBy: user.id,
-					createdAt: new Date(),
-					updatedAt: new Date(),
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
@@ -122,13 +101,9 @@ export const actions: Actions = {
 			console.error('Task creation error:', error);
 			return fail(500, { form, error: 'Failed to create task. Please try again.' });
 		}
-	},
+	}),
 
-	updateStatus: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateTaskStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const formData = await request.formData();
 		const taskId = formData.get('id') as string;
 		const newStatus = formData.get('status') as TaskStatus;
@@ -138,8 +113,8 @@ export const actions: Actions = {
 				.updateTable('tasks')
 				.set({
 					taskStatus: newStatus,
-					completedAt: newStatus === 'completed' ? new Date() : null,
-					updatedAt: new Date(),
+					completedAt: newStatus === 'completed' ? Date.now() : null,
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', taskId)
 				.where('weddingId', '=', wedding.id)
@@ -153,13 +128,9 @@ export const actions: Actions = {
 			console.error('Status update error:', error);
 			return fail(500, { error: 'Failed to update task status.' });
 		}
-	},
+	}),
 
-	update: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const clonedRequest = request.clone();
 		const formData = await clonedRequest.formData();
 		const taskId = formData.get('id') as string;
@@ -173,8 +144,8 @@ export const actions: Actions = {
 				.updateTable('tasks')
 				.set({
 					...form.data,
-					completedAt: form.data.taskStatus === 'completed' ? new Date() : null,
-					updatedAt: new Date(),
+					completedAt: form.data.taskStatus === 'completed' ? Date.now() : null,
+					updatedAt: Date.now(),
 				})
 				.where('id', '=', taskId)
 				.where('weddingId', '=', wedding.id)
@@ -188,13 +159,9 @@ export const actions: Actions = {
 			console.error('Task update error:', error);
 			return fail(500, { form, error: 'Failed to update task. Please try again.' });
 		}
-	},
+	}),
 
-	delete: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id, plannerDb);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	deleteTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const formData = await request.formData();
 		const taskId = formData.get('id') as string;
 
@@ -213,5 +180,5 @@ export const actions: Actions = {
 			console.error('Task deletion error:', error);
 			return fail(500, { error: 'Failed to delete task. Please try again.' });
 		}
-	},
+	}),
 };
