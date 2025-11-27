@@ -6,16 +6,13 @@ import { taskSchema } from '$lib/validation/planner';
 import type { TaskStatus } from '$lib/types';
 import { withAuth } from '$lib/server/auth-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('task:list');
 	depends('calendar:data');
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const { user } = locals;
 
-	if (error || !user) redirect(302, '/login');
+	if (!user) redirect(302, '/login');
 
 	const [taskForm, wedding] = await Promise.all([
 		superValidate(valibot(taskSchema)),
