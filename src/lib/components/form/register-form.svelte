@@ -5,14 +5,14 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { registerSchema } from '$lib/validation/auth';
+	import { validateRegisterSchema } from '$lib/validation/auth';
 	import { createAuthFormHandler } from '$lib/hooks/use-auth-form.svelte';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
-		validators: valibot(registerSchema),
+		validators: valibot(validateRegisterSchema),
 		...createAuthFormHandler({
 			successMessage: 'Welcome back! Redirecting to your dashboard...',
 		}),
