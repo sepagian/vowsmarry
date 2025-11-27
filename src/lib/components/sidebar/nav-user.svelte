@@ -9,12 +9,13 @@
 
 	const sidebar = useSidebar();
 
-	const firstName = $derived($currentUser?.user_metadata?.first_name || '');
-	const lastName = $derived($currentUser?.user_metadata?.last_name || '');
+	// Better Auth stores the full name in the 'name' field
+	const fullName = $derived($currentUser?.name || '');
+	const nameParts = $derived(fullName.split(' '));
+	const firstName = $derived(nameParts[0] || '');
+	const lastName = $derived(nameParts.slice(1).join(' ') || '');
 	const displayName = $derived(
-		firstName && lastName
-			? `${firstName} ${lastName}`
-			: firstName || $currentUser?.email?.split('@')[0] || 'User',
+		fullName || $currentUser?.email?.split('@')[0] || 'User',
 	);
 	const displayEmail = $derived($userEmail || '');
 	const initials = $derived(
