@@ -6,17 +6,14 @@ import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
 import { sql } from 'kysely';
 import { withAuth } from '$lib/server/auth-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('schedule:list');
 	depends('calendar:data');
 	const scheduleForm = await superValidate(valibot(scheduleSchema));
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const { user } = locals;
 
-	if (error || !user) {
+	if (!user) {
 		redirect(302, '/login');
 	}
 
