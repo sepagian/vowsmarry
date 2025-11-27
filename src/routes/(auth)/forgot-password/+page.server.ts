@@ -19,39 +19,28 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals: { supabase }, url }) => {
+	default: async ({ request, url }) => {
 		const formData = await request.formData();
 		const email = formData.get('email') as ForgotPasswordData['email'];
 
 		const redirectTo = `${url.origin}/reset-password`;
 
-		const { error } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo,
+		// TODO: Implement Better Auth password reset
+		// Better Auth requires configuring sendResetPassword in auth.ts
+		// See: https://www.better-auth.com/docs/authentication/email-password#request-password-reset
+		// 
+		// For now, return a message that this feature is not yet configured
+		console.log('Password reset requested for:', email, 'with redirect:', redirectTo);
+		
+		return fail(501, {
+			error: 'Password reset functionality is not yet configured. Please contact support.',
+			errorType: 'not_implemented',
 		});
 
-		if (error) {
-			console.error('Password reset error:', error);
-
-			// Handle specific password reset errors
-			if (error.message.includes('Too many requests')) {
-				return fail(429, {
-					error: 'Too many password reset requests. Please wait a moment before trying again.',
-					errorType: 'rate_limit',
-				});
-			} else if (error.message.includes('Invalid email')) {
-				return fail(400, {
-					error: 'Please enter a valid email address.',
-					errorType: 'invalid_email',
-				});
-			} else {
-				// For security reasons, we don't reveal if email exists or not
-				// But we still log the actual error for debugging
-				console.error('Password reset failed:', error.message);
-			}
-		}
-
-		// Always redirect to confirmation page for security
-		// Don't reveal whether email exists in system
-		redirect(302, '/forgot-password/confirmation');
+		// Once configured, the implementation should be:
+		// 1. Call Better Auth's /request-password-reset endpoint
+		// 2. Better Auth will trigger sendResetPassword callback configured in auth.ts
+		// 3. Send email with reset link containing token
+		// 4. Always redirect to confirmation page for security
 	},
 };
