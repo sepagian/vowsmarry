@@ -1,7 +1,7 @@
 import { ROUTES, AUTH_PAGES, PROTECTED_PREFIXES, PUBLIC_PREFIXES } from '$lib/constants/routes';
 
 export class RouteMatcher {
-	private static readonly ALWAYS_PUBLIC = [ROUTES.STATIC.ROBOTS, ROUTES.STATIC.FAVICON];
+	private static readonly ALWAYS_PUBLIC: readonly string[] = [ROUTES.STATIC.ROBOTS, ROUTES.STATIC.FAVICON];
 
 	static isPublicAsset(pathname: string): boolean {
 		return (
