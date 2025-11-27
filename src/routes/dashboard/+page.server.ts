@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import {
@@ -11,19 +11,12 @@ import {
 import type { ExpenseStatus } from '$lib/types';
 import { getUser, getWedding, withAuth } from '$lib/server/auth-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('dashboard:data');
 	const expenseForm = await superValidate(valibot(expenseSchema));
 	const weddingForm = await superValidate(valibot(weddingSchema));
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
-
-	if (error || !user) {
-		redirect(302, '/login');
-	}
+	const user = await getUser(locals.user);
 
 	const wedding = await plannerDb
 		.selectFrom('weddings')
@@ -36,8 +29,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 			user: {
 				id: user.id,
 				email: user.email,
-				firstName: user.user_metadata?.first_name,
-				lastName: user.user_metadata?.last_name,
+				firstName: user.name?.split(' ')[0] || '',
+				lastName: user.name?.split(' ').slice(1).join(' ') || '',
 			},
 			expenseForm,
 			weddingForm,
@@ -139,8 +132,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 		user: {
 			id: user.id,
 			email: user.email || '',
-			firstName: user.user_metadata?.first_name || '',
-			lastName: user.user_metadata?.last_name || '',
+			firstName: user.name?.split(' ')[0] || '',
+			lastName: user.name?.split(' ').slice(1).join(' ') || '',
 		},
 		wedding: wedding,
 		expenseForm,
@@ -162,8 +155,8 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 };
 
 export const actions: Actions = {
-	createWeddingData: async ({ request, locals: { supabase }, plannerDb }) => {
-		const user = await getUser(supabase);
+	createWeddingData: async ({ request, locals, plannerDb }) => {
+		const user = await getUser(locals.user);
 
 		const form = await superValidate(request, valibot(weddingSchema));
 		if (!form.valid) return fail(400, { form });
