@@ -231,7 +231,8 @@ export function setErrorState(type: string, message?: string, context?: string):
 }
 
 /**
- * Map Supabase error codes to our error types
+ * Map authentication error codes to our error types
+ * @deprecated Legacy function - kept for backward compatibility
  */
 export function mapSupabaseError(error: any): string {
 	if (!error) return 'generic';
@@ -239,7 +240,7 @@ export function mapSupabaseError(error: any): string {
 	const message = error.message?.toLowerCase() || '';
 	const code = error.code || error.status;
 
-	// Map specific Supabase error codes and messages
+	// Map specific authentication error codes and messages
 	if (message.includes('invalid_grant') || message.includes('invalid token')) {
 		if (message.includes('reset')) return 'invalid_reset_link';
 		if (message.includes('verification') || message.includes('confirm'))
