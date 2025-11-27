@@ -392,7 +392,7 @@ export const dresscodes = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		rundownId: text('rundown_id')
+		scheduleId: text('schedule_id')
 			.notNull()
 			.references(() => schedules.id, { onDelete: 'cascade' }),
 		dresscodeDescription: text('description').notNull(),
@@ -408,7 +408,7 @@ export const dresscodes = sqliteTable(
 	(table) => ({
 		weddingIdIdx: index('dresscodes_wedding_id_idx').on(table.weddingId),
 		dresscodeRoleIdx: index('dresscodes_dresscode_role_idx').on(table.dresscodeRole),
-		rundownIdIdx: index('dresscodes_rundown_id_idx').on(table.rundownId),
+		scheduleIdIdx: index('dresscodes_rundown_id_idx').on(table.scheduleId),
 	}),
 );
 
@@ -506,7 +506,7 @@ export const dresscodeRelations = relations(dresscodes, ({ one }) => ({
 		references: [weddings.id],
 	}),
 	schedules: one(schedules, {
-		fields: [dresscodes.rundownId],
+		fields: [dresscodes.scheduleId],
 		references: [schedules.id],
 	}),
 }));
