@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { registerSchema } from '$lib/validation/auth';
+import { auth } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user } }) => {
@@ -14,22 +15,13 @@ export const load: PageServerLoad = async ({ locals: { user } }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals: { supabase } }) => {
+	default: async ({ request }) => {
 		const formData = await request.formData();
 		const firstName = formData.get('firstName') as string;
 		const lastName = formData.get('lastName') as string;
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 		const confirmPassword = formData.get('confirmPassword') as string;
-
-		if (!firstName || !lastName || !email || !password || !confirmPassword) {
-			return fail(400, {
-				error: 'All fields are required',
-				firstName,
-				lastName,
-				email,
-			});
-		}
 
 		if (!firstName || !lastName || !email || !password || !confirmPassword) {
 			return fail(400, {
@@ -49,33 +41,41 @@ export const actions: Actions = {
 			});
 		}
 
-		if (password.length < 8) {
+		if (password.length < 6) {
 			return fail(400, {
-				error: 'Password must be at least 8 characters long',
+				error: 'Password must be at least 6 characters long',
 				firstName,
 				lastName,
 				email,
 			});
 		}
 
-		const { error } = await supabase.auth.signUp({
-			email,
-			password,
-			options: {
-				data: {
-					first_name: firstName,
-					last_name: lastName,
+		try {
+			// Use Better Auth to sign up
+			await auth.api.signUpEmail({
+				body: {
+					email,
+					password,
+					name: `${firstName} ${lastName}`,
 				},
-			},
-		});
+			});
 
-		if (error) {
+			// Redirect to dashboard on success
+			redirect(303, '/dashboard');
+		} catch (error: unknown) {
 			console.error('Registration error:', error);
 
-			// Handle specific registration errors
+			// Handle specific registration errors from Better Auth
+			const errorMessage = error instanceof Error 
+				? error.message 
+				: typeof error === 'object' && error !== null && 'message' in error
+					? String((error as { message: unknown }).message)
+					: '';
+			
 			if (
-				error.message.includes('already registered') ||
-				error.message.includes('already exists')
+				errorMessage.includes('already registered') ||
+				errorMessage.includes('already exists') ||
+				errorMessage.includes('User already exists')
 			) {
 				return fail(400, {
 					error: 'An account with this email already exists. Try logging in instead.',
@@ -85,8 +85,8 @@ export const actions: Actions = {
 					email,
 				});
 			} else if (
-				error.message.includes('password') &&
-				(error.message.includes('weak') || error.message.includes('strength'))
+				errorMessage.includes('password') &&
+				(errorMessage.includes('weak') || errorMessage.includes('strength'))
 			) {
 				return fail(400, {
 					error: 'Password is too weak. Please choose a stronger password.',
@@ -95,7 +95,7 @@ export const actions: Actions = {
 					lastName,
 					email,
 				});
-			} else if (error.message.includes('email') && error.message.includes('invalid')) {
+			} else if (errorMessage.includes('email') && errorMessage.includes('invalid')) {
 				return fail(400, {
 					error: 'Please enter a valid email address.',
 					errorType: 'invalid_email',
@@ -103,7 +103,7 @@ export const actions: Actions = {
 					lastName,
 					email,
 				});
-			} else if (error.message.includes('Too many requests')) {
+			} else if (errorMessage.includes('Too many') || errorMessage.includes('rate limit')) {
 				return fail(429, {
 					error: 'Too many registration attempts. Please wait a moment before trying again.',
 					errorType: 'rate_limit',
@@ -114,7 +114,7 @@ export const actions: Actions = {
 			} else {
 				// Generic error message for other registration issues
 				return fail(400, {
-					error: error.message || 'Registration failed. Please try again.',
+					error: errorMessage || 'Registration failed. Please try again.',
 					errorType: 'registration_error',
 					firstName,
 					lastName,
@@ -122,8 +122,5 @@ export const actions: Actions = {
 				});
 			}
 		}
-
-		// Redirect to login with registration success message
-		redirect(302, '/login?messageType=registration_success');
 	},
 };
