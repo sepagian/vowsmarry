@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { loginSchema } from '$lib/validation/auth';
-import { auth } from '$lib/server/auth';
+import { getAuth } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user }, url }) => {
@@ -26,7 +26,14 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, platform }) => {
+		if (!platform?.env?.vowsmarry) {
+			return fail(500, {
+				error: 'Database configuration error',
+			});
+		}
+
+		const auth = getAuth(platform.env.vowsmarry);
 		const formData = await request.formData();
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
@@ -40,15 +47,25 @@ export const actions: Actions = {
 
 		try {
 			// Use Better Auth to sign in
-			await auth.api.signInEmail({
+			const result = await auth.api.signInEmail({
 				body: {
 					email,
 					password,
 				},
 			});
 
-			// Redirect to dashboard on success
-			redirect(303, '/dashboard');
+			console.log('Sign in result:', result);
+
+			// Check if sign in was successful
+			if (!result) {
+				return fail(400, {
+					error: 'Authentication failed. Please try again.',
+					errorType: 'auth_error',
+					email,
+				});
+			}
+
+			console.log('About to redirect to dashboard');
 		} catch (error: unknown) {
 			console.error('Login error:', error);
 
@@ -86,5 +103,8 @@ export const actions: Actions = {
 				});
 			}
 		}
+
+		// Redirect to dashboard on success (outside try-catch to avoid catching redirect)
+		throw redirect(303, '/dashboard');
 	},
 };
