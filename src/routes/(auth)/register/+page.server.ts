@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import { registerSchema } from '$lib/validation/auth';
-import { auth } from '$lib/server/auth';
+import { validateRegisterSchema } from '$lib/validation/auth';
+import { getAuth } from '$lib/server/auth';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { user } }) => {
@@ -10,12 +10,19 @@ export const load: PageServerLoad = async ({ locals: { user } }) => {
 		redirect(302, '/dashboard');
 	}
 
-	const registrationForm = await superValidate(valibot(registerSchema));
+	const registrationForm = await superValidate(valibot(validateRegisterSchema));
 	return { registrationForm };
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, platform }) => {
+		if (!platform?.env?.vowsmarry) {
+			return fail(500, {
+				error: 'Database configuration error',
+			});
+		}
+
+		const auth = getAuth(platform.env.vowsmarry);
 		const formData = await request.formData();
 		const firstName = formData.get('firstName') as string;
 		const lastName = formData.get('lastName') as string;
@@ -59,9 +66,6 @@ export const actions: Actions = {
 					name: `${firstName} ${lastName}`,
 				},
 			});
-
-			// Redirect to dashboard on success
-			redirect(303, '/dashboard');
 		} catch (error: unknown) {
 			console.error('Registration error:', error);
 
@@ -122,5 +126,8 @@ export const actions: Actions = {
 				});
 			}
 		}
+
+		// Redirect to dashboard on success (outside try-catch to avoid catching redirect)
+		throw redirect(303, '/dashboard');
 	},
 };
