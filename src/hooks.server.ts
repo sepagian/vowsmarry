@@ -20,12 +20,12 @@ import { type Handle, redirect } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { getDb } from '$lib/server/db';
-import { auth } from '$lib/server/auth';
+import { getAuth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building, dev } from '$app/environment';
 import { createAppError, ErrorCodes } from '$lib/server/error-utils';
 import { RouteMatcher } from '$lib/server/route-matcher';
-import { ROUTES, AUTH_PAGES, PROTECTED_PREFIXES, PUBLIC_PREFIXES } from '$lib/constants/routes';
+import { ROUTES } from '$lib/constants/routes';
 
 /**
  * Database Hook
@@ -94,6 +94,37 @@ const database: Handle = async ({ event, resolve }) => {
  * In development mode, logs authentication events to help with debugging.
  */
 const betterAuth: Handle = async ({ event, resolve }) => {
+	// Get auth instance with D1 database from platform
+	if (!event.platform?.env?.vowsmarry) {
+		if (building) {
+			return resolve(event);
+		}
+		console.error('D1 database binding not available for auth');
+		throw error(
+			500,
+			createAppError(500, 'Authentication configuration error', ErrorCodes.DATABASE_ERROR),
+		);
+	}
+
+	const auth = getAuth(event.platform.env.vowsmarry);
+	
+	// Fetch current session from Better Auth and populate event.locals
+	try {
+		const session = await auth.api.getSession({
+			headers: event.request.headers,
+		});
+
+		if (session) {
+			event.locals.session = session.session;
+			event.locals.user = session.user;
+		}
+	} catch (err) {
+		// Session fetch failed, user is not authenticated
+		if (dev) {
+			console.log('[Auth] Session fetch failed:', err);
+		}
+	}
+
 	const response = await svelteKitHandler({ event, resolve, auth, building });
 
 	// Log auth events in development
