@@ -6,16 +6,12 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	default: async ({ locals: { supabase } }) => {
-		const { error } = await supabase.auth.signOut();
-
-		if (error) {
-			console.error('Logout error:', error);
-			// Even if logout fails, redirect to login for security
-			redirect(302, '/login');
-		}
-
-		// Redirect to login with success message type
+	default: async () => {
+		// Better Auth handles logout via client-side signOut() method
+		// The client will call authClient.signOut() which invalidates the session
+		// and clears cookies automatically
+		
+		// Redirect to login page
 		redirect(302, '/login');
 	},
 };
