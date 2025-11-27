@@ -9,7 +9,7 @@
 	import { authStore } from '$lib/stores/auth';
 
 	let { data, children } = $props();
-	let { supabase, user, session } = $derived(data);
+	let { user, session } = $derived(data);
 
 	const title = $derived(
 		(() => {
@@ -36,17 +36,12 @@
 	);
 
 	onMount(() => {
+		// Initialize auth store with server-provided data
 		authStore.initialize(user, session);
-
-		const { data } = supabase.auth.onAuthStateChange((event, session) => {
-			authStore.setAuth(session?.user || null, session);
-			invalidate('supabase:auth');
-		});
-
-		return () => data.subscription.unsubscribe();
 	});
 
 	$effect(() => {
+		// Update auth store when data changes
 		if (authStore.getState().initialized) {
 			authStore.setAuth(user, session);
 		}
