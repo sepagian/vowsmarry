@@ -9,6 +9,13 @@ export function createAuthFormHandler(options: {
 }) {
 	return {
 		onResult: ({ result }: { result: ActionResult }) => {
+			console.log('Form result type:', result.type, result);
+			
+			if (result.type === 'redirect') {
+				// Let SvelteKit handle the redirect naturally
+				return;
+			}
+			
 			if (result.type === 'success') {
 				toast.success(options.successMessage || 'Success!', {
 					duration: options.successDuration || 2000,
