@@ -8,7 +8,7 @@
 	import { resetPasswordSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
-		handleSupabaseAuthError,
+		handleAuthError,
 		handleFormValidationError,
 	} from '$lib/utils/auth-toasts';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
@@ -52,7 +52,7 @@
 						authToasts.error.tooManyRequests();
 					} else {
 						// Handle other Supabase errors
-						handleSupabaseAuthError({ message: error, status: result.status });
+						handleAuthError({ message: error, status: result.status });
 					}
 				} else {
 					handleFormValidationError();
