@@ -6,15 +6,12 @@ import { documentSchema } from '$lib/validation/planner';
 import { validateDocumentFile } from '$lib/server/storage/file-validation';
 import { withAuth } from '$lib/server/auth-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('document:list');
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const { user } = locals;
 
-	if (error || !user) redirect(302, '/login');
+	if (!user) redirect(302, '/login');
 
 	const [documentForm, wedding] = await Promise.all([
 		superValidate(valibot(documentSchema)),
