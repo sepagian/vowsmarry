@@ -62,51 +62,7 @@ export const stringValidation = () => v.pipe(
 	v.minLength(2, 'First name must be at least 2 characters'),
 );
 
-/**
- * Higher-order function to add password confirmation validation to a schema
- * 
- * This utility wraps an existing schema and adds validation to ensure that
- * two password fields match. Commonly used for registration and password reset forms.
- * 
- * @template TSchema - The Valibot object schema type
- * @param schema - Base schema containing password fields
- * @param passwordField - Name of the password field (default: 'password')
- * @param confirmField - Name of the confirmation field (default: 'confirmPassword')
- * @returns Enhanced schema with password confirmation validation
- * 
- * @example
- * ```typescript
- * const registerSchema = v.object({
- *   email: v.string(),
- *   password: passwordValidation(),
- *   confirmPassword: v.string(),
- * });
- * 
- * // Add confirmation validation
- * const validatedSchema = withPasswordConfirmation(registerSchema);
- * 
- * // For custom field names
- * const resetSchema = withPasswordConfirmation(
- *   baseSchema,
- *   'newPassword',
- *   'confirmNewPassword'
- * );
- * ```
- */
-export function withPasswordConfirmation<
-	TSchema extends v.ObjectSchema<v.ObjectEntries, v.ErrorMessage<v.ObjectIssue> | undefined>
->(
-	schema: TSchema,
-	passwordField: string = 'password',
-	confirmField: string = 'confirmPassword'
-) {
-	return v.pipe(
-		schema,
-		v.check((input) => {
-			return input[passwordField] === input[confirmField];
-		}, 'Passwords do not match'),
-	);
-}
+
 
 /**
  * Login form validation schema
@@ -155,7 +111,21 @@ export const registerSchema = v.object({
  * });
  * ```
  */
-export const validateRegisterSchema = withPasswordConfirmation(registerSchema)
+export const validateRegisterSchema = v.pipe(
+	v.object({
+		firstName: stringValidation(),
+		lastName: stringValidation(),
+		email: safeEmail(),
+		password: passwordValidation(),
+		confirmPassword: v.pipe(v.string(), v.nonEmpty('Please confirm your password')),
+	}),
+	v.custom((input) => {
+		if (typeof input === 'object' && input !== null && 'password' in input && 'confirmPassword' in input) {
+			return input.password === input.confirmPassword;
+		}
+		return false;
+	}, 'Passwords do not match')
+);
 
 /**
  * Forgot password form validation schema
@@ -201,10 +171,14 @@ export const resetPasswordSchema = v.object({
  * });
  * ```
  */
-export const validateResetPasswordSchema = withPasswordConfirmation(
-	resetPasswordSchema, 
-	'newPassword', 
-	'confirmNewPassword'
+export const validateResetPasswordSchema = v.pipe(
+	resetPasswordSchema,
+	v.custom((input) => {
+		if (typeof input === 'object' && input !== null && 'newPassword' in input && 'confirmNewPassword' in input) {
+			return input.newPassword === input.confirmNewPassword;
+		}
+		return false;
+	}, 'Passwords do not match')
 );
 
 /**
@@ -233,10 +207,14 @@ export const changePasswordSchema = v.object({
  * });
  * ```
  */
-export const validateChangePasswordSchema = withPasswordConfirmation(
-	changePasswordSchema, 
-	'newPassword', 
-	'confirmNewPassword'
+export const validateChangePasswordSchema = v.pipe(
+	changePasswordSchema,
+	v.custom((input) => {
+		if (typeof input === 'object' && input !== null && 'newPassword' in input && 'confirmNewPassword' in input) {
+			return input.newPassword === input.confirmNewPassword;
+		}
+		return false;
+	}, 'Passwords do not match')
 );
 
 /**
