@@ -6,17 +6,14 @@ import { scheduleSchema, type ScheduleData } from '$lib/validation/planner';
 import { sql } from 'kysely';
 import { withAuth } from '$lib/server/auth-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('schedule:list');
 	depends('calendar:data');
 	const scheduleForm = await superValidate(valibot(scheduleSchema));
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const { user } = locals;
 
-	if (error || !user) {
+	if (!user) {
 		redirect(302, '/login');
 	}
 
@@ -70,7 +67,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 			.selectFrom('schedules')
 			.select((eb) => eb.fn.countAll<number>().as('count'))
 			.where('weddingId', '=', wedding.id)
-			.where(sql`datetime(scheduleDate || ' ' || scheduleEndTime)`, '<', sql`datetime('now')`)
+			.where(sql`datetime(schedule_date || ' ' || schedule_end_time)`, '<', sql`datetime('now')`)
 			.executeTakeFirst()
 			.then((result) => result?.count ?? 0),
 
@@ -78,7 +75,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, plannerDb, de
 			.selectFrom('schedules')
 			.selectAll()
 			.where('weddingId', '=', wedding.id)
-			.where(sql`datetime(scheduleDate || ' ' || scheduleStartTime)`, '>', sql`datetime('now')`)
+			.where(sql`datetime(schedule_date || ' ' || schedule_start_time)`, '>', sql`datetime('now')`)
 			.orderBy('scheduleDate', 'asc')
 			.orderBy('scheduleStartTime', 'asc')
 			.executeTakeFirst(),
@@ -139,9 +136,9 @@ export const actions: Actions = {
 					weddingId: wedding.id,
 					scheduleName,
 					scheduleCategory,
-					scheduleDate,
-					scheduleStartTime,
-					scheduleEndTime,
+					scheduleDate: String(scheduleDate),
+					scheduleStartTime: String(scheduleStartTime),
+					scheduleEndTime: String(scheduleEndTime),
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,
@@ -186,9 +183,9 @@ export const actions: Actions = {
 				.set({
 					scheduleName,
 					scheduleCategory,
-					scheduleDate,
-					scheduleStartTime,
-					scheduleEndTime,
+					scheduleDate: String(scheduleDate),
+					scheduleStartTime: String(scheduleStartTime),
+					scheduleEndTime: String(scheduleEndTime),
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,

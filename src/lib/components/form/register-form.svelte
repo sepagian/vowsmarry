@@ -3,63 +3,19 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { registerSchema } from '$lib/validation/auth';
-	import {
-		authToasts,
-		handleSupabaseAuthError,
-		handleFormValidationError,
-	} from '$lib/utils/auth-toasts';
+	import { validateRegisterSchema } from '$lib/validation/auth';
+	import { createAuthFormHandler } from '$lib/hooks/use-auth-form.svelte';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
-		validators: valibot(registerSchema),
-		onResult: ({ result }) => {
-			// Always dismiss the loading toast first
-
-			if (result.type === 'success') {
-				// Show success toast briefly before redirect
-				toast.success(
-					'Account created successfully! Please check your email to verify your account.',
-					{
-						duration: 4000,
-					},
-				);
-			} else if (result.type === 'failure') {
-				// Handle server validation errors with specific error messages
-				const error = result.data?.error;
-				const errorType = result.data?.errorType;
-
-				if (error) {
-					// Use specific error handling based on error type or message
-					if (error.includes('already registered') || error.includes('already exists')) {
-						authToasts.error.emailAlreadyExists();
-					} else if (
-						error.includes('password') &&
-						(error.includes('weak') || error.includes('strength'))
-					) {
-						authToasts.error.weakPassword();
-					} else if (error.includes('email') && error.includes('invalid')) {
-						authToasts.error.invalidEmail();
-					} else if (errorType === 'rate_limit') {
-						authToasts.error.tooManyRequests();
-					} else {
-						// Handle other Supabase errors
-						handleSupabaseAuthError({ message: error, status: result.status });
-					}
-				} else {
-					handleFormValidationError();
-				}
-			}
-		},
-		onError: () => {
-			// Handle unexpected errors
-			authToasts.error.unexpectedError();
-		},
+		validators: valibot(validateRegisterSchema),
+		...createAuthFormHandler({
+			successMessage: 'Welcome back! Redirecting to your dashboard...',
+		}),
 	});
 
 	const { form: formData, enhance } = form;

@@ -9,12 +9,15 @@
 	import { docTypeOptions } from '$lib/constants/constants';
 	import DialogDocument from '../dialog/dialog-document.svelte';
 	import DialogDocumentEdit from '../dialog/dialog-document-edit.svelte';
-	import { documentsStore } from '$lib/stores/documents';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import { invalidate } from '$app/navigation';
+	import { documentsState } from '$lib/stores/documents.svelte';
+	import { CrudToasts } from '$lib/utils/toasts';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
+	import { BYTES } from '$lib/constants/config';
 
 	let { docsCards, data }: { docsCards: Document[]; data: any } = $props();
 
+	let createDialogOpen = $state(false);
 	let editDialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
 	let isDeleting = $state(false);
@@ -72,9 +75,9 @@
 	}
 
 	function formatFileSize(bytes: number): string {
-		if (bytes < 1024) return bytes + ' B';
-		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-		return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+		if (bytes < BYTES.KB) return bytes + ' B';
+		if (bytes < BYTES.MB) return (bytes / BYTES.KB).toFixed(1) + ' KB';
+		return (bytes / BYTES.MB).toFixed(1) + ' MB';
 	}
 
 	function isImage(mimeType: string): boolean {
@@ -97,12 +100,11 @@
 		isDeleting = true;
 
 		// Optimistic update - remove from store immediately
-		const originalDocuments = $documentsStore;
-		documentsStore.update((docs) => docs.filter((doc) => doc.id !== documentId));
+		const originalDocument = documentsState.findById(documentId);
+		documentsState.remove(documentId);
 
 		try {
-			const formData = new FormData();
-			formData.append('id', documentId);
+			const formData = createFormDataWithId(documentId);
 
 			const response = await fetch('?/deleteDocument', {
 				method: 'POST',
@@ -113,15 +115,16 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'document', { itemName: documentName });
-				// Invalidate to refetch all document data
-				await invalidate('document:list');
+				await InvalidationService.invalidateDocument();
 				deleteDialogOpen = false;
 			} else {
 				throw new Error(result.error || 'Failed to delete document');
 			}
 		} catch (error) {
 			// Revert optimistic update on error
-			documentsStore.set(originalDocuments);
+			if (originalDocument) {
+				documentsState.add(originalDocument);
+			}
 			CrudToasts.error(
 				'delete',
 				error instanceof Error ? error.message : 'Failed to delete document',
@@ -167,12 +170,15 @@
 	<div class="flex justify-between items-center">
 		<h2 class="text-base font-bold text-neutral-600">Uploaded Documents</h2>
 		<div class="flex flex-1 items-center justify-end gap-4">
-			<Dialog.Root>
+			<Dialog.Root bind:open={createDialogOpen}>
 				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Upload New Document</span>
 				</Dialog.Trigger>
-				<DialogDocument {data} />
+				<DialogDocument
+					{data}
+					bind:open={createDialogOpen}
+				/>
 			</Dialog.Root>
 		</div>
 	</div>

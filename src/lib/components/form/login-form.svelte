@@ -3,92 +3,20 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
-	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import { loginSchema } from '$lib/validation/auth';
-	import {
-		authToasts,
-		handleSupabaseAuthError,
-		handleFormValidationError,
-	} from '$lib/utils/auth-toasts';
-	import { onMount } from 'svelte';
+	import { createAuthFormHandler, useUrlMessages } from '$lib/hooks/';
 
 	let { data } = $props();
 
-	// Show success or error message from URL parameters if present
-	onMount(() => {
-		if (data.message) {
-			// Handle different message types with appropriate toast styling
-			const messageType = new URLSearchParams(window.location.search).get('messageType');
-
-			switch (messageType) {
-				case 'logout_success':
-					authToasts.success.logout();
-					break;
-				case 'registration_success':
-					authToasts.success.register();
-					break;
-				case 'email_verification_success':
-				case 'signup_verification_success':
-					authToasts.success.emailVerification();
-					break;
-				case 'password_reset_success':
-					authToasts.success.passwordResetSuccess();
-					break;
-				case 'password_reset_verification_success':
-					toast.info(data.message);
-					break;
-				default:
-					toast.success(data.message);
-			}
-		}
-		if (data.error) {
-			const errorType = new URLSearchParams(window.location.search).get('errorType');
-
-			switch (errorType) {
-				case 'server_error':
-					authToasts.error.serverError();
-					break;
-				default:
-					toast.error(data.error);
-			}
-		}
-	});
+	useUrlMessages(data);
 
 	const form = superForm(data.loginForm, {
 		validators: valibot(loginSchema),
-		onResult: ({ result }) => {
-			if (result.type === 'success') {
-				// Show success toast briefly before redirect
-				toast.success('Welcome back! Redirecting to your dashboard...', {
-					duration: 2000,
-				});
-			} else if (result.type === 'failure') {
-				// Handle server validation errors with specific error messages
-				const error = result.data?.error;
-				const errorType = result.data?.errorType;
-
-				if (error) {
-					// Use specific error handling based on error type
-					if (errorType === 'invalid_credentials') {
-						authToasts.error.invalidCredentials();
-					} else if (errorType === 'email_not_confirmed') {
-						authToasts.error.emailNotConfirmed();
-					} else if (errorType === 'rate_limit') {
-						authToasts.error.tooManyRequests();
-					} else {
-						// Handle other Supabase errors
-						handleSupabaseAuthError({ message: error, status: result.status });
-					}
-				} else {
-					handleFormValidationError();
-				}
-			}
-		},
-		onError: () => {
-			authToasts.error.unexpectedError();
-		},
+		...createAuthFormHandler({
+			successMessage: 'Welcome back! Redirecting to your dashboard...',
+		}),
 	});
 
 	const { form: formData, enhance } = form;

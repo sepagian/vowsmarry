@@ -7,9 +7,10 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { Progress } from '@friendofsvelte/progress';
 	import { authStore } from '$lib/stores/auth';
+	import { TOAST_CONFIG } from '$lib/constants/config';
 
 	let { data, children } = $props();
-	let { supabase, user, session } = $derived(data);
+	let { user, session } = $derived(data);
 
 	const title = $derived(
 		(() => {
@@ -36,17 +37,12 @@
 	);
 
 	onMount(() => {
+		// Initialize auth store with server-provided data
 		authStore.initialize(user, session);
-
-		const { data } = supabase.auth.onAuthStateChange((event, session) => {
-			authStore.setAuth(session?.user || null, session);
-			invalidate('supabase:auth');
-		});
-
-		return () => data.subscription.unsubscribe();
 	});
 
 	$effect(() => {
+		// Update auth store when data changes
 		if (authStore.getState().initialized) {
 			authStore.setAuth(user, session);
 		}
@@ -72,5 +68,5 @@
 	expand={true}
 	visibleToasts={3}
 	closeButton={true}
-	duration={4000}
+	duration={TOAST_CONFIG.DEFAULT_DURATION}
 />

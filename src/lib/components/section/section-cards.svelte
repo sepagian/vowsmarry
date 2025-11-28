@@ -7,7 +7,7 @@
 		overviewCards,
 		overviewTitle,
 	}: {
-		overviewCards: () => OverviewCard[];
+		overviewCards: OverviewCard[];
 		overviewTitle: string;
 	} = $props();
 </script>
@@ -20,7 +20,7 @@
 	<div
 		class="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth grid-flow-row-dense sm:grid md:grid-cols-2 lg:grid-cols-4"
 	>
-		{#each overviewCards() as data (data.description)}
+		{#each overviewCards as data (data.description)}
 			<Card.Root
 				class="@container/card shrink-0 w-68 h-32 sm:w-auto gap-2 flex flex-col py-4 px-0 shadow-none"
 			>

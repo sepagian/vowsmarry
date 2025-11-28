@@ -231,15 +231,26 @@ export function setErrorState(type: string, message?: string, context?: string):
 }
 
 /**
- * Map Supabase error codes to our error types
+ * Authentication error object structure
  */
-export function mapSupabaseError(error: any): string {
+interface AuthError {
+	message?: string;
+	code?: string | number;
+	status?: number;
+}
+
+/**
+ * Map authentication error codes to our error types
+ * @deprecated Legacy function - kept for backward compatibility
+ */
+export function mapSupabaseError(error: unknown): string {
 	if (!error) return 'generic';
 
-	const message = error.message?.toLowerCase() || '';
-	const code = error.code || error.status;
+	const authError = error as AuthError;
+	const message = authError.message?.toLowerCase() || '';
+	const code = authError.code || authError.status;
 
-	// Map specific Supabase error codes and messages
+	// Map specific authentication error codes and messages
 	if (message.includes('invalid_grant') || message.includes('invalid token')) {
 		if (message.includes('reset')) return 'invalid_reset_link';
 		if (message.includes('verification') || message.includes('confirm'))
@@ -258,7 +269,7 @@ export function mapSupabaseError(error: any): string {
 		return 'network_error';
 	}
 
-	if (code >= 500 || message.includes('server error')) {
+	if ((typeof code === 'number' && code >= 500) || message.includes('server error')) {
 		return 'server_error';
 	}
 
