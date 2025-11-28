@@ -1,3 +1,5 @@
+import { RETRY_CONFIG } from '$lib/constants/config.js';
+
 /**
  * Custom error classes for file operations
  */
@@ -129,8 +131,8 @@ export class FileErrorHandler {
 export class FileRetryHandler {
 	static async retry<T>(
 		operation: () => Promise<T>,
-		maxRetries: number = 3,
-		delay: number = 1000,
+		maxRetries: number = RETRY_CONFIG.MAX_FILE_RETRIES,
+		delay: number = RETRY_CONFIG.RETRY_DELAY_MS,
 	): Promise<T> {
 		let lastError: Error;
 
