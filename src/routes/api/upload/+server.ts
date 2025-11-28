@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { uploadFiles, type FileUploadOptions } from '$lib/server/storage/file-utils.js';
+import { uploadFiles, type UploadOptions } from '$lib/server/storage/file-utils.js';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
@@ -19,22 +19,18 @@ export const POST: RequestHandler = async ({ request }) => {
 		}
 
 		// Extract upload options
-		const generateThumbnail = formData.get('generateThumbnail') === 'true';
-		const maxSize = parseInt(formData.get('maxSize') as string) || 10 * 1024 * 1024;
-		const allowedTypesStr = formData.get('allowedTypes') as string;
-		const allowedTypes = allowedTypesStr ? JSON.parse(allowedTypesStr) : undefined;
+		const pathPrefix = (formData.get('pathPrefix') as string) || 'uploads';
+		const scopeId = (formData.get('scopeId') as string) || 'default';
+		const metadataStr = formData.get('metadata') as string;
+		const metadata = metadataStr ? JSON.parse(metadataStr) : undefined;
 
-		const options: FileUploadOptions = {
-			generateThumbnail,
-			maxFileSize: maxSize,
-			allowedMimeTypes: allowedTypes,
+		const options: UploadOptions = {
+			pathPrefix,
+			scopeId,
+			metadata,
 		};
 
-		const results = await uploadFiles(files, options, (completed, total) => {
-			// Progress tracking could be implemented with WebSockets or Server-Sent Events
-			// For now, we'll just log the progress
-			console.log(`Upload progress: ${completed}/${total}`);
-		});
+		const results = await uploadFiles(files, options);
 
 		return json(results);
 	} catch (err) {
@@ -50,7 +46,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 export const DELETE: RequestHandler = async ({ request }) => {
 	try {
-		const { keys } = await request.json();
+		const { keys } = (await request.json()) as { keys: string[] };
 
 		if (!Array.isArray(keys) || keys.length === 0) {
 			return error(400, { message: 'No file keys provided' });

@@ -5,45 +5,15 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import { forgotPasswordSchema } from '$lib/validation/auth';
-	import {
-		authToasts,
-		handleSupabaseAuthError,
-		handleFormValidationError,
-		handleFormSuccess,
-	} from '$lib/utils/auth-toasts';
+	import { createAuthFormHandler } from '$lib/hooks/use-auth-form.svelte';
 
 	let { data } = $props();
 
 	const form = superForm(data.forgotPasswordForm, {
 		validators: valibot(forgotPasswordSchema),
-		onResult: ({ result }) => {
-			if (result.type === 'success') {
-				// Success handled by redirect, but show toast for immediate feedback
-				handleFormSuccess('passwordResetRequest');
-			} else if (result.type === 'failure') {
-				// Handle server validation errors with specific error messages
-				const error = result.data?.error;
-				const errorType = result.data?.errorType;
-
-				if (error) {
-					// Use specific error handling based on error type
-					if (errorType === 'rate_limit') {
-						authToasts.error.tooManyRequests();
-					} else if (errorType === 'invalid_email') {
-						authToasts.error.invalidEmail();
-					} else {
-						// Handle other Supabase errors
-						handleSupabaseAuthError({ message: error, status: result.status });
-					}
-				} else {
-					handleFormValidationError();
-				}
-			}
-		},
-		onError: ({ result }) => {
-			// Handle unexpected errors
-			authToasts.error.unexpectedError();
-		},
+		...createAuthFormHandler({
+			successMessage: 'Welcome back! Redirecting to your dashboard...',
+		}),
 	});
 
 	const { form: formData, enhance } = form;

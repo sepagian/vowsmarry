@@ -8,9 +8,10 @@
 	import { resetPasswordSchema } from '$lib/validation/auth';
 	import {
 		authToasts,
-		handleSupabaseAuthError,
+		handleAuthError,
 		handleFormValidationError,
-	} from '$lib/utils/auth-toasts';
+	} from '$lib/utils/toasts';
+	import { TOAST_CONFIG } from '$lib/constants/config';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
 
 	let { data } = $props();
@@ -38,7 +39,7 @@
 			if (result.type === 'success') {
 				// Show success toast briefly before redirect
 				toast.success('Password updated successfully! You can now log in with your new password.', {
-					duration: 4000,
+					duration: TOAST_CONFIG.DEFAULT_DURATION,
 				});
 			} else if (result.type === 'failure') {
 				// Handle server validation errors with specific error messages
@@ -52,7 +53,7 @@
 						authToasts.error.tooManyRequests();
 					} else {
 						// Handle other Supabase errors
-						handleSupabaseAuthError({ message: error, status: result.status });
+						handleAuthError({ message: error, status: result.status });
 					}
 				} else {
 					handleFormValidationError();

@@ -1,6 +1,7 @@
-import { pgEnum } from 'drizzle-orm/pg-core';
+// SQLite-compatible enum definitions using TypeScript type unions
+// These replace PostgreSQL pgEnum with text columns and inline enum arrays
 
-export const categoryEnum = pgEnum('category', [
+export const categoryValues = [
 	'accommodation',
 	'catering',
 	'decoration',
@@ -11,32 +12,36 @@ export const categoryEnum = pgEnum('category', [
 	'venue',
 	'miscellaneous',
 	'other',
-]);
+] as const;
+export type Category = (typeof categoryValues)[number];
 
-export const taskStatusEnum = pgEnum('task_status', ['pending', 'on_progress', 'completed']);
-export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high']);
+export const taskStatusValues = ['pending', 'on_progress', 'completed'] as const;
+export type TaskStatus = (typeof taskStatusValues)[number];
 
-export const documentCategoryEnum = pgEnum('document_category', [
+export const taskPriorityValues = ['low', 'medium', 'high'] as const;
+export type TaskPriority = (typeof taskPriorityValues)[number];
+
+export const documentCategoryValues = [
 	'legal_formal',
 	'vendor_finance',
 	'guest_ceremony',
 	'personal_keepsake',
-]);
+] as const;
+export type DocumentCategory = (typeof documentCategoryValues)[number];
 
-export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved', 'rejected']);
+export const documentStatusValues = ['pending', 'approved', 'rejected'] as const;
+export type DocumentStatus = (typeof documentStatusValues)[number];
 
-export const expensePaymentStatusEnum = pgEnum('expense_payment_status', ['paid', 'unpaid']);
+export const expensePaymentStatusValues = ['paid', 'unpaid'] as const;
+export type ExpensePaymentStatus = (typeof expensePaymentStatusValues)[number];
 
-export const vendorStatusEnum = pgEnum('vendor_status', [
-	'researching',
-	'contacted',
-	'quoted',
-	'booked',
-]);
+export const vendorStatusValues = ['researching', 'contacted', 'quoted', 'booked'] as const;
+export type VendorStatus = (typeof vendorStatusValues)[number];
 
-export const vendorRatingEnum = pgEnum('vendor_rating', ['1', '2', '3', '4', '5']);
+export const vendorRatingValues = ['1', '2', '3', '4', '5'] as const;
+export type VendorRating = (typeof vendorRatingValues)[number];
 
-export const rundownTypeEnum = pgEnum('rundown_type', [
+export const rundownTypeValues = [
 	'preparation',
 	'ceremony',
 	'reception',
@@ -46,9 +51,10 @@ export const rundownTypeEnum = pgEnum('rundown_type', [
 	'paperwork',
 	'closing',
 	'miscellaneous',
-]);
+] as const;
+export type RundownType = (typeof rundownTypeValues)[number];
 
-export const dowryTypeEnum = pgEnum('dowry_type', [
+export const dowryTypeValues = [
 	'cash',
 	'gold',
 	'jewelry',
@@ -57,13 +63,16 @@ export const dowryTypeEnum = pgEnum('dowry_type', [
 	'furniture',
 	'property',
 	'other',
-]);
+] as const;
+export type DowryType = (typeof dowryTypeValues)[number];
 
-export const dowryStatusEnum = pgEnum('dowry_status', ['pending', 'delivered', 'received']);
+export const dowryStatusValues = ['pending', 'delivered', 'received'] as const;
+export type DowryStatus = (typeof dowryStatusValues)[number];
 
-export const dowryRecipientEnum = pgEnum('dowry_recipient', ['groom', 'bride']);
+export const dowryRecipientValues = ['groom', 'bride'] as const;
+export type DowryRecipient = (typeof dowryRecipientValues)[number];
 
-export const dresscodeRoleEnum = pgEnum('dresscode_role', [
+export const dresscodeRoleValues = [
 	'groom',
 	'bride',
 	'groom_family',
@@ -71,23 +80,26 @@ export const dresscodeRoleEnum = pgEnum('dresscode_role', [
 	'groomsmen',
 	'bridesmaids',
 	'other',
-]);
+] as const;
+export type DresscodeRole = (typeof dresscodeRoleValues)[number];
 
-export const souvenirStatusEnum = pgEnum('souvenir_status', [
-	'planned',
-	'ordered',
-	'delivered',
-	'received',
-]);
+export const souvenirStatusValues = ['planned', 'ordered', 'delivered', 'received'] as const;
+export type SouvenirStatus = (typeof souvenirStatusValues)[number];
 
-export const invitationStatusEnum = pgEnum('invitation_status', ['draft', 'published']);
+export const invitationStatusValues = ['draft', 'published'] as const;
+export type InvitationStatus = (typeof invitationStatusValues)[number];
 
-export const guestCategoryEnum = pgEnum('guest_category', ['family', 'friend', 'colleague']);
+export const guestCategoryValues = ['family', 'friend', 'colleague'] as const;
+export type GuestCategory = (typeof guestCategoryValues)[number];
 
-export const rsvpStatusEnum = pgEnum('rsvp_status', ['attending', 'declined']);
+export const rsvpStatusValues = ['attending', 'declined'] as const;
+export type RsvpStatus = (typeof rsvpStatusValues)[number];
 
-export const galleryTypeEnum = pgEnum('gallery_type', ['photo', 'video']);
+export const galleryTypeValues = ['photo', 'video'] as const;
+export type GalleryType = (typeof galleryTypeValues)[number];
 
-export const giftTypeEnum = pgEnum('gift_type', ['digital wallet', 'registry']);
+export const giftTypeValues = ['digital wallet', 'registry'] as const;
+export type GiftType = (typeof giftTypeValues)[number];
 
-export const userRoleEnum = pgEnum('user_role', ['partner', 'planner', 'collaborator']);
+export const userRoleValues = ['partner', 'planner', 'collaborator'] as const;
+export type UserRole = (typeof userRoleValues)[number];

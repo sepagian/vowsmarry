@@ -6,7 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import { CrudToasts } from '$lib/utils/toasts';
 	import type { Task } from '$lib/types';
 
 	import {
@@ -83,7 +83,7 @@
 	</Dialog.Trigger>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<form
-			action="?/update"
+			action="?/updateTask"
 			onsubmit={(e) => {
 				e.preventDefault();
 				handleSubmit();

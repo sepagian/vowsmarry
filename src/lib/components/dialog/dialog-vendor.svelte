@@ -5,15 +5,14 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import {
 		vendorSchema,
 		categoryEnum,
 		vendorStatusEnum,
 		vendorRatingEnum,
 	} from '$lib/validation/planner';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 
 	let { data, open = $bindable() } = $props();
 
@@ -25,12 +24,9 @@
 		validators: valibot(vendorSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
-				// Use CRUD toast for successful vendor creation
 				const vendorName = f.data.vendorName || 'Vendor';
 				CrudToasts.success('create', 'vendor', { itemName: vendorName });
-				// Invalidate to refetch all vendor data including stats
-				await invalidate('vendor:list');
-				// Close dialog after successful creation
+				await InvalidationService.invalidateVendor();
 				await wait(500);
 				open = false;
 			} else {

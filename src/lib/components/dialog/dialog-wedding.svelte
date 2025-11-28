@@ -7,10 +7,9 @@
 	import CurrencyInput from '@canutin/svelte-currency-input';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import { weddingSchema } from '$lib/validation/planner';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 
 	let { data, open = $bindable() } = $props();
 
@@ -24,7 +23,7 @@
 			if (f.valid) {
 				const action = data.wedding ? 'update' : 'create';
 				CrudToasts.success(action, 'wedding');
-				await invalidate('dashboard:data');
+				await InvalidationService.invalidateDashboard();
 				await wait(500);
 				open = false;
 			} else {

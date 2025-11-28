@@ -1,5 +1,5 @@
 import { writable, derived, get } from 'svelte/store';
-import type { User, Session } from '@supabase/supabase-js';
+import type { User, Session } from 'better-auth/types';
 
 /**
  * Authentication store interface
@@ -149,5 +149,5 @@ export const userEmail = derived(authStore, ($auth) => $auth.user?.email || null
  */
 export const isEmailVerified = derived(
 	authStore,
-	($auth) => $auth.user?.email_confirmed_at !== null,
+	($auth) => $auth.user?.emailVerified === true,
 );

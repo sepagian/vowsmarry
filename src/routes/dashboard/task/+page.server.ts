@@ -3,27 +3,26 @@ import { fail, redirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
 import { taskSchema } from '$lib/validation/planner';
-import { plannerDb } from '$lib/server/db';
-import { tasks, weddings } from '$lib/server/db/schema/planner';
-import { eq, and } from 'drizzle-orm';
 import type { TaskStatus } from '$lib/types';
+import { withAuth } from '$lib/server/auth-helpers';
+import { handleActionError } from '$lib/server/error-handler';
+import { FormDataParser } from '$lib/utils/form-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('task:list');
 	depends('calendar:data');
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const { user } = locals;
 
-	if (error || !user) redirect(302, '/login');
+	if (!user) redirect(302, '/login');
 
 	const [taskForm, wedding] = await Promise.all([
 		superValidate(valibot(taskSchema)),
-		plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		}),
+		plannerDb
+			.selectFrom('weddings')
+			.selectAll()
+			.where('userId', '=', user.id)
+			.executeTakeFirst(),
 	]);
 
 	if (!wedding) {
@@ -35,10 +34,12 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 		};
 	}
 
-	const tasksList = await plannerDb.query.tasks.findMany({
-		where: eq(tasks.weddingId, wedding.id),
-		orderBy: (tasks, { asc }) => [asc(tasks.taskDueDate)],
-	});
+	const tasksList = await plannerDb
+		.selectFrom('tasks')
+		.selectAll()
+		.where('weddingId', '=', wedding.id)
+		.orderBy('taskDueDate', 'asc')
+		.execute();
 
 	const taskStats = tasksList.reduce(
 		(acc, task) => {
@@ -54,7 +55,7 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	const getLatestUpdate = (status?: TaskStatus) =>
 		tasksList
 			.filter((t) => !status || t.taskStatus === status)
-			.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]?.updatedAt ?? null;
+			.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt))[0]?.updatedAt ?? null;
 
 	return {
 		taskForm,
@@ -69,132 +70,110 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 	};
 };
 
-async function getWedding(userId: string) {
-	return plannerDb.query.weddings.findFirst({
-		where: eq(weddings.userId, userId),
-	});
-}
-
-async function getUser(supabase: any) {
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	if (!user) throw fail(401, { error: 'Unauthorized' });
-	return user;
-}
-
 export const actions: Actions = {
-	create: async ({ request, locals: { supabase } }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createTask: withAuth(async ({ user, wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
 
 		try {
-			const [newTask] = await plannerDb
-				.insert(tasks)
+			const newTask = await plannerDb
+				.insertInto('tasks')
 				.values({
+					id: crypto.randomUUID(),
 					weddingId: wedding.id,
 					taskDescription: form.data.taskDescription,
 					taskCategory: form.data.taskCategory,
 					taskPriority: form.data.taskPriority,
 					taskStatus: form.data.taskStatus,
-					taskDueDate: form.data.taskDueDate.toString(),
+					taskDueDate: String(form.data.taskDueDate),
+					completedAt: null,
+					assignedTo: null,
 					createdBy: user.id,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			return { form, success: true, task: newTask };
 		} catch (error) {
-			console.error('Task creation error:', error);
-			return fail(500, { form, error: 'Failed to create task. Please try again.' });
+			return handleActionError(error, 'create task', { form });
 		}
-	},
+	}),
 
-	updateStatus: async ({ request, locals: { supabase } }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
-		const formData = await request.formData();
-		const taskId = formData.get('id') as string;
-		const newStatus = formData.get('status') as TaskStatus;
-
+	updateTaskStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		try {
-			const [updatedTask] = await plannerDb
-				.update(tasks)
+			const parser = new FormDataParser(await request.formData());
+			const taskId = parser.getString('id');
+			const newStatus = parser.getEnum('status', ['pending', 'on_progress', 'completed'] as const);
+
+			const updatedTask = await plannerDb
+				.updateTable('tasks')
 				.set({
 					taskStatus: newStatus,
-					completedAt: newStatus === 'completed' ? new Date() : null,
-					updatedAt: new Date(),
+					completedAt: newStatus === 'completed' ? Date.now() : null,
+					updatedAt: Date.now(),
 				})
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
 			if (!updatedTask) return fail(404, { error: 'Task not found' });
 
 			return { success: true, task: updatedTask };
 		} catch (error) {
-			console.error('Status update error:', error);
-			return fail(500, { error: 'Failed to update task status.' });
+			return handleActionError(error, 'update task status');
 		}
-	},
+	}),
 
-	update: async ({ request, locals: { supabase } }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const clonedRequest = request.clone();
-		const formData = await clonedRequest.formData();
-		const taskId = formData.get('id') as string;
-		if (!taskId) return fail(400, { error: 'Missing task ID' });
+		const parser = new FormDataParser(await clonedRequest.formData());
+		const taskId = parser.getString('id');
 
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
 
 		try {
-			const [updatedTask] = await plannerDb
-				.update(tasks)
+			const updatedTask = await plannerDb
+				.updateTable('tasks')
 				.set({
 					...form.data,
-					completedAt: form.data.taskStatus === 'completed' ? new Date() : null,
-					updatedAt: new Date(),
+					taskDueDate: String(form.data.taskDueDate),
+					completedAt: form.data.taskStatus === 'completed' ? Date.now() : null,
+					updatedAt: Date.now(),
 				})
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
-			if (!updatedTask) return fail(404, { error: 'Task not found' });
+			if (!updatedTask) return fail(404, { form, error: 'Task not found' });
 
 			return { form, success: true, task: updatedTask };
 		} catch (error) {
-			console.error('Task update error:', error);
-			return fail(500, { form, error: 'Failed to update task. Please try again.' });
+			return handleActionError(error, 'update task', { form });
 		}
-	},
+	}),
 
-	delete: async ({ request, locals: { supabase } }) => {
-		const user = await getUser(supabase);
-		const wedding = await getWedding(user.id);
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
-		const formData = await request.formData();
-		const taskId = formData.get('id') as string;
-
+	deleteTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		try {
-			const [deletedTask] = await plannerDb
-				.delete(tasks)
-				.where(and(eq(tasks.id, taskId), eq(tasks.weddingId, wedding.id)))
-				.returning();
+			const parser = new FormDataParser(await request.formData());
+			const taskId = parser.getString('id');
+
+			const deletedTask = await plannerDb
+				.deleteFrom('tasks')
+				.where('id', '=', taskId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
 			if (!deletedTask) return fail(404, { error: 'Task not found' });
 
 			return { success: true };
 		} catch (error) {
-			console.error('Task deletion error:', error);
-			return fail(500, { error: 'Failed to delete task. Please try again.' });
+			return handleActionError(error, 'delete task');
 		}
-	},
+	}),
 };

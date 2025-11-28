@@ -1,49 +1,47 @@
 import type { PageServerLoad, Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import { plannerDb } from '$lib/server/db';
-import { tasks, expenseItems, documents, vendors, weddings } from '$lib/server/db/schema/planner';
-import { eq, count, sum, and, desc } from 'drizzle-orm';
 import {
 	expenseSchema,
 	weddingSchema,
 	type WeddingData,
 	type ExpenseData,
 } from '$lib/validation/planner';
-import type { ExpenseStatus } from '$lib/types';
+import { getUser, getWedding, withAuth } from '$lib/server/auth-helpers';
+import { getTableCount, getLastUpdate } from '$lib/server/db/query-helpers';
+import { handleActionError } from '$lib/server/error-handler';
+import { parseUserName } from '$lib/utils/user-utils';
+import { TABLES } from '$lib/constants/database';
+import { FormDataParser } from '$lib/utils/form-helpers';
 
-export const load: PageServerLoad = async ({ locals: { supabase }, depends }) => {
+export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('dashboard:data');
 	const expenseForm = await superValidate(valibot(expenseSchema));
 	const weddingForm = await superValidate(valibot(weddingSchema));
 
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
+	const user = await getUser(locals.user);
+	const { firstName, lastName } = parseUserName(user.name);
 
-	if (error || !user) {
-		redirect(302, '/login');
-	}
-
-	const wedding = await plannerDb.query.weddings.findFirst({
-		where: eq(weddings.userId, user.id),
-	});
+	const wedding = await plannerDb
+		.selectFrom(TABLES.WEDDINGS)
+		.selectAll()
+		.where('userId', '=', user.id)
+		.executeTakeFirst();
 
 	if (!wedding) {
 		return {
 			user: {
 				id: user.id,
-				email: user.email,
-				firstName: user.user_metadata?.first_name,
-				lastName: user.user_metadata?.last_name,
+				email: user.email || '',
+				firstName,
+				lastName,
 			},
 			expenseForm,
 			weddingForm,
 			stats: {
 				taskCount: 0,
-				expensePaidAmount: '0',
+				expensePaidAmount: 0,
 				documentCount: 0,
 				vendorCount: 0,
 			},
@@ -59,84 +57,42 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 
 	const [taskCount, expensePaidAmount, documentCount, vendorCount, expenseList] = await Promise.all(
 		[
-			plannerDb
-				.select({ count: count() })
-				.from(tasks)
-				.where(eq(tasks.weddingId, wedding.id))
-				.then((result) => result[0]?.count ?? 0),
+			getTableCount(plannerDb, TABLES.TASKS, wedding.id),
 
 			plannerDb
-				.select({ total: sum(expenseItems.expenseAmount) })
-				.from(expenseItems)
-				.where(
-					and(
-						eq(expenseItems.weddingId, wedding.id),
-						eq(expenseItems.expensePaymentStatus, 'paid'),
-					),
-				)
-				.then((result) => result[0]?.total ?? '0'),
+				.selectFrom(TABLES.EXPENSES)
+				.select((eb) => eb.fn.sum<string>('expenseAmount').as('total'))
+				.where('weddingId', '=', wedding.id)
+				.executeTakeFirst()
+				.then((result) => (result?.total ? Number(result.total) : 0)),
+
+			getTableCount(plannerDb, TABLES.DOCUMENTS, wedding.id),
+			getTableCount(plannerDb, TABLES.VENDORS, wedding.id),
 
 			plannerDb
-				.select({ count: count() })
-				.from(documents)
-				.where(eq(documents.weddingId, wedding.id))
-				.then((result) => result[0]?.count ?? 0),
-
-			plannerDb
-				.select({ count: count() })
-				.from(vendors)
-				.where(eq(vendors.weddingId, wedding.id))
-				.then((result) => result[0]?.count ?? 0),
-
-			plannerDb.query.expenseItems.findMany({
-				where: eq(expenseItems.weddingId, wedding.id),
-				orderBy: (expenseItems, { desc }) => [desc(expenseItems.expenseDueDate)],
-			}),
+				.selectFrom(TABLES.EXPENSES)
+				.selectAll()
+				.where('weddingId', '=', wedding.id)
+				.orderBy('expenseDueDate', 'desc')
+				.execute(),
 		],
 	);
 
 	const [taskUpdate, expenseUpdate, documentUpdate, vendorUpdate] = await Promise.all([
-		plannerDb
-			.select({ updatedAt: tasks.updatedAt })
-			.from(tasks)
-			.where(eq(tasks.weddingId, wedding.id))
-			.orderBy(desc(tasks.updatedAt))
-			.limit(1)
-			.then((result) => result[0]?.updatedAt || null),
-
-		plannerDb
-			.select({ updatedAt: expenseItems.updatedAt })
-			.from(expenseItems)
-			.where(eq(expenseItems.weddingId, wedding.id))
-			.orderBy(desc(expenseItems.updatedAt))
-			.limit(1)
-			.then((result) => result[0]?.updatedAt || null),
-
-		plannerDb
-			.select({ updatedAt: documents.updatedAt })
-			.from(documents)
-			.where(eq(documents.weddingId, wedding.id))
-			.orderBy(desc(documents.updatedAt))
-			.limit(1)
-			.then((result) => result[0]?.updatedAt || null),
-
-		plannerDb
-			.select({ updatedAt: vendors.updatedAt })
-			.from(vendors)
-			.where(eq(vendors.weddingId, wedding.id))
-			.orderBy(desc(vendors.updatedAt))
-			.limit(1)
-			.then((result) => result[0]?.updatedAt || null),
+		getLastUpdate(plannerDb, TABLES.TASKS, wedding.id),
+		getLastUpdate(plannerDb, TABLES.EXPENSES, wedding.id),
+		getLastUpdate(plannerDb, TABLES.DOCUMENTS, wedding.id),
+		getLastUpdate(plannerDb, TABLES.VENDORS, wedding.id),
 	]);
 
 	return {
 		user: {
 			id: user.id,
 			email: user.email || '',
-			firstName: user.user_metadata?.first_name || '',
-			lastName: user.user_metadata?.last_name || '',
+			firstName,
+			lastName,
 		},
-		wedding: wedding,
+		wedding,
 		expenseForm,
 		weddingForm,
 		stats: {
@@ -156,20 +112,14 @@ export const load: PageServerLoad = async ({ locals: { supabase }, depends }) =>
 };
 
 export const actions: Actions = {
-	createWeddingData: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
+	createWeddingData: async ({ request, locals, plannerDb }) => {
+		const user = await getUser(locals.user);
 
 		const form = await superValidate(request, valibot(weddingSchema));
 		if (!form.valid) return fail(400, { form });
 
 		try {
-			const existingWedding = await plannerDb.query.weddings.findFirst({
-				where: eq(weddings.userId, user.id),
-			});
+			const existingWedding = await getWedding(user.id, plannerDb);
 
 			if (existingWedding) {
 				return fail(400, {
@@ -181,40 +131,30 @@ export const actions: Actions = {
 			const { groomName, brideName, weddingVenue, weddingDate, weddingBudget } =
 				form.data as WeddingData;
 
-			const [newWedding] = await plannerDb
-				.insert(weddings)
+			const now = Date.now();
+			const newWedding = await plannerDb
+				.insertInto(TABLES.WEDDINGS)
 				.values({
+					id: crypto.randomUUID(),
 					userId: user.id,
 					groomName,
 					brideName,
 					weddingVenue,
-					weddingDate,
-					weddingBudget: weddingBudget.toString(),
+					weddingDate: String(weddingDate),
+					weddingBudget,
+					createdAt: now,
+					updatedAt: now,
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			return { form, success: true, wedding: newWedding };
 		} catch (error) {
-			return fail(500, {
-				form,
-				error: 'Failed to create wedding data. Please try again.',
-			});
+			return handleActionError(error, 'create wedding data', { form });
 		}
 	},
 
-	updateWeddingData: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	updateWeddingData: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(weddingSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -222,41 +162,27 @@ export const actions: Actions = {
 			form.data as WeddingData;
 
 		try {
-			const [updatedWedding] = await plannerDb
-				.update(weddings)
+			const updatedWedding = await plannerDb
+				.updateTable(TABLES.WEDDINGS)
 				.set({
 					groomName,
 					brideName,
-					weddingDate,
+					weddingDate: String(weddingDate),
 					weddingVenue,
-					weddingBudget: weddingBudget.toString(),
-					updatedAt: new Date(),
+					weddingBudget,
+					updatedAt: Date.now(),
 				})
-				.where(eq(weddings.id, wedding.id))
-				.returning();
+				.where('id', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
 			return { form, success: true, wedding: updatedWedding };
 		} catch (error) {
-			return fail(500, {
-				form,
-				error: 'Failed to update wedding data. Please try again.',
-			});
+			return handleActionError(error, 'update wedding data', { form });
 		}
-	},
+	}),
 
-	createExpenseItem: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
+	createExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -267,50 +193,38 @@ export const actions: Actions = {
 			expensePaymentStatus,
 			expenseDueDate,
 		} = form.data as ExpenseData;
+
 		try {
+			const now = Date.now();
 			const newExpense = await plannerDb
-				.insert(expenseItems)
+				.insertInto(TABLES.EXPENSES)
 				.values({
+					id: crypto.randomUUID(),
 					weddingId: wedding.id,
 					expenseDescription,
 					expenseCategory,
-					expenseAmount: expenseAmount.toString(),
+					expenseAmount,
 					expensePaymentStatus,
-					expenseDueDate,
+					expenseDueDate: String(expenseDueDate),
+					createdAt: now,
+					updatedAt: now,
 				})
-				.returning();
+				.returningAll()
+				.executeTakeFirstOrThrow();
 
-			return { form, success: true, expense: newExpense[0] };
+			return { form, success: true, expense: newExpense };
 		} catch (error) {
-			return fail(500, {
-				form,
-				error: 'Failed to create new expense. Please try again.',
-			});
+			return handleActionError(error, 'create expense', { form });
 		}
-	},
+	}),
 
-	editExpenseItem: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
+	updateExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+		const clonedRequest = request.clone();
+		const parser = new FormDataParser(await clonedRequest.formData());
+		const expenseId = parser.getString('id');
 
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
-
-		const data = await request.formData();
-		const expenseId = data.get('id') as string;
-
-		if (!expenseId) {
-			return fail(400, { form, error: 'Missing expense ID' });
-		}
 
 		const {
 			expenseDescription,
@@ -322,109 +236,77 @@ export const actions: Actions = {
 
 		try {
 			const updatedExpense = await plannerDb
-				.update(expenseItems)
+				.updateTable(TABLES.EXPENSES)
 				.set({
 					weddingId: wedding.id,
 					expenseDescription,
 					expenseCategory,
-					expenseAmount: expenseAmount.toString(),
+					expenseAmount,
 					expensePaymentStatus,
-					expenseDueDate,
-					updatedAt: new Date(),
+					expenseDueDate: String(expenseDueDate),
+					updatedAt: Date.now(),
 				})
-				.where(and(eq(expenseItems.id, expenseId), eq(expenseItems.weddingId, wedding.id)))
-				.returning();
+				.where('id', '=', expenseId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
 
-			if (updatedExpense.length === 0) {
+			if (!updatedExpense) {
 				return fail(404, { form, error: 'Expense not found' });
 			}
 
-			return { form, success: true, expense: updatedExpense[0] };
+			return { form, success: true, expense: updatedExpense };
 		} catch (error) {
-			return fail(500, {
-				form,
-				error: 'Failed to update expense. Please try again.',
-			});
+			return handleActionError(error, 'update expense', { form });
 		}
-	},
+	}),
 
-	deleteExpenseItem: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
-		const data = await request.formData();
-		const expenseId = data.get('id') as string;
-
-		if (!expenseId) {
-			return fail(400, { error: 'Missing expense ID' });
-		}
-
+	deleteExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		try {
-			const deletedExpense = await plannerDb
-				.delete(expenseItems)
-				.where(and(eq(expenseItems.id, expenseId), eq(expenseItems.weddingId, wedding.id)))
-				.returning();
+			const parser = new FormDataParser(await request.formData());
+			const expenseId = parser.getString('id');
 
-			if (deletedExpense.length === 0) {
+			const deletedExpense = await plannerDb
+				.deleteFrom(TABLES.EXPENSES)
+				.where('id', '=', expenseId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
+
+			if (!deletedExpense) {
 				return fail(404, { error: 'Expense not found' });
 			}
 
 			return { success: true };
 		} catch (error) {
-			return fail(500, {
-				error: 'Failed to delete expense. Please try again.',
-			});
+			return handleActionError(error, 'delete expense');
 		}
-	},
+	}),
 
-	updatePaymentStatus: async ({ request, locals: { supabase } }) => {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-
-		if (!user) return fail(401, { error: 'Unauthorized' });
-
-		const wedding = await plannerDb.query.weddings.findFirst({
-			where: eq(weddings.userId, user.id),
-		});
-
-		if (!wedding) return fail(403, { error: 'No wedding data found' });
-
-		const data = await request.formData();
-		const expenseId = data.get('id') as string;
-		const newPaymentStatus = data.get('paymentStatus') as ExpenseStatus;
-
-		if (!expenseId || !newPaymentStatus) {
-			return fail(400, { error: 'Missing required fields' });
-		}
-
+	updatePaymentStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		try {
+			const parser = new FormDataParser(await request.formData());
+			const expenseId = parser.getString('id');
+			const newPaymentStatus = parser.getEnum('paymentStatus', ['paid', 'unpaid'] as const);
+
 			const updatedPaymentStatus = await plannerDb
-				.update(expenseItems)
+				.updateTable(TABLES.EXPENSES)
 				.set({
 					expensePaymentStatus: newPaymentStatus,
-					updatedAt: new Date(),
+					updatedAt: Date.now(),
 				})
-				.where(and(eq(expenseItems.id, expenseId), eq(expenseItems.weddingId, wedding.id)))
-				.returning();
-			if (updatedPaymentStatus.length === 0) {
+				.where('id', '=', expenseId)
+				.where('weddingId', '=', wedding.id)
+				.returningAll()
+				.executeTakeFirst();
+
+			if (!updatedPaymentStatus) {
 				return fail(404, { error: 'Expense not found' });
 			}
 
-			return { success: true, task: updatedPaymentStatus[0] };
+			return { success: true, expense: updatedPaymentStatus };
 		} catch (error) {
-			return fail(500, {
-				error: 'Failed to update payment status.',
-			});
+			return handleActionError(error, 'update payment status');
 		}
-	},
+	}),
 };

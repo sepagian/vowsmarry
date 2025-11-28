@@ -1,72 +1,72 @@
-import {
-	pgTable,
-	uuid,
-	timestamp,
-	time,
-	date,
-	varchar,
-	numeric,
-	boolean,
-	integer,
-	index,
-	uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 import { invitations } from './invitation';
 import {
-	categoryEnum,
-	taskPriorityEnum,
-	taskStatusEnum,
-	documentCategoryEnum,
-	documentStatusEnum,
-	expensePaymentStatusEnum,
-	vendorStatusEnum,
-	vendorRatingEnum,
-	rundownTypeEnum,
-	dowryRecipientEnum,
-	dowryStatusEnum,
-	dowryTypeEnum,
-	souvenirStatusEnum,
-	dresscodeRoleEnum,
-	userRoleEnum,
+	categoryValues,
+	taskPriorityValues,
+	taskStatusValues,
+	documentCategoryValues,
+	documentStatusValues,
+	expensePaymentStatusValues,
+	vendorStatusValues,
+	vendorRatingValues,
+	rundownTypeValues,
+	dowryRecipientValues,
+	dowryStatusValues,
+	dowryTypeValues,
+	souvenirStatusValues,
+	dresscodeRoleValues,
+	userRoleValues,
 } from './enums';
 
 //
 // CORE SCHEMA
 //
 
-export const weddings = pgTable(
+export const weddings = sqliteTable(
 	'weddings',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		userId: uuid('user_id').notNull(),
-		groomName: varchar('groom_name', { length: 200 }),
-		brideName: varchar('bride_name', { length: 200 }),
-		weddingDate: date('wedding_date'),
-		weddingVenue: varchar('wedding_venue'),
-		weddingBudget: numeric('wedding_budget', { precision: 12, scale: 2 }),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: text('user_id').notNull(),
+		groomName: text('groom_name'),
+		brideName: text('bride_name'),
+		weddingDate: text('wedding_date'), // ISO date string (YYYY-MM-DD)
+		weddingVenue: text('wedding_venue'),
+		weddingBudget: real('wedding_budget'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		userIdIdx: index('weddings_user_id_idx').on(table.userId),
 	}),
 );
 
-export const users = pgTable(
+export const users = sqliteTable(
 	'users',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		userName: varchar('user_name', { length: 255 }),
-		userEmail: varchar('user_email', { length: 255 }),
-		userPhone: varchar('user_phone', { length: 50 }),
-		userRole: userRoleEnum('user_role').default('partner'),
-		userAvatarUrl: varchar('avatar_url'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		userName: text('user_name'),
+		userEmail: text('user_email'),
+		userPhone: text('user_phone'),
+		userRole: text('user_role', { enum: userRoleValues }).default('partner'),
+		userAvatarUrl: text('avatar_url'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('users_wedding_id_idx').on(table.weddingId),
@@ -79,23 +79,29 @@ export const users = pgTable(
 // TASKS SCHEMA
 //
 
-export const tasks = pgTable(
+export const tasks = sqliteTable(
 	'tasks',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		taskDescription: varchar('task_description', { length: 255 }).notNull(),
-		taskCategory: categoryEnum('task_category').notNull(),
-		taskStatus: taskStatusEnum('status').default('pending').notNull(),
-		taskPriority: taskPriorityEnum('priority').default('low').notNull(),
-		taskDueDate: date('due_date').notNull(),
-		completedAt: timestamp('completed_at'),
-		assignedTo: uuid('assigned_to'),
-		createdBy: uuid('created_by').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		taskDescription: text('task_description').notNull(),
+		taskCategory: text('task_category', { enum: categoryValues }).notNull(),
+		taskStatus: text('task_status', { enum: taskStatusValues }).default('pending').notNull(),
+		taskPriority: text('task_priority', { enum: taskPriorityValues }).default('low').notNull(),
+		taskDueDate: text('task_due_date').notNull(), // ISO date string (YYYY-MM-DD)
+		completedAt: integer('completed_at', { mode: 'timestamp' }),
+		assignedTo: text('assigned_to'),
+		createdBy: text('created_by').notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('tasks_wedding_id_idx').on(table.weddingId),
@@ -111,25 +117,31 @@ export const tasks = pgTable(
 // DOCUMENTS SCHEMA
 //
 
-export const documents = pgTable(
+export const documents = sqliteTable(
 	'documents',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		documentName: varchar('name', { length: 255 }).notNull(),
-		documentCategory: documentCategoryEnum('document_category').notNull(),
-		documentDate: date('document_date').notNull(),
-		documentStatus: documentStatusEnum('status').default('pending').notNull(),
-		documentDueDate: date('due_date'),
-		fileUrl: varchar('file_url').notNull(),
-		fileName: varchar('file_name', { length: 255 }).notNull(),
-		fileSize: integer('filesize').notNull(),
-		mimeType: varchar('mimetype', { length: 255 }).notNull(),
-		reminderSent: boolean('reminder_sent').default(false).notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		documentName: text('document_name').notNull(),
+		documentCategory: text('document_category', { enum: documentCategoryValues }).notNull(),
+		documentDate: text('document_date').notNull(), // ISO date string (YYYY-MM-DD)
+		documentStatus: text('document_status', { enum: documentStatusValues }).default('pending').notNull(),
+		documentDueDate: text('document_due_date'), // ISO date string (YYYY-MM-DD)
+		fileUrl: text('file_url').notNull(),
+		fileName: text('file_name').notNull(),
+		fileSize: integer('file_size').notNull(),
+		mimeType: text('mime_type').notNull(),
+		reminderSent: integer('reminder_sent', { mode: 'boolean' }).default(false).notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('documents_wedding_id_idx').on(table.weddingId),
@@ -141,20 +153,24 @@ export const documents = pgTable(
 // FINANCE SCHEMA
 //
 
-export const expenseCategories = pgTable(
+export const expenseCategories = sqliteTable(
 	'expense_categories',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		category: categoryEnum('category'),
-		allocatedAmount: numeric('allocated_amount', { precision: 12, scale: 2 })
-			.default('0')
+		category: text('category', { enum: categoryValues }),
+		allocatedAmount: real('allocated_amount').default(0).notNull(),
+		spentAmount: real('spent_amount').default(0).notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
 			.notNull(),
-		spentAmount: numeric('spent_amount', { precision: 12, scale: 2 }).default('0').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_categories_wedding_id_idx').on(table.weddingId),
@@ -165,20 +181,28 @@ export const expenseCategories = pgTable(
 	}),
 );
 
-export const expenseItems = pgTable(
+export const expenseItems = sqliteTable(
 	'expense_items',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		expenseDescription: varchar('description', { length: 255 }).notNull(),
-		expenseCategory: categoryEnum('category').notNull(),
-		expenseAmount: numeric('amount', { precision: 12, scale: 2 }).default('0').notNull(),
-		expensePaymentStatus: expensePaymentStatusEnum('payment_status').default('unpaid').notNull(),
-		expenseDueDate: date('due_date').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		expenseDescription: text('expense_description').notNull(),
+		expenseCategory: text('expense_category', { enum: categoryValues }).notNull(),
+		expenseAmount: real('expense_amount').default(0).notNull(),
+		expensePaymentStatus: text('expense_payment_status', { enum: expensePaymentStatusValues })
+			.default('unpaid')
+			.notNull(),
+		expenseDueDate: text('expense_due_date').notNull(), // ISO date string (YYYY-MM-DD)
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_items_wedding_id_idx').on(table.weddingId),
@@ -189,17 +213,23 @@ export const expenseItems = pgTable(
 	}),
 );
 
-export const savingsItems = pgTable(
+export const savingsItems = sqliteTable(
 	'savings_items',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		savingAmount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
-		savingDescription: varchar('description', { length: 255 }),
-		savingDate: date('date').defaultNow().notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
+		savingAmount: real('amount').notNull(),
+		savingDescription: text('description'),
+		savingDate: text('date')
+			.$defaultFn(() => new Date().toISOString().split('T')[0])
+			.notNull(), // ISO date string (YYYY-MM-DD)
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('savings_items_wedding_id_idx').on(table.weddingId),
@@ -211,24 +241,30 @@ export const savingsItems = pgTable(
 // VENDOR SCHEMA
 //
 
-export const vendors = pgTable(
+export const vendors = sqliteTable(
 	'vendors',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		vendorName: varchar('name', { length: 200 }).notNull(),
-		vendorCategory: categoryEnum('category').notNull(),
-		vendorInstagram: varchar('instagram', { length: 50 }),
-		vendorEmail: varchar('email', { length: 255 }),
-		vendorPhone: varchar('phone', { length: 50 }),
-		vendorWebsite: varchar('website', { length: 50 }),
-		vendorStatus: vendorStatusEnum('status').default('researching').notNull(),
-		vendorRating: vendorRatingEnum('rating').notNull(), // 1-5 stars
-		vendorTotalCost: numeric('total_cost', { precision: 12, scale: 2 }),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		vendorName: text('vendor_name').notNull(),
+		vendorCategory: text('vendor_category', { enum: categoryValues }).notNull(),
+		vendorInstagram: text('vendor_instagram'),
+		vendorEmail: text('vendor_email'),
+		vendorPhone: text('vendor_phone'),
+		vendorWebsite: text('vendor_website'),
+		vendorStatus: text('vendor_status', { enum: vendorStatusValues }).default('researching').notNull(),
+		vendorRating: text('vendor_rating', { enum: vendorRatingValues }).notNull(), // 1-5 stars
+		vendorTotalCost: real('vendor_total_cost'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('vendors_wedding_id_idx').on(table.weddingId),
@@ -242,24 +278,30 @@ export const vendors = pgTable(
 // SCHEDULE SCHEMA
 //
 
-export const schedules = pgTable(
+export const schedules = sqliteTable(
 	'schedules',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		scheduleName: varchar('schedule_name', { length: 200 }).notNull(),
-		scheduleCategory: rundownTypeEnum('schedule_category').notNull(), // ceremony, reception, party, etc.
-		scheduleDate: date('schedule_date').notNull(),
-		scheduleStartTime: time('schedule_start_time').notNull(),
-		scheduleEndTime: time('schedule_end_time').notNull(),
-		scheduleLocation: varchar('schedule_location', { length: 255 }).notNull(),
-		scheduleVenue: varchar('schedule_venue', { length: 255 }).notNull(),
-		scheduleAttendees: varchar('schedule_attendees', { length: 255 }).notNull(),
-		isPublic: boolean('is_public').default(false).notNull(), // visible to guests
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		scheduleName: text('schedule_name').notNull(),
+		scheduleCategory: text('schedule_category', { enum: rundownTypeValues }).notNull(), // ceremony, reception, party, etc.
+		scheduleDate: text('schedule_date').notNull(), // ISO date string (YYYY-MM-DD)
+		scheduleStartTime: text('schedule_start_time').notNull(), // ISO time string (HH:MM:SS)
+		scheduleEndTime: text('schedule_end_time').notNull(), // ISO time string (HH:MM:SS)
+		scheduleLocation: text('schedule_location').notNull(),
+		scheduleVenue: text('schedule_venue').notNull(),
+		scheduleAttendees: text('schedule_attendees').notNull(),
+		isPublic: integer('is_public', { mode: 'boolean' }).default(false).notNull(), // visible to guests
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('rundown_events_wedding_id_idx').on(table.weddingId),
@@ -271,22 +313,28 @@ export const schedules = pgTable(
 // DOWRY SCHEMA
 //
 
-export const dowry = pgTable(
+export const dowry = sqliteTable(
 	'dowry',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		dowryDescription: varchar('description', { length: 255 }),
-		dowryCategory: dowryTypeEnum('type').notNull(),
-		dowryPrice: numeric('price', { precision: 12, scale: 2 }).notNull(),
+		dowryDescription: text('description'),
+		dowryCategory: text('type', { enum: dowryTypeValues }).notNull(),
+		dowryPrice: real('price').notNull(),
 		dowryQuantity: integer('quantity'),
-		dowryStatus: dowryStatusEnum('status').default('pending'),
-		dowryDateReceived: timestamp('date_received'),
-		dowryRecipient: dowryRecipientEnum('recipient').notNull(),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		dowryStatus: text('status', { enum: dowryStatusValues }).default('pending'),
+		dowryDateReceived: integer('date_received', { mode: 'timestamp' }),
+		dowryRecipient: text('recipient', { enum: dowryRecipientValues }).notNull(),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdx: index('dowry_wedding_id_idx').on(table.weddingId),
@@ -299,24 +347,30 @@ export const dowry = pgTable(
 // SOUVENIR SCHEMA
 //
 
-export const souvenirs = pgTable(
+export const souvenirs = sqliteTable(
 	'souvenirs',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		vendorId: uuid('vendor_id')
+		vendorId: text('vendor_id')
 			.notNull()
 			.references(() => vendors.id, { onDelete: 'cascade' }),
-		souvenirName: varchar('name', { length: 255 }).notNull(),
+		souvenirName: text('name').notNull(),
 		souvenirQuantity: integer('quantity').notNull(),
-		souvenirPrice: numeric('unit_price', { precision: 12, scale: 2 }).notNull(),
-		souvenirTotalCost: numeric('total_cost', { precision: 12, scale: 2 }).notNull(),
-		souvenirStatus: souvenirStatusEnum('status').default('planned'),
-		souvenirOrderDate: timestamp('order_date'),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		souvenirPrice: real('unit_price').notNull(),
+		souvenirTotalCost: real('total_cost').notNull(),
+		souvenirStatus: text('status', { enum: souvenirStatusValues }).default('planned'),
+		souvenirOrderDate: integer('order_date', { mode: 'timestamp' }),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('souvenirs_wedding_id_idx').on(table.weddingId),
@@ -329,26 +383,32 @@ export const souvenirs = pgTable(
 // DRESSCODE SCHEMA
 //
 
-export const dresscodes = pgTable(
+export const dresscodes = sqliteTable(
 	'dresscodes',
 	{
-		id: uuid('id').primaryKey().defaultRandom(),
-		weddingId: uuid('wedding_id')
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		rundownId: uuid('rundown_id')
+		scheduleId: text('schedule_id')
 			.notNull()
 			.references(() => schedules.id, { onDelete: 'cascade' }),
-		dresscodeDescription: varchar('description', { length: 255 }).notNull(),
-		dresscodeRole: dresscodeRoleEnum('dresscode_role').notNull(),
-		dresscodeImageUrl: varchar('image_url', { length: 255 }),
-		createdAt: timestamp('created_at').defaultNow().notNull(),
-		updatedAt: timestamp('updated_at').defaultNow().notNull(),
+		dresscodeDescription: text('description').notNull(),
+		dresscodeRole: text('dresscode_role', { enum: dresscodeRoleValues }).notNull(),
+		dresscodeImageUrl: text('image_url'),
+		createdAt: integer('created_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp' })
+			.$defaultFn(() => new Date())
+			.notNull(),
 	},
 	(table) => ({
 		weddingIdIdx: index('dresscodes_wedding_id_idx').on(table.weddingId),
 		dresscodeRoleIdx: index('dresscodes_dresscode_role_idx').on(table.dresscodeRole),
-		rundownIdIdx: index('dresscodes_rundown_id_idx').on(table.rundownId),
+		scheduleIdIdx: index('dresscodes_rundown_id_idx').on(table.scheduleId),
 	}),
 );
 
@@ -446,7 +506,7 @@ export const dresscodeRelations = relations(dresscodes, ({ one }) => ({
 		references: [weddings.id],
 	}),
 	schedules: one(schedules, {
-		fields: [dresscodes.rundownId],
+		fields: [dresscodes.scheduleId],
 		references: [schedules.id],
 	}),
 }));

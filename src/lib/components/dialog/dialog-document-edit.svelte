@@ -12,10 +12,10 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { superForm, filesProxy } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
-	import { toastService } from '$lib/utils/toast-service';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
+	import toastService from '$lib/utils/toasts';
 	import { documentSchema, documentCategoryEnum } from '$lib/validation/planner';
+	import { TOAST_CONFIG } from '$lib/constants/config';
 	import type { Document } from '$lib/types';
 
 	let { data, document, open = $bindable() }: { data: any; document: Document; open: boolean } = $props();
@@ -42,15 +42,19 @@
 			// Use promise-based toast for document update with file information
 			if (file && file.size > 0) {
 				toastService.form.promise(formSubmissionPromise, {
-					loading: `Updating ${documentName}...`,
-					success: `${documentName} updated successfully!`,
-					error: `Failed to update ${documentName}`,
+					messages: {
+						loading: `Updating ${documentName}...`,
+						success: `${documentName} updated successfully!`,
+						error: `Failed to update ${documentName}`,
+					},
 				});
 			} else {
 				toastService.form.promise(formSubmissionPromise, {
-					loading: 'Updating document...',
-					success: `${documentName} updated successfully!`,
-					error: 'Failed to update document',
+					messages: {
+						loading: 'Updating document...',
+						success: `${documentName} updated successfully!`,
+						error: 'Failed to update document',
+					},
 				});
 			}
 		},
@@ -124,7 +128,7 @@
 		// Use form toast for file rejection with enhanced messaging
 		FormToasts.submitError(reason, {
 			formName: 'document upload',
-			duration: 6000,
+			duration: TOAST_CONFIG.ERROR_DURATION,
 		});
 	};
 
@@ -141,7 +145,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/update"
+		action="?/updateDocument"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-2"
 		onsubmit={(e) => {

@@ -5,12 +5,15 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import { expenseSchema, categoryEnum, expenseStatusEnum } from '$lib/validation/planner';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 
 	let { data, open = $bindable() } = $props();
+
+	function wait(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 
 	const form = superForm(data.expenseForm, {
 		validators: valibot(expenseSchema),
@@ -18,9 +21,9 @@
 			if (f.valid) {
 				const expenseDescription = f.data.expenseDescription || 'Expense';
 				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
-				await invalidate('expense:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateExpense();
+				await wait(500);
+				open = false;
 			} else {
 				FormToasts.emptyFormError();
 			}

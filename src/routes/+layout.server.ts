@@ -1,14 +1,9 @@
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals: { supabase }, cookies }) => {
-	const {
-		data: { user },
-		error,
-	} = await supabase.auth.getUser();
-
+export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 	return {
-		user: error ? null : user,
-		session: null,
+		user: locals.user,
+		session: locals.session,
 		cookies: cookies.getAll(),
 	};
 };

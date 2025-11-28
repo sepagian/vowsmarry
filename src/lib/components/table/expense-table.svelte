@@ -1,6 +1,5 @@
 <script lang="ts">
 	import {
-		type ColumnDef,
 		type ColumnFiltersState,
 		type PaginationState,
 		type RowSelectionState,
@@ -11,27 +10,20 @@
 		getPaginationRowModel,
 		getSortedRowModel,
 	} from '@tanstack/table-core';
-	import { createRawSnippet } from 'svelte';
-	import ExpenseTableDesc from './expense-table-desc.svelte';
-	import ExpenseTableActions from './expense-table-actions.svelte';
 	import * as Table from '$lib/components/ui/table/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import {
-		FlexRender,
-		createSvelteTable,
-		renderComponent,
-		renderSnippet,
-	} from '$lib/components/ui/data-table/index.js';
+	import { FlexRender, createSvelteTable } from '$lib/components/ui/data-table/index.js';
 	import DialogExpense from '$lib/components/dialog/dialog-expense.svelte';
-	import ExpenseTableActionsGroup from './expense-table-actions-group.svelte';
-	import { expensesStore } from '$lib/stores/expenses';
+	import { expensesState } from '$lib/stores/expenses.svelte';
 	import type { Expense } from '$lib/types';
-	import { invalidate } from '$app/navigation';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import { CrudToasts } from '$lib/utils/toasts';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
+	import { createExpenseColumns } from './expense-table-columns';
 
 	let { data, allowAdd } = $props();
 
@@ -41,44 +33,25 @@
 	) {
 		try {
 			// Optimistic update
-			const originalExpense = $expensesStore.find((expense) => expense.id === expenseId);
-			expensesStore.update((expenses) => {
-				const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
-				if (expenseIndex !== -1) {
-					expenses[expenseIndex] = {
-						...expenses[expenseIndex],
-						expensePaymentStatus: newPaymentStatus,
-					};
-				}
-				return [...expenses];
-			});
+			const originalExpense = expensesState.findById(expenseId);
+			expensesState.update(expenseId, { expensePaymentStatus: newPaymentStatus });
 
-			const formData = new FormData();
-			formData.append('id', expenseId);
-			formData.append('paymentStatus', newPaymentStatus);
+			const formData = createFormDataWithId(expenseId, { paymentStatus: newPaymentStatus });
 
 			const response = await fetch('?/updatePaymentStatus', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'expense');
-				await invalidate('expense:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateExpense();
 			} else {
 				// Revert optimistic update on error
 				if (originalExpense) {
-					expensesStore.update((expenses) => {
-						const expenseIndex = expenses.findIndex((expense) => expense.id === expenseId);
-						if (expenseIndex !== -1) {
-							expenses[expenseIndex] = originalExpense;
-						}
-						return [...expenses];
-					});
+					expensesState.update(expenseId, { expensePaymentStatus: originalExpense.expensePaymentStatus });
 				}
 				CrudToasts.error('update', result.error || 'Failed to update payment status', 'expense');
 			}
@@ -87,140 +60,24 @@
 		}
 	}
 
-	async function updateExpense(expenseId: string, updatedData: any) {
+	async function updateExpense() {
 		// This function is passed to the actions group component
 		// The actual update is handled by the form submission in the dialog
-		await invalidate('expense:list');
-		await invalidate('dashboard:data');
-		await invalidate('calendar:data');
+		await InvalidationService.invalidateExpense();
 	}
 
-	async function deleteExpense(expenseId: string) {
+	async function deleteExpense() {
 		// This function is passed to the actions group component
 		// The actual delete is handled by the delete dialog in the actions group
-		await invalidate('expense:list');
-		await invalidate('dashboard:data');
-		await invalidate('calendar:data');
+		await InvalidationService.invalidateExpense();
 	}
 
-	const columns: ColumnDef<Expense>[] = [
-		{
-			accessorKey: 'description',
-			header: () => {
-				const amountHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold">Description</div>`,
-					};
-				});
-				return renderSnippet(amountHeaderSnippet, '');
-			},
-			cell: ({ row }) =>
-				renderComponent(ExpenseTableDesc, {
-					category: row.original.expenseCategory,
-					description: row.original.expenseDescription,
-					status: row.original['expensePaymentStatus'],
-				}),
-		},
-		{
-			id: 'dueDate',
-			accessorKey: 'expenseDueDate',
-			header: () => {
-				const amountHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold">Date</div>`,
-					};
-				});
-				return renderSnippet(amountHeaderSnippet, '');
-			},
-			cell: ({ row }) => {
-				const dateSnippet = createRawSnippet<[string]>((getDate) => {
-					const date = getDate();
-					return {
-						render: () =>
-							`<div class="flex flex-row gap-2 items-center"><div class="i-lucide:calendar"></div>${date}</div>`,
-					};
-				});
-
-				const dateValue = row.original.expenseDueDate;
-				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
-					day: '2-digit',
-					month: 'short',
-					year: 'numeric',
-				});
-
-				return renderSnippet(dateSnippet, formattedDate);
-			},
-		},
-		{
-			accessorKey: 'expenseAmount',
-			header: () => {
-				const amountHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="text-right font-semibold">Amount</div>`,
-					};
-				});
-				return renderSnippet(amountHeaderSnippet, '');
-			},
-			cell: ({ row }) => {
-				const amountCellSnippet = createRawSnippet<[string]>((getAmount) => {
-					const amount = getAmount();
-					return {
-						render: () => `<div class="text-right">${amount}</div>`,
-					};
-				});
-				const formatter = new Intl.NumberFormat('id-ID', {
-					style: 'currency',
-					currency: 'IDR',
-					minimumFractionDigits: 0,
-					maximumFractionDigits: 0,
-				});
-
-				return renderSnippet(
-					amountCellSnippet,
-					formatter.format(Number.parseFloat(row.getValue('expenseAmount'))),
-				);
-			},
-		},
-		{
-			id: 'status',
-			accessorKey: 'expensePaymentStatus',
-			header: () => {
-				const statusHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold w-32">Payment Status</div>`,
-					};
-				});
-				return renderSnippet(statusHeaderSnippet, '');
-			},
-			enableHiding: false,
-			cell: ({ row }) =>
-				renderComponent(ExpenseTableActions, {
-					status: row.original.expensePaymentStatus,
-					onChange: async (newPaymentStatus: Expense['expensePaymentStatus']) => {
-						await updatePaymentStatus(row.original.id as string, newPaymentStatus);
-					},
-				}),
-		},
-		{
-			id: 'actions',
-			header: () => {
-				const actionsHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold text-center">Actions</div>`,
-					};
-				});
-				return renderSnippet(actionsHeaderSnippet, '');
-			},
-			enableHiding: false,
-			cell: ({ row }) =>
-				renderComponent(ExpenseTableActionsGroup, {
-					expense: row.original,
-					data,
-					onUpdate: updateExpense,
-					onDelete: deleteExpense,
-				}),
-		},
-	];
+	const columns = createExpenseColumns({
+		onPaymentStatusChange: updatePaymentStatus,
+		onUpdate: updateExpense,
+		onDelete: deleteExpense,
+		data,
+	});
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	let sorting = $state<SortingState>([]);
@@ -230,7 +87,7 @@
 
 	const table = createSvelteTable({
 		get data() {
-			return $expensesStore;
+			return expensesState.expenses;
 		},
 		columns,
 		state: {
@@ -365,7 +222,7 @@
 				{/each}
 			</Table.Header>
 			<Table.Body>
-				{#each table.getRowModel().rows as row (row.id)}
+				{#each table.getRowModel().rows as row (row.original.id)}
 					<Table.Row data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
 							<Table.Cell class="[&:has([role=checkbox])]:pl-3">

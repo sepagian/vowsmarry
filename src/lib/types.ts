@@ -101,7 +101,7 @@ export type Expense = {
 	id?: string;
 	expenseDescription: string;
 	expenseCategory: Category;
-	expenseAmount: string;
+	expenseAmount: number;
 	expensePaymentStatus: ExpenseStatus;
 	expenseDueDate: string;
 };

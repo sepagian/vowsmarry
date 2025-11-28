@@ -1,6 +1,5 @@
 <script lang="ts">
 	import {
-		type ColumnDef,
 		type ColumnFiltersState,
 		type PaginationState,
 		type RowSelectionState,
@@ -11,72 +10,47 @@
 		getPaginationRowModel,
 		getSortedRowModel,
 	} from '@tanstack/table-core';
-	import { createRawSnippet } from 'svelte';
 	import * as Table from '$lib/components/ui/table/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index';
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import {
-		FlexRender,
-		createSvelteTable,
-		renderComponent,
-		renderSnippet,
-	} from '$lib/components/ui/data-table/index';
-	import TaskTableCheckbox from './task-table-checkbox.svelte';
-	import TaskTableActions from './task-table-actions.svelte';
-	import TaskTableDesc from './task-table-desc.svelte';
-	import TaskTablePriority from './task-table-priority.svelte';
-	import TaskTableActionsGroup from './task-table-actions-group.svelte';
+	import { FlexRender, createSvelteTable } from '$lib/components/ui/data-table/index';
 	import DialogTask from '../dialog/dialog-task.svelte';
-	import { tasksStore } from '$lib/stores/tasks';
+	import { tasksState } from '$lib/stores/tasks.svelte';
 	import type { Task } from '$lib/types';
-	import { invalidate } from '$app/navigation';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import { CrudToasts } from '$lib/utils/toasts';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createTaskColumns } from './task-table-columns';
 
 	let { data } = $props();
 	let open = $state(false);
 
 	// Server action functions
-	async function updateTaskStatus(taskId: string, newStatus: Task['taskStatus']) {
+	async function updateTaskStatus(taskId: string, newStatus: Task['taskStatus']): Promise<void> {
 		try {
 			// Optimistic update
-			const originalTask = $tasksStore.find((task) => task.id === taskId);
-			tasksStore.update((tasks) => {
-				const taskIndex = tasks.findIndex((task) => task.id === taskId);
-				if (taskIndex !== -1) {
-					tasks[taskIndex] = { ...tasks[taskIndex], taskStatus: newStatus };
-				}
-				return [...tasks];
-			});
+			const originalTask = tasksState.findById(taskId);
+			tasksState.update(taskId, { taskStatus: newStatus });
 
-			const formData = new FormData();
-			formData.append('id', taskId);
-			formData.append('status', newStatus);
+			const formData = createFormDataWithId(taskId, { status: newStatus });
 
-			const response = await fetch('?/updateStatus', {
+			const response = await fetch('?/updateTaskStatus', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'task');
-				await invalidate('task:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateTask();
 			} else {
 				// Revert optimistic update on error
 				if (originalTask) {
-					tasksStore.update((tasks) => {
-						const taskIndex = tasks.findIndex((task) => task.id === taskId);
-						if (taskIndex !== -1) {
-							tasks[taskIndex] = originalTask;
-						}
-						return [...tasks];
-					});
+					tasksState.update(taskId, { taskStatus: originalTask.taskStatus });
 				}
 				CrudToasts.error('update', result.error || 'Failed to update task status', 'task');
 			}
@@ -86,23 +60,20 @@
 		}
 	}
 
-	async function deleteTask(taskId: string) {
+	async function deleteTask(taskId: string): Promise<void> {
 		try {
-			const formData = new FormData();
-			formData.append('id', taskId);
+			const formData = createFormDataWithId(taskId);
 
-			const response = await fetch('?/delete', {
+			const response = await fetch('?/deleteTask', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'task');
-				await invalidate('task:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateTask();
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete task', 'task');
 			}
@@ -112,27 +83,25 @@
 		}
 	}
 
-	async function updateTask(taskId: string, updatedData: any) {
+	async function updateTask(taskId: string, updatedData: Partial<Task>): Promise<void> {
 		try {
-			const formData = new FormData();
-			formData.append('id', taskId);
-			formData.append('taskDescription', updatedData.taskDescription);
-			formData.append('taskCategory', updatedData.taskCategory);
-			formData.append('taskPriority', updatedData.taskPriority);
-			formData.append('taskStatus', updatedData.taskStatus);
-			formData.append('taskDueDate', updatedData.taskDueDate);
+			const formData = createFormDataWithId(taskId, {
+				taskDescription: updatedData.taskDescription,
+				taskCategory: updatedData.taskCategory,
+				taskPriority: updatedData.taskPriority,
+				taskStatus: updatedData.taskStatus,
+				taskDueDate: updatedData.taskDueDate,
+			});
 
-			const response = await fetch('?/update', {
+			const response = await fetch('?/updateTask', {
 				method: 'POST',
 				body: formData,
 			});
 
-			const result = await response.json();
+			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
-				await invalidate('task:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateTask();
 			} else {
 				throw new Error(result.error || 'Failed to update task');
 			}
@@ -142,125 +111,12 @@
 		}
 	}
 
-	const columns: ColumnDef<Task>[] = [
-		{
-			id: 'select',
-			cell: ({ row }) =>
-				renderComponent(TaskTableCheckbox, {
-					checked: row.original.taskStatus === 'completed',
-					onCheckedChange: async (value: unknown) => {
-						const isCompleted = !!value;
-						const newStatus: Task['taskStatus'] = isCompleted ? 'completed' : 'pending';
-						await updateTaskStatus(row.original.id as string, newStatus);
-					},
-					'aria-label': 'Mark as completed',
-				}),
-			enableSorting: false,
-			enableHiding: false,
-		},
-		{
-			id: 'description',
-			accessorKey: 'description',
-			header: () => {
-				const descriptionHeaderSnippet = createRawSnippet(() => {
-					return { render: () => `<div class="font-semibold">Task Description</div>` };
-				});
-				return renderSnippet(descriptionHeaderSnippet, '');
-			},
-			enableHiding: false,
-			cell: ({ row }) =>
-				renderComponent(TaskTableDesc, {
-					category: row.original.taskCategory,
-					description: row.original.taskDescription,
-					status: row.original.taskStatus,
-				}),
-		},
-		{
-			id: 'dueDate',
-			accessorKey: 'taskDueDate',
-			header: () => {
-				const dateHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold">Due Date</div>`,
-					};
-				});
-				return renderSnippet(dateHeaderSnippet, '');
-			},
-			cell: ({ row }) => {
-				const dateSnippet = createRawSnippet<[string]>((getDate) => {
-					const date = getDate();
-					return {
-						render: () =>
-							`<div class="flex flex-row gap-2 items-center"><div class="i-lucide:calendar"></div>${date}</div>`,
-					};
-				});
-
-				const dateValue = row.original.taskDueDate;
-				const formattedDate = new Date(dateValue as string).toLocaleDateString('id-ID', {
-					day: '2-digit',
-					month: 'short',
-					year: 'numeric',
-				});
-
-				return renderSnippet(dateSnippet, formattedDate);
-			},
-		},
-		{
-			accessorKey: 'Priority',
-			header: () => {
-				const priorityHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold">Priority</div>`,
-					};
-				});
-				return renderSnippet(priorityHeaderSnippet, '');
-			},
-			cell: ({ row }) =>
-				renderComponent(TaskTablePriority, {
-					priority: row.original.taskPriority,
-				}),
-		},
-
-		{
-			id: 'status',
-			accessorKey: 'taskStatus',
-			header: () => {
-				const statusHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold w-36">Status</div>`,
-					};
-				});
-				return renderSnippet(statusHeaderSnippet, '');
-			},
-			enableHiding: false,
-			cell: ({ row }) =>
-				renderComponent(TaskTableActions, {
-					status: row.original.taskStatus,
-					onChange: async (newStatus: Task['taskStatus']) => {
-						await updateTaskStatus(row.original.id as string, newStatus);
-					},
-				}),
-		},
-		{
-			id: 'actions',
-			header: () => {
-				const actionsHeaderSnippet = createRawSnippet(() => {
-					return {
-						render: () => `<div class="font-semibold text-center">Actions</div>`,
-					};
-				});
-				return renderSnippet(actionsHeaderSnippet, '');
-			},
-			enableHiding: false,
-			cell: ({ row }) =>
-				renderComponent(TaskTableActionsGroup, {
-					task: row.original,
-					data,
-					onUpdate: updateTask,
-					onDelete: deleteTask,
-				}),
-		},
-	];
+	const columns = createTaskColumns({
+		onStatusChange: updateTaskStatus,
+		onUpdate: updateTask,
+		onDelete: deleteTask,
+		data,
+	});
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 	let sorting = $state<SortingState>([]);
@@ -271,7 +127,7 @@
 	let table = $derived(
 		createSvelteTable({
 			get data() {
-				return $tasksStore;
+				return tasksState.tasks;
 			},
 			columns,
 			state: {
@@ -407,7 +263,7 @@
 				{/each}
 			</Table.Header>
 			<Table.Body>
-				{#each table.getRowModel().rows as row (row.id)}
+				{#each table.getRowModel().rows as row (row.original.id)}
 					<Table.Row data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
 							<Table.Cell class="[&:has([role=checkbox])]:pl-3">

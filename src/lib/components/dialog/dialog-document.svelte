@@ -12,12 +12,12 @@
 	import { Button } from '$lib/components/ui/button/index';
 	import { superForm, filesProxy } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
-	import { toastService } from '$lib/utils/toast-service';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
+	import toastService from '$lib/utils/toasts';
 	import { documentSchema, documentCategoryEnum } from '$lib/validation/planner';
+	import { TOAST_CONFIG } from '$lib/constants/config';
 
-	let { data } = $props();
+	let { data, open = $bindable() } = $props();
 
 	let formSubmissionPromise: Promise<any> | null = null;
 
@@ -40,16 +40,20 @@
 			if (file && file.size > 0) {
 				console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
 				toastService.form.promise(formSubmissionPromise, {
-					loading: `Uploading ${file.name}...`,
-					success: `${documentName} uploaded successfully!`,
-					error: `Failed to upload ${file.name}`,
+					messages: {
+						loading: `Uploading ${file.name}...`,
+						success: `${documentName} uploaded successfully!`,
+						error: `Failed to upload ${file.name}`,
+					},
 				});
 			} else {
 				console.log('No file detected in form data');
 				toastService.form.promise(formSubmissionPromise, {
-					loading: 'Creating document...',
-					success: `${documentName} created successfully!`,
-					error: 'Failed to create document',
+					messages: {
+						loading: 'Creating document...',
+						success: `${documentName} created successfully!`,
+						error: 'Failed to create document',
+					},
 				});
 			}
 		},
@@ -71,6 +75,10 @@
 				await import('$app/navigation').then(({ invalidate }) => {
 					invalidate('document:list');
 				});
+				
+				// Close dialog after successful creation
+				await new Promise((resolve) => setTimeout(resolve, 500));
+				open = false;
 			} else {
 				console.error('Form validation failed:', f.errors);
 				FormToasts.emptyFormError({
@@ -118,7 +126,7 @@
 		// Use form toast for file rejection with enhanced messaging
 		FormToasts.submitError(reason, {
 			formName: 'document upload',
-			duration: 6000,
+			duration: TOAST_CONFIG.ERROR_DURATION,
 		});
 	};
 
@@ -135,7 +143,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/create"
+		action="?/createDocument"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-2"
 	>

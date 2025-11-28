@@ -5,15 +5,14 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import {
 		taskSchema,
 		categoryEnum,
 		taskPriorityEnum,
 		taskStatusEnum,
 	} from '$lib/validation/planner';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 
 	let { data, open = $bindable() } = $props();
 
@@ -25,13 +24,9 @@
 		validators: valibot(taskSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
-				// Use CRUD toast for successful task creation
 				const taskName = f.data.taskDescription || 'Task';
 				CrudToasts.success('create', 'task', { itemName: taskName });
-				// Invalidate to refetch all task data including stats
-				await invalidate('task:list');
-				await invalidate('calendar:data');
-				// Close dialog after successful creation
+				await InvalidationService.invalidateTask();
 				await wait(500);
 				open = false;
 			} else {
@@ -68,7 +63,7 @@
 	<form
 		use:enhance
 		method="POST"
-		action="?/create"
+		action="?/createTask"
 		class="flex flex-col gap-4"
 		onsubmit={(e) => {
 			if (!$formData.valid) {
