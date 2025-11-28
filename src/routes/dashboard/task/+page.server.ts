@@ -5,6 +5,8 @@ import { valibot } from 'sveltekit-superforms/adapters';
 import { taskSchema } from '$lib/validation/planner';
 import type { TaskStatus } from '$lib/types';
 import { withAuth } from '$lib/server/auth-helpers';
+import { handleActionError } from '$lib/server/error-handler';
+import { FormDataParser } from '$lib/utils/form-helpers';
 
 export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('task:list');
@@ -53,7 +55,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	const getLatestUpdate = (status?: TaskStatus) =>
 		tasksList
 			.filter((t) => !status || t.taskStatus === status)
-			.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0]?.updatedAt ?? null;
+			.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt))[0]?.updatedAt ?? null;
 
 	return {
 		taskForm,
@@ -83,7 +85,7 @@ export const actions: Actions = {
 					taskCategory: form.data.taskCategory,
 					taskPriority: form.data.taskPriority,
 					taskStatus: form.data.taskStatus,
-					taskDueDate: form.data.taskDueDate.toString(),
+					taskDueDate: String(form.data.taskDueDate),
 					completedAt: null,
 					assignedTo: null,
 					createdBy: user.id,
@@ -95,17 +97,16 @@ export const actions: Actions = {
 
 			return { form, success: true, task: newTask };
 		} catch (error) {
-			console.error('Task creation error:', error);
-			return fail(500, { form, error: 'Failed to create task. Please try again.' });
+			return handleActionError(error, 'create task', { form });
 		}
 	}),
 
 	updateTaskStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
-		const formData = await request.formData();
-		const taskId = formData.get('id') as string;
-		const newStatus = formData.get('status') as TaskStatus;
-
 		try {
+			const parser = new FormDataParser(await request.formData());
+			const taskId = parser.getString('id');
+			const newStatus = parser.getEnum('status', ['pending', 'on_progress', 'completed'] as const);
+
 			const updatedTask = await plannerDb
 				.updateTable('tasks')
 				.set({
@@ -122,16 +123,14 @@ export const actions: Actions = {
 
 			return { success: true, task: updatedTask };
 		} catch (error) {
-			console.error('Status update error:', error);
-			return fail(500, { error: 'Failed to update task status.' });
+			return handleActionError(error, 'update task status');
 		}
 	}),
 
 	updateTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
 		const clonedRequest = request.clone();
-		const formData = await clonedRequest.formData();
-		const taskId = formData.get('id') as string;
-		if (!taskId) return fail(400, { error: 'Missing task ID' });
+		const parser = new FormDataParser(await clonedRequest.formData());
+		const taskId = parser.getString('id');
 
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
@@ -141,6 +140,7 @@ export const actions: Actions = {
 				.updateTable('tasks')
 				.set({
 					...form.data,
+					taskDueDate: String(form.data.taskDueDate),
 					completedAt: form.data.taskStatus === 'completed' ? Date.now() : null,
 					updatedAt: Date.now(),
 				})
@@ -149,20 +149,19 @@ export const actions: Actions = {
 				.returningAll()
 				.executeTakeFirst();
 
-			if (!updatedTask) return fail(404, { error: 'Task not found' });
+			if (!updatedTask) return fail(404, { form, error: 'Task not found' });
 
 			return { form, success: true, task: updatedTask };
 		} catch (error) {
-			console.error('Task update error:', error);
-			return fail(500, { form, error: 'Failed to update task. Please try again.' });
+			return handleActionError(error, 'update task', { form });
 		}
 	}),
 
 	deleteTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
-		const formData = await request.formData();
-		const taskId = formData.get('id') as string;
-
 		try {
+			const parser = new FormDataParser(await request.formData());
+			const taskId = parser.getString('id');
+
 			const deletedTask = await plannerDb
 				.deleteFrom('tasks')
 				.where('id', '=', taskId)
@@ -174,8 +173,7 @@ export const actions: Actions = {
 
 			return { success: true };
 		} catch (error) {
-			console.error('Task deletion error:', error);
-			return fail(500, { error: 'Failed to delete task. Please try again.' });
+			return handleActionError(error, 'delete task');
 		}
 	}),
 };

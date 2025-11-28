@@ -14,11 +14,13 @@
 	import '@schedule-x/theme-shadcn/dist/index.css';
 	import 'temporal-polyfill/global';
 	import type { Schedule, Task, Expense, UnifiedCalendarEvent } from '$lib/types';
-	import { unifiedEvents, schedulesStore, tasksStore, expensesStore } from '$lib/stores/calendar';
+	import { calendarState } from '$lib/stores/calendar.svelte';
+	import { tasksState } from '$lib/stores/tasks.svelte';
+	import { expensesState } from '$lib/stores/expenses.svelte';
 	import CalendarFilters from './calendar-filters.svelte';
 	import CalendarEventDetail from './calendar-event-detail.svelte';
 	import { onMount } from 'svelte';
-	import { toastService } from '$lib/utils/toast-service';
+	import toastService from '$lib/utils/toasts';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { Card } from '$lib/components/ui/card';
 	import { calendars } from './calendar';
@@ -43,39 +45,8 @@
 	let hasError = $state(false);
 	let errorMessage = $state<string | null>(null);
 
-	// Create calendar instance
-	const calendarApp = createCalendar({
-		calendars,
-		views: [
-			createViewDay(),
-			createViewMonthGrid(),
-			createViewMonthAgenda(),
-			createViewWeek(),
-			createViewList(),
-		],
-		weekOptions: {
-			timeAxisFormatOptions: { hour: '2-digit', minute: '2-digit' },
-			eventOverlap: true,
-		},
-		locale: 'id-ID',
-		timezone: 'Asia/Makassar',
-		defaultView: 'viewList',
-		theme: 'shadcn',
-		plugins: [createCurrentTimePlugin({ fullWeekWidth: true }), createResizePlugin(30)],
-		callbacks: {
-			onEventClick(calendarEvent) {
-				// Find the unified event by ID
-				const event = $unifiedEvents.find((e) => e.id === calendarEvent.id);
-				if (event) {
-					selectedEvent = event;
-					modalOpen = true;
-				}
-			},
-		},
-		events: [],
-	});
-
-	// Get icon for event source
+	// Create calendar instance - initialized in onMount to avoid SSR issues
+	let calendarApp = $state<ReturnType<typeof createCalendar>>();
 
 	// Transform unified events to @schedule-x CalendarEvent format
 	function transformToCalendarEvents(events: UnifiedCalendarEvent[]): CalendarEvent[] {
@@ -117,8 +88,10 @@
 
 	// Update calendar events when unified events change
 	$effect(() => {
+		if (!calendarApp) return; // Guard against SSR
+		
 		try {
-			const events = transformToCalendarEvents($unifiedEvents);
+			const events = transformToCalendarEvents(calendarState.unifiedEvents);
 			calendarApp.events.set(events);
 			hasError = false;
 			errorMessage = null;
@@ -130,18 +103,51 @@
 		}
 	});
 
-	// Initialize stores with props data on mount
+	// Initialize calendar and stores on mount (client-side only)
 	onMount(() => {
 		try {
-			schedulesStore.set(schedules || []);
-			tasksStore.set(tasks || []);
-			expensesStore.set(expenses || []);
+			// Create calendar instance
+			calendarApp = createCalendar({
+				calendars,
+				views: [
+					createViewDay(),
+					createViewMonthGrid(),
+					createViewMonthAgenda(),
+					createViewWeek(),
+					createViewList(),
+				],
+				weekOptions: {
+					timeAxisFormatOptions: { hour: '2-digit', minute: '2-digit' },
+					eventOverlap: true,
+				},
+				locale: 'id-ID',
+				timezone: 'Asia/Makassar',
+				defaultView: 'viewList',
+				theme: 'shadcn',
+				plugins: [createCurrentTimePlugin({ fullWeekWidth: true }), createResizePlugin(30)],
+				callbacks: {
+					onEventClick(calendarEvent) {
+						// Find the unified event by ID
+						const event = calendarState.unifiedEvents.find((e) => e.id === calendarEvent.id);
+						if (event) {
+							selectedEvent = event;
+							modalOpen = true;
+						}
+					},
+				},
+				events: [],
+			});
+
+			// Initialize stores
+			calendarState.setSchedules(schedules || []);
+			tasksState.set(tasks || []);
+			expensesState.set(expenses || []);
 
 			setTimeout(() => {
 				isLoading = false;
 			}, 500);
 		} catch (error) {
-			console.error('Error initializing calendar stores:', error);
+			console.error('Error initializing calendar:', error);
 			hasError = true;
 			errorMessage = 'Failed to initialize calendar';
 			isLoading = false;
@@ -152,7 +158,7 @@
 	// Update stores when props change
 	$effect(() => {
 		try {
-			schedulesStore.set(schedules || []);
+			calendarState.setSchedules(schedules || []);
 		} catch (error) {
 			console.error('Error updating schedules store:', error);
 		}
@@ -160,7 +166,7 @@
 
 	$effect(() => {
 		try {
-			tasksStore.set(tasks || []);
+			tasksState.set(tasks || []);
 		} catch (error) {
 			console.error('Error updating tasks store:', error);
 		}
@@ -168,7 +174,7 @@
 
 	$effect(() => {
 		try {
-			expensesStore.set(expenses || []);
+			expensesState.set(expenses || []);
 		} catch (error) {
 			console.error('Error updating expenses store:', error);
 		}
@@ -181,7 +187,7 @@
 	}
 
 	// Check if there are any events to display
-	let hasEvents = $derived($unifiedEvents.length > 0);
+	let hasEvents = $derived(calendarState.unifiedEvents.length > 0);
 </script>
 
 <!-- Calendar Filters -->
@@ -282,7 +288,7 @@
 {/if}
 
 <!-- Calendar -->
-{#if !isLoading && !hasError && hasEvents}
+{#if !isLoading && !hasError && hasEvents && calendarApp}
 	<div class="px-4 mt-4">
 		<ScheduleXCalendar {calendarApp} />
 	</div>

@@ -135,7 +135,7 @@ export const actions: Actions = {
 					expenseCategory,
 					expenseAmount: expenseAmount,
 					expensePaymentStatus,
-					expenseDueDate,
+					expenseDueDate: String(expenseDueDate),
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
@@ -212,7 +212,7 @@ export const actions: Actions = {
 					expenseCategory,
 					expenseAmount: expenseAmount,
 					expensePaymentStatus,
-					expenseDueDate,
+					expenseDueDate: String(expenseDueDate),
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)

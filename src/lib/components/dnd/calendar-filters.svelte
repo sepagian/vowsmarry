@@ -1,58 +1,21 @@
 <script lang="ts">
-	import { eventFilters, calendarStats } from '$lib/stores/calendar';
+	import { calendarState } from '$lib/stores/calendar.svelte';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Card } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 
-	// Subscribe to stores with error handling
-	let filters = $state($eventFilters);
-	let stats = $state($calendarStats);
-
 	// Check if all filters are disabled
 	let allFiltersDisabled = $derived(
-		!filters.showSchedules && !filters.showTasks && !filters.showExpenses,
+		!calendarState.filters.showSchedules && 
+		!calendarState.filters.showTasks && 
+		!calendarState.filters.showExpenses,
 	);
 
 	// Function to re-enable all filters
 	function enableAllFilters() {
-		try {
-			filters = {
-				...filters,
-				showSchedules: true,
-				showTasks: true,
-				showExpenses: true,
-			};
-		} catch (error) {
-			console.error('Error enabling all filters:', error);
-		}
+		calendarState.resetFilters();
 	}
-
-	// Update store when filters change
-	$effect(() => {
-		try {
-			eventFilters.set(filters);
-		} catch (error) {
-			console.error('Error updating event filters:', error);
-		}
-	});
-
-	// Sync store updates back to local state
-	$effect(() => {
-		try {
-			filters = $eventFilters;
-		} catch (error) {
-			console.error('Error syncing filters from store:', error);
-		}
-	});
-
-	$effect(() => {
-		try {
-			stats = $calendarStats;
-		} catch (error) {
-			console.error('Error syncing stats from store:', error);
-		}
-	});
 </script>
 
 <div class="px-4">
@@ -67,11 +30,11 @@
 					class="flex items-center gap-2 cursor-pointer"
 				>
 					<span class="i-lucide:calendar w-4 h-4"></span>
-					<span>Schedules ({stats.totalSchedules})</span>
+					<span>Schedules ({calendarState.stats.totalSchedules})</span>
 				</Label>
 				<Switch
 					id="filter-schedules"
-					bind:checked={filters.showSchedules}
+					bind:checked={calendarState.filters.showSchedules}
 				/>
 			</div>
 
@@ -83,15 +46,15 @@
 				>
 					<span class="i-lucide:check-square w-4 h-4"></span>
 					<span>
-						Tasks ({stats.totalTasks})
-						{#if stats.overdueTasks > 0}
-							<span class="text-red-500 font-semibold">- {stats.overdueTasks} overdue</span>
+						Tasks ({calendarState.stats.totalTasks})
+						{#if calendarState.stats.overdueTasks > 0}
+							<span class="text-red-500 font-semibold">- {calendarState.stats.overdueTasks} overdue</span>
 						{/if}
 					</span>
 				</Label>
 				<Switch
 					id="filter-tasks"
-					bind:checked={filters.showTasks}
+					bind:checked={calendarState.filters.showTasks}
 				/>
 			</div>
 
@@ -103,15 +66,15 @@
 				>
 					<span class="i-lucide:dollar-sign w-4 h-4"></span>
 					<span>
-						Expenses ({stats.totalExpenses})
-						{#if stats.overdueExpenses > 0}
-							<span class="text-red-500 font-semibold">- {stats.overdueExpenses} overdue</span>
+						Expenses ({calendarState.stats.totalExpenses})
+						{#if calendarState.stats.overdueExpenses > 0}
+							<span class="text-red-500 font-semibold">- {calendarState.stats.overdueExpenses} overdue</span>
 						{/if}
 					</span>
 				</Label>
 				<Switch
 					id="filter-expenses"
-					bind:checked={filters.showExpenses}
+					bind:checked={calendarState.filters.showExpenses}
 				/>
 			</div>
 
@@ -128,7 +91,7 @@
 					</Label>
 					<Switch
 						id="filter-overdue"
-						bind:checked={filters.showOverdueOnly}
+						bind:checked={calendarState.filters.showOverdueOnly}
 					/>
 				</div>
 			</div>

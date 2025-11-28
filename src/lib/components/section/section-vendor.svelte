@@ -6,10 +6,11 @@
 	import { Button, buttonVariants } from '../ui/button/index';
 	import DialogVendor from '../dialog/dialog-vendor.svelte';
 	import DialogVendorEdit from '../dialog/dialog-vendor-edit.svelte';
-	import { vendorsStore } from '$lib/stores/vendors';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import { vendorsState } from '$lib/stores/vendors.svelte';
+	import { CrudToasts } from '$lib/utils/toasts';
 	import type { Vendor } from '$lib/types';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
 
 	let { data } = $props<{ data: any }>();
 
@@ -20,16 +21,12 @@
 	let isDeleting = $state(false);
 	let selectedVendor = $state<Vendor | null>(null);
 
-	async function handleDelete(vendorId: string, vendorName: string) {
+	async function handleDelete(e: Event, vendorId: string, vendorName: string) {
+		e.preventDefault();
 		isDeleting = true;
 
-		// Optimistic update - remove from store immediately
-		const originalVendors = $vendorsStore;
-		vendorsStore.update((vendors) => vendors.filter((vendor) => vendor.id !== vendorId));
-
 		try {
-			const formData = new FormData();
-			formData.append('id', vendorId);
+			const formData = createFormDataWithId(vendorId);
 
 			const response = await fetch('?/deleteVendor', {
 				method: 'POST',
@@ -40,15 +37,12 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'vendor', { itemName: vendorName });
-				// Invalidate to refetch all vendor data including stats
-				await invalidate('vendor:list');
+				await InvalidationService.invalidateVendor();
 				deleteDialogOpen = false;
 			} else {
 				throw new Error(result.error || 'Failed to delete vendor');
 			}
 		} catch (error) {
-			// Revert optimistic update on error
-			vendorsStore.set(originalVendors);
 			CrudToasts.error(
 				'delete',
 				error instanceof Error ? error.message : 'Failed to delete vendor',
@@ -69,7 +63,7 @@
 		deleteDialogOpen = true;
 	}
 
-	let vendorItems = $derived($vendorsStore);
+	let vendorItems = $derived(vendorsState.vendors);
 
 	let filteredVendors = $derived(
 		vendorItems.filter(
@@ -163,8 +157,8 @@
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
 			<AlertDialog.Action
-				onclick={() =>
-					selectedVendor && handleDelete(selectedVendor.id as string, selectedVendor.vendorName)}
+				onclick={(e) =>
+					selectedVendor && handleDelete(e, selectedVendor.id as string, selectedVendor.vendorName)}
 				disabled={isDeleting}
 				class="bg-red-600 hover:bg-red-700"
 			>

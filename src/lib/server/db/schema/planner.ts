@@ -90,9 +90,9 @@ export const tasks = sqliteTable(
 			.references(() => weddings.id, { onDelete: 'cascade' }),
 		taskDescription: text('task_description').notNull(),
 		taskCategory: text('task_category', { enum: categoryValues }).notNull(),
-		taskStatus: text('status', { enum: taskStatusValues }).default('pending').notNull(),
-		taskPriority: text('priority', { enum: taskPriorityValues }).default('low').notNull(),
-		taskDueDate: text('due_date').notNull(), // ISO date string (YYYY-MM-DD)
+		taskStatus: text('task_status', { enum: taskStatusValues }).default('pending').notNull(),
+		taskPriority: text('task_priority', { enum: taskPriorityValues }).default('low').notNull(),
+		taskDueDate: text('task_due_date').notNull(), // ISO date string (YYYY-MM-DD)
 		completedAt: integer('completed_at', { mode: 'timestamp' }),
 		assignedTo: text('assigned_to'),
 		createdBy: text('created_by').notNull(),
@@ -126,15 +126,15 @@ export const documents = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		documentName: text('name').notNull(),
+		documentName: text('document_name').notNull(),
 		documentCategory: text('document_category', { enum: documentCategoryValues }).notNull(),
 		documentDate: text('document_date').notNull(), // ISO date string (YYYY-MM-DD)
-		documentStatus: text('status', { enum: documentStatusValues }).default('pending').notNull(),
-		documentDueDate: text('due_date'), // ISO date string (YYYY-MM-DD)
+		documentStatus: text('document_status', { enum: documentStatusValues }).default('pending').notNull(),
+		documentDueDate: text('document_due_date'), // ISO date string (YYYY-MM-DD)
 		fileUrl: text('file_url').notNull(),
 		fileName: text('file_name').notNull(),
-		fileSize: integer('filesize').notNull(),
-		mimeType: text('mimetype').notNull(),
+		fileSize: integer('file_size').notNull(),
+		mimeType: text('mime_type').notNull(),
 		reminderSent: integer('reminder_sent', { mode: 'boolean' }).default(false).notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp' })
 			.$defaultFn(() => new Date())
@@ -190,13 +190,13 @@ export const expenseItems = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		expenseDescription: text('description').notNull(),
-		expenseCategory: text('category', { enum: categoryValues }).notNull(),
-		expenseAmount: real('amount').default(0).notNull(),
-		expensePaymentStatus: text('payment_status', { enum: expensePaymentStatusValues })
+		expenseDescription: text('expense_description').notNull(),
+		expenseCategory: text('expense_category', { enum: categoryValues }).notNull(),
+		expenseAmount: real('expense_amount').default(0).notNull(),
+		expensePaymentStatus: text('expense_payment_status', { enum: expensePaymentStatusValues })
 			.default('unpaid')
 			.notNull(),
-		expenseDueDate: text('due_date').notNull(), // ISO date string (YYYY-MM-DD)
+		expenseDueDate: text('expense_due_date').notNull(), // ISO date string (YYYY-MM-DD)
 		createdAt: integer('created_at', { mode: 'timestamp' })
 			.$defaultFn(() => new Date())
 			.notNull(),
@@ -250,15 +250,15 @@ export const vendors = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
-		vendorName: text('name').notNull(),
-		vendorCategory: text('category', { enum: categoryValues }).notNull(),
-		vendorInstagram: text('instagram'),
-		vendorEmail: text('email'),
-		vendorPhone: text('phone'),
-		vendorWebsite: text('website'),
-		vendorStatus: text('status', { enum: vendorStatusValues }).default('researching').notNull(),
-		vendorRating: text('rating', { enum: vendorRatingValues }).notNull(), // 1-5 stars
-		vendorTotalCost: real('total_cost'),
+		vendorName: text('vendor_name').notNull(),
+		vendorCategory: text('vendor_category', { enum: categoryValues }).notNull(),
+		vendorInstagram: text('vendor_instagram'),
+		vendorEmail: text('vendor_email'),
+		vendorPhone: text('vendor_phone'),
+		vendorWebsite: text('vendor_website'),
+		vendorStatus: text('vendor_status', { enum: vendorStatusValues }).default('researching').notNull(),
+		vendorRating: text('vendor_rating', { enum: vendorRatingValues }).notNull(), // 1-5 stars
+		vendorTotalCost: real('vendor_total_cost'),
 		createdAt: integer('created_at', { mode: 'timestamp' })
 			.$defaultFn(() => new Date())
 			.notNull(),

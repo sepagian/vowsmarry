@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import * as schema from './db/schema/auth-schema';
 import { dev } from '$app/environment';
 import { BETTER_AUTH_SECRET, BETTER_AUTH_URL } from '$env/static/private';
+import { SESSION_CONFIG, VALIDATION_CONFIG } from '$lib/constants/config';
 
 if (!BETTER_AUTH_SECRET) {
 	throw new Error('BETTER_AUTH_SECRET environment variable is required');
@@ -25,23 +26,6 @@ try {
 if (BETTER_AUTH_SECRET.length < 32) {
 	throw new Error('BETTER_AUTH_SECRET must be at least 32 characters long for security');
 }
-
-/**
- * Session duration constants (in seconds)
- *
- * @remarks
- * - SEVEN_DAYS: Maximum session lifetime before re-authentication required
- * - ONE_DAY: Frequency of session token rotation for security
- * - FIVE_MINUTES: Cookie cache duration to reduce database queries
- */
-const SESSION_DURATION = {
-	/** Maximum session lifetime: 7 days */
-	MAX_AGE: 60 * 60 * 24 * 7,
-	/** Session update frequency: 1 day */
-	UPDATE_INTERVAL: 60 * 60 * 24,
-	/** Cookie cache duration: 5 minutes */
-	CACHE_TTL: 60 * 5,
-} as const;
 
 /**
  * Creates Better Auth configuration with Drizzle adapter for Cloudflare D1
@@ -68,17 +52,17 @@ function createAuth(d1: D1Database) {
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: false, // Set to true when email service is configured
-			minPasswordLength: 8,
-			maxPasswordLength: 128,
+			minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
+			maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
 		},
 
 		// Session configuration
 		session: {
-			expiresIn: SESSION_DURATION.MAX_AGE,
-			updateAge: SESSION_DURATION.UPDATE_INTERVAL,
+			expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
+			updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
 			cookieCache: {
 				enabled: true,
-				maxAge: SESSION_DURATION.CACHE_TTL,
+				maxAge: SESSION_CONFIG.CACHE_TTL_SECONDS,
 			},
 		},
 

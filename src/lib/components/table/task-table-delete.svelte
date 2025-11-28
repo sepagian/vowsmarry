@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index';
-	import { tasksStore } from '$lib/stores/tasks';
 
 	let { taskId, taskDescription, onDelete } = $props<{
 		taskId: string;
@@ -10,29 +9,23 @@
 	}>();
 
 	let isDeleting = $state(false);
-	let dialogOpen = $state(false);
+	let open = $state(false);
 
-	async function handleDelete() {
+	async function handleDelete(e: Event) {
+		e.preventDefault();
 		isDeleting = true;
-
-		// Optimistic update - remove from store immediately
-		const originalTasks = $tasksStore;
-		tasksStore.update((tasks) => tasks.filter((task) => task.id !== taskId));
-
 		try {
 			await onDelete(taskId);
-			// Close dialog on success
-			dialogOpen = false;
+			open = false;
 		} catch (error) {
-			// Revert optimistic update on error
-			tasksStore.set(originalTasks);
+			console.error('Delete failed:', error);
 		} finally {
 			isDeleting = false;
 		}
 	}
 </script>
 
-<AlertDialog.Root bind:open={dialogOpen}>
+<AlertDialog.Root bind:open>
 	<AlertDialog.Trigger>
 		{#snippet child({ props })}
 			<Button
@@ -55,13 +48,13 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action
+			<Button
 				onclick={handleDelete}
 				disabled={isDeleting}
 				class="bg-red-600 hover:bg-red-700"
 			>
 				{isDeleting ? 'Deleting...' : 'Delete'}
-			</AlertDialog.Action>
+			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>

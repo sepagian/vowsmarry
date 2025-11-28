@@ -223,7 +223,7 @@ export interface SouvenirsTable {
 export interface DresscodesTable {
 	id: Generated<string>;
 	weddingId: string;
-	rundownId: string;
+	scheduleId: string;
 	dresscodeDescription: string;
 	dresscodeRole: DresscodeRole;
 	dresscodeImageUrl: string | null;
@@ -315,7 +315,7 @@ export interface GiftsTable {
 	description: string | null;
 	bankAccount: string | null;
 	bankNumber: number | null;
-	registryURL: string | null;
+	registryUrl: string | null;
 	isActive: Generated<number>; // boolean as 0/1
 	isPublic: Generated<number>; // boolean as 0/1
 	sortOrder: number;

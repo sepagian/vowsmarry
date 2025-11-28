@@ -7,6 +7,7 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { Progress } from '@friendofsvelte/progress';
 	import { authStore } from '$lib/stores/auth';
+	import { TOAST_CONFIG } from '$lib/constants/config';
 
 	let { data, children } = $props();
 	let { user, session } = $derived(data);
@@ -67,5 +68,5 @@
 	expand={true}
 	visibleToasts={3}
 	closeButton={true}
-	duration={4000}
+	duration={TOAST_CONFIG.DEFAULT_DURATION}
 />

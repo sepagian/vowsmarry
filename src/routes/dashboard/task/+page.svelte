@@ -2,7 +2,7 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import TaskTable from '$lib/components/table/task-table.svelte';
 
-	import { tasksStore } from '$lib/stores/tasks';
+	import { tasksState } from '$lib/stores/tasks.svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
 	const overviewTitle = 'Task Overview';
@@ -11,14 +11,13 @@
 	// Update store whenever data changes (including after invalidation)
 	$effect(() => {
 		if (data.tasks) {
-			tasksStore.set(data.tasks);
+			tasksState.set(data.tasks);
 		}
 	});
 
-	let overviewCards = $derived(() => {
-		return [
+	let overviewCards = $derived([
 			{
-				title: $tasksStore.length.toString(),
+				title: tasksState.stats.total.toString(),
 				description: 'Total',
 				actionClass: 'i-lucide:badge-info',
 				actionColor: 'bg-blue-500 text-white',
@@ -27,7 +26,7 @@
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.taskStatus === 'pending').length.toString(),
+				title: tasksState.stats.pending.toString(),
 				description: 'Pending',
 				actionClass: 'i-lucide:badge-minus',
 				actionColor: 'bg-gray-500 text-white',
@@ -36,7 +35,7 @@
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.taskStatus === 'on_progress').length.toString(),
+				title: tasksState.stats.inProgress.toString(),
 				description: 'On Progress',
 				actionClass: 'i-lucide:badge-alert',
 				actionColor: 'bg-yellow-500 text-white',
@@ -45,7 +44,7 @@
 					: 'No data yet',
 			},
 			{
-				title: $tasksStore.filter((task) => task.taskStatus === 'completed').length.toString(),
+				title: tasksState.stats.completed.toString(),
 				description: 'Completed',
 				actionClass: 'i-lucide:badge-check',
 				actionColor: 'bg-green-500 text-white',
@@ -53,8 +52,7 @@
 					? `Last updated ${formatDistanceToNow(new Date(data.update.completed), { addSuffix: true })}`
 					: 'No data yet',
 			},
-		];
-	});
+		]);
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
