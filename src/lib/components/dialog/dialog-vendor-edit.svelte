@@ -4,8 +4,8 @@
 	import { Input } from '$lib/components/ui/input/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { Label } from '$lib/components/ui/label/index';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import { vendorsStore } from '$lib/stores/vendors';
+	import { CrudToasts } from '$lib/utils/toasts';
+	import { vendorsState } from '$lib/stores/vendors.svelte';
 	import {
 		categoryEnum,
 		vendorStatusEnum,
@@ -13,7 +13,8 @@
 		type VendorData,
 	} from '$lib/validation/planner';
 	import type { Vendor } from '$lib/types';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
 
 	let { vendor, open = $bindable() } = $props<{
 		vendor: Vendor;
@@ -52,31 +53,23 @@
 		isSubmitting = true;
 
 		// Optimistic update
-		const originalVendors = $vendorsStore;
-		vendorsStore.update((vendors) =>
-			vendors.map((v) =>
-				v.id === vendor.id
-					? {
-							...v,
-							vendorName: vendor.vendorName,
-							vendorCategory: vendor.vendorCategory,
-							vendorInstagram: vendor.vendorInstagram,
-							vendorStatus: vendor.vendorStatus,
-							vendorRating: vendor.vendorRating,
-							updatedAt: new Date(),
-						}
-					: v,
-			),
-		);
+		const originalVendor = vendorsState.findById(vendor.id!);
+		vendorsState.update(vendor.id!, {
+			vendorName: formData.vendorName,
+			vendorCategory: formData.vendorCategory,
+			vendorInstagram: formData.vendorInstagram,
+			vendorStatus: formData.vendorStatus,
+			vendorRating: formData.vendorRating,
+		});
 
 		try {
-			const form = new FormData();
-			form.append('id', vendor.id);
-			form.append('vendorName', formData.vendorName);
-			form.append('vendorCategory', formData.vendorCategory);
-			form.append('vendorInstagram', formData.vendorInstagram);
-			form.append('vendorStatus', formData.vendorStatus);
-			form.append('vendorRating', formData.vendorRating);
+			const form = createFormDataWithId(vendor.id!, {
+				vendorName: formData.vendorName,
+				vendorCategory: formData.vendorCategory,
+				vendorInstagram: formData.vendorInstagram || '',
+				vendorStatus: formData.vendorStatus,
+				vendorRating: formData.vendorRating,
+			});
 
 			const response = await fetch('?/updateVendor', {
 				method: 'POST',
@@ -87,15 +80,16 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('update', 'vendor', { itemName: formData.vendorName });
-				// Invalidate to refetch all vendor data including stats
-				await invalidate('vendor:list');
+				await InvalidationService.invalidateVendor();
 				open = false;
 			} else {
 				throw new Error(result.error || 'Failed to update vendor');
 			}
 		} catch (error) {
 			// Revert optimistic update on error
-			vendorsStore.set(originalVendors);
+			if (originalVendor) {
+				vendorsState.update(vendor.id!, originalVendor);
+			}
 			CrudToasts.error(
 				'update',
 				error instanceof Error ? error.message : 'Failed to update vendor',

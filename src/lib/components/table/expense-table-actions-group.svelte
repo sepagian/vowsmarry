@@ -9,11 +9,9 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
 	import { expenseSchema, categoryEnum, expenseStatusEnum } from '$lib/validation/planner';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
-	import { invalidate } from '$app/navigation';
-	import { expensesStore } from '$lib/stores/expenses';
-
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
 	let { expense, data, onUpdate, onDelete } = $props<{
 		expense: Expense;
 		data: any;
@@ -23,6 +21,7 @@
 
 	let editDialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
+	let isDeleting = $state(false);
 
 	const form = superForm(data.expenseForm, {
 		validators: valibot(expenseSchema),
@@ -31,9 +30,7 @@
 			if (f.valid) {
 				editDialogOpen = false;
 				CrudToasts.success('update', 'expense');
-				await invalidate('expense:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateExpense();
 			} else {
 				FormToasts.emptyFormError();
 			}
@@ -57,10 +54,11 @@
 		deleteDialogOpen = true;
 	}
 
-	async function handleDelete() {
+	async function handleDelete(e: Event) {
+		e.preventDefault();
+		isDeleting = true;
 		try {
-			const formData = new FormData();
-			formData.append('id', expense.id);
+			const formData = createFormDataWithId(expense.id);
 
 			const response = await fetch('?/deleteExpenseItem', {
 				method: 'POST',
@@ -70,17 +68,16 @@
 			const result = (await response.json()) as { type: string; error?: string };
 
 			if (result.type === 'success') {
-				expensesStore.update((expenses) => expenses.filter((e) => e.id !== expense.id));
 				CrudToasts.success('delete', 'expense');
-				await invalidate('expense:list');
-				await invalidate('dashboard:data');
-				await invalidate('calendar:data');
+				await InvalidationService.invalidateExpense();
 				deleteDialogOpen = false;
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete expense', 'expense');
 			}
 		} catch (error) {
 			CrudToasts.error('delete', 'Network error occurred', 'expense');
+		} finally {
+			isDeleting = false;
 		}
 	}
 
@@ -270,7 +267,13 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action onclick={handleDelete}>Delete</AlertDialog.Action>
+			<Button
+				onclick={handleDelete}
+				disabled={isDeleting}
+				class="bg-red-600 hover:bg-red-700"
+			>
+				{isDeleting ? 'Deleting...' : 'Delete'}
+			</Button>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>

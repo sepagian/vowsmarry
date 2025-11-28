@@ -8,8 +8,9 @@
 	import { Button, buttonVariants } from '../ui/button/index';
 	import { Switch } from '../ui/switch/index';
 	import DialogRundown from '../dialog/dialog-rundown.svelte';
-	import { invalidate } from '$app/navigation';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
+	import { CrudToasts } from '$lib/utils/toasts';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { createFormDataWithId } from '$lib/utils/form-helpers';
 
 	let { items, data } = $props();
 	let open = $state(false);
@@ -59,8 +60,7 @@
 		}
 
 		try {
-			const formData = new FormData();
-			formData.append('id', itemId);
+			const formData = createFormDataWithId(itemId);
 
 			const response = await fetch('?/deleteSchedule', {
 				method: 'POST',
@@ -71,7 +71,7 @@
 
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'rundown', { itemName });
-				await invalidate('rundown:list');
+				await InvalidationService.invalidateRundown();
 			} else {
 				CrudToasts.error('delete', result.error || 'Failed to delete rundown', 'rundown');
 			}

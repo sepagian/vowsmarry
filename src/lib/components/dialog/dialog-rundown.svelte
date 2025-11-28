@@ -6,10 +6,9 @@
 	import { Textarea } from '$lib/components/ui/textarea/index';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts } from '$lib/utils/crud-toasts';
-	import FormToasts from '$lib/utils/form-toasts';
+	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import { scheduleSchema, scheduleCategoryEnum } from '$lib/validation/planner';
-	import { invalidate } from '$app/navigation';
+	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 
 	let { data, open = $bindable() } = $props();
 
@@ -21,13 +20,9 @@
 		validators: valibot(scheduleSchema),
 		onUpdate: async ({ form: f }) => {
 			if (f.valid) {
-				// Use CRUD toast for successful rundown item creation
 				const eventTitle = f.data.scheduleName || 'Rundown item';
 				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
-				// Invalidate to refetch the rundown list
-				await invalidate('rundown:list');
-				await invalidate('calendar:data');
-				// Close dialog after successful creation
+				await InvalidationService.invalidateRundown();
 				await wait(500);
 				open = false;
 			} else {
