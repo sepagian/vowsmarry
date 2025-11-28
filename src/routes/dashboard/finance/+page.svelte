@@ -6,19 +6,18 @@
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
-	import { expensesStore } from '$lib/stores/expenses';
+	import { expensesState } from '$lib/stores/expenses.svelte';
 
 	let { data } = $props();
 
 	// Update store whenever data changes (including after invalidation)
 	$effect(() => {
 		if (data.expenses) {
-			expensesStore.set(data.expenses);
+			expensesState.set(data.expenses);
 		}
 	});
 
-	let overviewCards = $derived(() => {
-		return [
+	let overviewCards = $derived([
 			{
 				title: parseFloat(data.financeStats.plannedBudget).toLocaleString('id-ID', {
 					style: 'currency',
@@ -74,8 +73,7 @@
 					? `Last updated ${formatDistanceToNow(new Date(data.update.spent), { addSuffix: true })}`
 					: 'No data yet',
 			},
-		];
-	});
+		]);
 
 	const overviewTitle = 'Finances Overview';
 </script>

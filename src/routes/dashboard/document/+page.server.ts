@@ -105,7 +105,7 @@ export const actions: Actions = {
 					weddingId: wedding.id,
 					documentName: form.data.documentName,
 					documentCategory: form.data.documentCategory,
-					documentDate: form.data.documentDate,
+					documentDate: String(form.data.documentDate),
 					documentStatus: 'pending',
 					documentDueDate: null,
 					fileUrl: uploadResult.fileUrl,
@@ -240,7 +240,7 @@ export const actions: Actions = {
 				.set({
 					documentName: form.data.documentName,
 					documentCategory: form.data.documentCategory,
-					documentDate: form.data.documentDate,
+					documentDate: String(form.data.documentDate),
 					...fileMetadata,
 					updatedAt: Date.now(),
 				})

@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 			.selectFrom('schedules')
 			.select((eb) => eb.fn.countAll<number>().as('count'))
 			.where('weddingId', '=', wedding.id)
-			.where(sql`datetime(scheduleDate || ' ' || scheduleEndTime)`, '<', sql`datetime('now')`)
+			.where(sql`datetime(schedule_date || ' ' || schedule_end_time)`, '<', sql`datetime('now')`)
 			.executeTakeFirst()
 			.then((result) => result?.count ?? 0),
 
@@ -75,7 +75,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 			.selectFrom('schedules')
 			.selectAll()
 			.where('weddingId', '=', wedding.id)
-			.where(sql`datetime(scheduleDate || ' ' || scheduleStartTime)`, '>', sql`datetime('now')`)
+			.where(sql`datetime(schedule_date || ' ' || schedule_start_time)`, '>', sql`datetime('now')`)
 			.orderBy('scheduleDate', 'asc')
 			.orderBy('scheduleStartTime', 'asc')
 			.executeTakeFirst(),
@@ -136,9 +136,9 @@ export const actions: Actions = {
 					weddingId: wedding.id,
 					scheduleName,
 					scheduleCategory,
-					scheduleDate,
-					scheduleStartTime,
-					scheduleEndTime,
+					scheduleDate: String(scheduleDate),
+					scheduleStartTime: String(scheduleStartTime),
+					scheduleEndTime: String(scheduleEndTime),
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,
@@ -183,9 +183,9 @@ export const actions: Actions = {
 				.set({
 					scheduleName,
 					scheduleCategory,
-					scheduleDate,
-					scheduleStartTime,
-					scheduleEndTime,
+					scheduleDate: String(scheduleDate),
+					scheduleStartTime: String(scheduleStartTime),
+					scheduleEndTime: String(scheduleEndTime),
 					scheduleLocation,
 					scheduleVenue,
 					scheduleAttendees,

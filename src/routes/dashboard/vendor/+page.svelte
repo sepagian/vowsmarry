@@ -2,7 +2,7 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionVendor from '$lib/components/section/section-vendor.svelte';
 
-	import { vendorsStore } from '$lib/stores/vendors';
+	import { vendorsState } from '$lib/stores/vendors.svelte';
 	import { formatDistanceToNow } from 'date-fns';
 
 	const overviewTitle = 'Vendors Overview';
@@ -11,12 +11,11 @@
 	// Update store whenever data changes (including after invalidation)
 	$effect(() => {
 		if (data.vendors) {
-			vendorsStore.set(data.vendors);
+			vendorsState.set(data.vendors);
 		}
 	});
 
-	let overviewCards = $derived(() => {
-		return [
+	let overviewCards = $derived([
 			{
 				title: data.vendorStats.researching.toString(),
 				description: 'Researching',
@@ -53,8 +52,7 @@
 					? `Last updated ${formatDistanceToNow(new Date(data.update.booked), { addSuffix: true })}`
 					: 'No data yet',
 			},
-		];
-	});
+		]);
 </script>
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
