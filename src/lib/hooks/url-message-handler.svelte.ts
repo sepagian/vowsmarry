@@ -1,6 +1,6 @@
 import { onMount } from 'svelte';
 import { toast } from 'svelte-sonner';
-import { authToasts } from '$lib/utils/auth-toasts';
+import { authToasts } from '$lib/utils/toasts';
 import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 export function useUrlMessages(data: { message?: string; error?: string }) {

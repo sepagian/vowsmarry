@@ -1,5 +1,5 @@
 import { toast } from 'svelte-sonner';
-import { authToasts, handleAuthError, handleFormValidationError } from '$lib/utils/auth-toasts';
+import { authToasts, handleAuthError, handleFormValidationError } from '$lib/utils/toasts';
 import type { ActionResult } from '@sveltejs/kit';
 
 export function createAuthFormHandler(options: {
