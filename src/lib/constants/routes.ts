@@ -9,6 +9,7 @@ export const ROUTES = {
 	PROTECTED: {
 		DASHBOARD: '/dashboard',
 		ACCOUNT: '/account',
+		ONBOARDING: '/onboarding',
 	},
 	API: {
 		AUTH: '/api/auth',
