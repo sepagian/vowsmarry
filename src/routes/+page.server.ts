@@ -1,10 +1,22 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals: { user } }) => {
-	if (user) {
-		redirect(302, '/dashboard');
-	} else {
-		redirect(302, '/login');
+export const load: PageServerLoad = async ({ locals, plannerDb }) => {
+	const { user } = locals;
+
+	if (!user) {
+		throw redirect(302, '/login');
 	}
+
+	const userWedding = await plannerDb
+		.selectFrom('weddings')
+		.selectAll()
+		.where('userId', '=', user.id)
+		.executeTakeFirst();
+
+	if (!userWedding) {
+		throw redirect(302, '/onboarding');
+	}
+
+	throw redirect(302, '/dashboard');
 };

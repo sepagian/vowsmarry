@@ -71,6 +71,58 @@ export type RsvpStatus = 'attending' | 'declined';
 export type GalleryType = 'photo' | 'video';
 export type GiftType = 'digital wallet' | 'registry';
 
+// Better Auth Tables
+
+export interface UserAuthTable {
+	id: string;
+	name: string;
+	email: string;
+	emailVerified: Generated<number>; // boolean as 0/1
+	image: string | null;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+}
+
+export interface SessionTable {
+	id: string;
+	expiresAt: Timestamp;
+	token: string;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+	ipAddress: string | null;
+	userAgent: string | null;
+	userId: string;
+	activeOrganizationId: string | null;
+}
+
+export interface OrganizationTable {
+	id: string;
+	name: string;
+	slug: string;
+	logo: string | null;
+	metadata: string | null; // JSON stored as text
+	createdAt: Generated<Timestamp>;
+}
+
+export interface MemberTable {
+	id: string;
+	userId: string;
+	organizationId: string;
+	role: 'owner' | 'admin' | 'member' | null;
+	createdAt: Generated<Timestamp>;
+}
+
+export interface InvitationAuthTable {
+	id: string;
+	email: string;
+	inviterId: string;
+	organizationId: string;
+	role: 'owner' | 'admin' | 'member' | null;
+	status: 'pending' | 'accepted' | 'rejected' | null;
+	createdAt: Generated<Timestamp>;
+	updatedAt: Generated<Timestamp>;
+}
+
 // Planner Database Tables
 
 export interface WeddingsTable {
@@ -100,6 +152,7 @@ export interface UsersTable {
 export interface TasksTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	taskDescription: string;
 	taskCategory: Category;
 	taskStatus: Generated<TaskStatus>;
@@ -115,6 +168,7 @@ export interface TasksTable {
 export interface DocumentsTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	documentName: string;
 	documentCategory: DocumentCategory;
 	documentDate: string; // ISO date string
@@ -132,6 +186,7 @@ export interface DocumentsTable {
 export interface ExpenseCategoriesTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	category: Category | null;
 	allocatedAmount: Generated<number>;
 	spentAmount: Generated<number>;
@@ -142,6 +197,7 @@ export interface ExpenseCategoriesTable {
 export interface ExpenseItemsTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	expenseDescription: string;
 	expenseCategory: Category;
 	expenseAmount: Generated<number>;
@@ -154,6 +210,7 @@ export interface ExpenseItemsTable {
 export interface SavingsItemsTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	savingAmount: number;
 	savingDescription: string | null;
 	savingDate: Generated<string>; // ISO date string
@@ -163,6 +220,7 @@ export interface SavingsItemsTable {
 export interface VendorsTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	vendorName: string;
 	vendorCategory: Category;
 	vendorInstagram: string | null;
@@ -179,6 +237,7 @@ export interface VendorsTable {
 export interface SchedulesTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	scheduleName: string;
 	scheduleCategory: RundownType;
 	scheduleDate: string; // ISO date string
@@ -195,6 +254,7 @@ export interface SchedulesTable {
 export interface DowryTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	dowryDescription: string | null;
 	dowryCategory: DowryType;
 	dowryPrice: number;
@@ -209,6 +269,7 @@ export interface DowryTable {
 export interface SouvenirsTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	vendorId: string;
 	souvenirName: string;
 	souvenirQuantity: number;
@@ -223,6 +284,7 @@ export interface SouvenirsTable {
 export interface DresscodesTable {
 	id: Generated<string>;
 	weddingId: string;
+	organizationId: string | null;
 	scheduleId: string;
 	dresscodeDescription: string;
 	dresscodeRole: DresscodeRole;
@@ -325,6 +387,12 @@ export interface GiftsTable {
 
 // Database interface combining all tables
 export interface Database {
+	// Better Auth tables
+	user: UserAuthTable;
+	session: SessionTable;
+	organization: OrganizationTable;
+	member: MemberTable;
+	invitation_auth: InvitationAuthTable;
 	// Planner tables
 	weddings: WeddingsTable;
 	users: UsersTable;

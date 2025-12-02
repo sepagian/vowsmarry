@@ -77,10 +77,13 @@ const database: Handle = async ({ event, resolve }) => {
  * 2. Read and validate session cookies
  * 3. Query the database for session and user data
  * 4. Populate event.locals with session and user objects
+ * 5. Load active workspace if set in session
  *
  * After this hook executes:
  * - event.locals.session contains the session object (or null if not authenticated)
  * - event.locals.user contains the user object (or null if not authenticated)
+ * - event.locals.activeWorkspaceId contains the active workspace ID (or null)
+ * - event.locals.activeWorkspace contains the full workspace details (or null)
  *
  * Session Validation:
  * Better Auth automatically validates sessions by:
@@ -89,6 +92,11 @@ const database: Handle = async ({ event, resolve }) => {
  * - Ensuring the session is associated with a valid user
  *
  * If validation fails, Better Auth clears the session cookie and sets locals to null.
+ *
+ * Active Workspace Loading:
+ * If the session has an activeOrganizationId, this hook loads the full workspace
+ * details from the database. This allows routes to access workspace information
+ * without additional database queries.
  *
  * Development Logging:
  * In development mode, logs authentication events to help with debugging.
@@ -117,19 +125,71 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 		if (session) {
 			event.locals.session = session.session;
 			event.locals.user = session.user;
+			
+			// Load active workspace if set in session
+			if (session.session.activeOrganizationId) {
+				event.locals.activeWorkspaceId = session.session.activeOrganizationId;
+				
+				// Load full workspace details for use in routes
+				try {
+					const workspace = await auth.api.getFullOrganization({
+						query: { organizationId: session.session.activeOrganizationId },
+						headers: event.request.headers,
+					});
+					
+					if (workspace) {
+						// Cast to our Organization type (Better Auth returns additional fields like members and invitations)
+						event.locals.activeWorkspace = {
+							id: workspace.id,
+							name: workspace.name,
+							slug: workspace.slug,
+							logo: workspace.logo ?? null,
+							metadata: workspace.metadata ?? null,
+							createdAt: workspace.createdAt,
+						};
+						
+						if (dev) {
+							console.log(`[Auth] Active workspace loaded: ${workspace.name} (${workspace.id})`);
+						}
+					} else {
+						event.locals.activeWorkspace = null;
+						if (dev) {
+							console.log('[Auth] Active workspace ID set but workspace not found');
+						}
+					}
+				} catch (workspaceError) {
+					// Workspace loading failed, but user is still authenticated
+					console.error('[Auth] Failed to load active workspace:', workspaceError);
+					event.locals.activeWorkspace = null;
+				}
+			} else {
+				// No active workspace set
+				event.locals.activeWorkspaceId = null;
+				event.locals.activeWorkspace = null;
+			}
+		} else {
+			// Not authenticated, clear workspace data
+			event.locals.activeWorkspaceId = null;
+			event.locals.activeWorkspace = null;
 		}
 	} catch (err) {
 		// Session fetch failed, user is not authenticated
 		if (dev) {
 			console.log('[Auth] Session fetch failed:', err);
 		}
+		// Ensure workspace data is cleared
+		event.locals.activeWorkspaceId = null;
+		event.locals.activeWorkspace = null;
 	}
 
 	const response = await svelteKitHandler({ event, resolve, auth, building });
 
 	// Log auth events in development
 	if (dev && event.locals.user) {
-		console.log(`[Auth] User ${event.locals.user.email} authenticated`);
+		const workspaceInfo = event.locals.activeWorkspace 
+			? ` with workspace "${event.locals.activeWorkspace.name}"`
+			: ' (no active workspace)';
+		console.log(`[Auth] User ${event.locals.user.email} authenticated${workspaceInfo}`);
 	}
 
 	return response;

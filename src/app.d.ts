@@ -3,6 +3,34 @@ import type { Kysely } from 'kysely';
 import type { Database } from '$lib/server/db/schema/types';
 import type { Session, User } from 'better-auth/types';
 
+/**
+ * Organization type from Better Auth with wedding-specific metadata.
+ * Represents a wedding workspace that couples use to collaborate on planning.
+ */
+export interface Organization {
+	/** Unique organization identifier */
+	id: string;
+	/** Organization name (e.g., "John & Jane's Wedding") */
+	name: string;
+	/** URL-friendly slug for guest invitation pages */
+	slug: string;
+	/** Optional organization logo URL */
+	logo: string | null;
+	/** Wedding-specific metadata fields */
+	metadata: {
+		/** ISO date string for wedding date */
+		weddingDate?: string;
+		/** Venue name */
+		weddingVenue?: string;
+		/** Groom's name */
+		groomName?: string;
+		/** Bride's name */
+		brideName?: string;
+	} | null;
+	/** Organization creation timestamp */
+	createdAt: Date;
+}
+
 declare global {
 	namespace App {
 		/**
@@ -39,6 +67,10 @@ declare global {
 			session: Session | null;
 			/** Current Better Auth user, null if unauthenticated */
 			user: User | null;
+			/** Active wedding workspace ID from session, null if no workspace selected */
+			activeWorkspaceId: string | null;
+			/** Full active wedding workspace details, null if no workspace selected */
+			activeWorkspace: Organization | null;
 		}
 
 		/**

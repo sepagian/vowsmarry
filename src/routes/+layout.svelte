@@ -26,7 +26,7 @@
 					document: 'Document - vowsmarry',
 					budget: 'Finance - vowsmarry',
 					vendor: 'Vendor - vowsmarry',
-					rundown: 'Rundown - vowsmarry',
+					schedule: 'Schedule - vowsmarry',
 				};
 
 				return section && titleMap[section] ? titleMap[section] : 'Dashboard - vowsmarry';

@@ -293,12 +293,8 @@ export const weddingSchema = v.object({
 		v.nonEmpty('Bride name is required'),
 		v.minLength(2, 'Bride name must be at least 2 characters'),
 	),
-	weddingDate: v.pipe(v.string(), v.isoDate()),
-	weddingVenue: v.pipe(
-		v.string(),
-		v.nonEmpty('Wedding venue is required'),
-		v.minLength(2, 'Wedding venue must be at least 2 characters'),
-	),
+	weddingDate: v.pipe(v.string(), v.isoDate('Please enter a valid date')),
+	weddingVenue: v.optional(v.string()),
 	weddingBudget: v.number(),
 });
 

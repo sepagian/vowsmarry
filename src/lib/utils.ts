@@ -1,16 +1,13 @@
-import type { ClassValue } from 'clsx';
-import { clsx } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-// Utility types for UI components
-export type WithElementRef<T> = T & {
-	ref?: HTMLElement | null;
-};
-
-export type WithoutChild<T> = Omit<T, 'child'>;
-export type WithoutChildren<T> = Omit<T, 'children'>;
-export type WithoutChildrenOrChild<T> = Omit<T, 'children' | 'child'>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, 'children'> : T;
+export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
+export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };

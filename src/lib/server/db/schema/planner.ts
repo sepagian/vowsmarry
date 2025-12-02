@@ -88,6 +88,7 @@ export const tasks = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		taskDescription: text('task_description').notNull(),
 		taskCategory: text('task_category', { enum: categoryValues }).notNull(),
 		taskStatus: text('task_status', { enum: taskStatusValues }).default('pending').notNull(),
@@ -105,6 +106,7 @@ export const tasks = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('tasks_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('tasks_organization_id_idx').on(table.organizationId),
 		statusIdx: index('tasks_status_idx').on(table.taskStatus),
 		priorityIdx: index('tasks_priority_idx').on(table.taskPriority),
 		dueDateIdx: index('tasks_due_date_idx').on(table.taskDueDate),
@@ -126,6 +128,7 @@ export const documents = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		documentName: text('document_name').notNull(),
 		documentCategory: text('document_category', { enum: documentCategoryValues }).notNull(),
 		documentDate: text('document_date').notNull(), // ISO date string (YYYY-MM-DD)
@@ -145,6 +148,7 @@ export const documents = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('documents_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('documents_organization_id_idx').on(table.organizationId),
 		documentCategoryIdx: index('documents_type_idx').on(table.documentCategory),
 	}),
 );
@@ -162,6 +166,7 @@ export const expenseCategories = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		category: text('category', { enum: categoryValues }),
 		allocatedAmount: real('allocated_amount').default(0).notNull(),
 		spentAmount: real('spent_amount').default(0).notNull(),
@@ -174,6 +179,7 @@ export const expenseCategories = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_categories_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('expense_categories_organization_id_idx').on(table.organizationId),
 		weddingCategoryIdx: uniqueIndex('expense_categories_wedding_category_idx').on(
 			table.weddingId,
 			table.category,
@@ -190,6 +196,7 @@ export const expenseItems = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		expenseDescription: text('expense_description').notNull(),
 		expenseCategory: text('expense_category', { enum: categoryValues }).notNull(),
 		expenseAmount: real('expense_amount').default(0).notNull(),
@@ -206,6 +213,7 @@ export const expenseItems = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('expense_items_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('expense_items_organization_id_idx').on(table.organizationId),
 		categoryIdIdx: index('expense_items_category_idx').on(table.expenseCategory),
 		amountIdx: index('expense_items_amount_idx').on(table.expenseAmount),
 		paymentStatusIdx: index('expense_items_payment_status_idx').on(table.expensePaymentStatus),
@@ -222,6 +230,7 @@ export const savingsItems = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		savingAmount: real('amount').notNull(),
 		savingDescription: text('description'),
 		savingDate: text('date')
@@ -233,6 +242,7 @@ export const savingsItems = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('savings_items_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('savings_items_organization_id_idx').on(table.organizationId),
 		dateIdx: index('savings_items_date_idx').on(table.savingDate),
 	}),
 );
@@ -250,6 +260,7 @@ export const vendors = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		vendorName: text('vendor_name').notNull(),
 		vendorCategory: text('vendor_category', { enum: categoryValues }).notNull(),
 		vendorInstagram: text('vendor_instagram'),
@@ -268,6 +279,7 @@ export const vendors = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('vendors_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('vendors_organization_id_idx').on(table.organizationId),
 		categoryIdx: index('vendors_category_idx').on(table.vendorCategory),
 		statusIdx: index('vendors_status_idx').on(table.vendorStatus),
 		ratingIdx: index('vendors_rating_idx').on(table.vendorRating),
@@ -287,6 +299,7 @@ export const schedules = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		scheduleName: text('schedule_name').notNull(),
 		scheduleCategory: text('schedule_category', { enum: rundownTypeValues }).notNull(), // ceremony, reception, party, etc.
 		scheduleDate: text('schedule_date').notNull(), // ISO date string (YYYY-MM-DD)
@@ -305,6 +318,7 @@ export const schedules = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('rundown_events_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('schedules_organization_id_idx').on(table.organizationId),
 		startTimeIdx: index('rundown_events_start_time_idx').on(table.scheduleStartTime),
 	}),
 );
@@ -322,6 +336,7 @@ export const dowry = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		dowryDescription: text('description'),
 		dowryCategory: text('type', { enum: dowryTypeValues }).notNull(),
 		dowryPrice: real('price').notNull(),
@@ -338,6 +353,7 @@ export const dowry = sqliteTable(
 	},
 	(table) => ({
 		weddingIdx: index('dowry_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('dowry_organization_id_idx').on(table.organizationId),
 		typeIdx: index('dowry_type_idx').on(table.dowryCategory),
 		statusIdx: index('dowry_status_idx').on(table.dowryStatus),
 	}),
@@ -356,6 +372,7 @@ export const souvenirs = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		vendorId: text('vendor_id')
 			.notNull()
 			.references(() => vendors.id, { onDelete: 'cascade' }),
@@ -374,6 +391,7 @@ export const souvenirs = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('souvenirs_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('souvenirs_organization_id_idx').on(table.organizationId),
 		vendorIdIdx: index('souvenirs_vendor_id_idx').on(table.vendorId),
 		statusIdx: index('souvenirs_status_idx').on(table.souvenirStatus),
 	}),
@@ -392,6 +410,7 @@ export const dresscodes = sqliteTable(
 		weddingId: text('wedding_id')
 			.notNull()
 			.references(() => weddings.id, { onDelete: 'cascade' }),
+		organizationId: text('organization_id'),
 		scheduleId: text('schedule_id')
 			.notNull()
 			.references(() => schedules.id, { onDelete: 'cascade' }),
@@ -407,6 +426,7 @@ export const dresscodes = sqliteTable(
 	},
 	(table) => ({
 		weddingIdIdx: index('dresscodes_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('dresscodes_organization_id_idx').on(table.organizationId),
 		dresscodeRoleIdx: index('dresscodes_dresscode_role_idx').on(table.dresscodeRole),
 		scheduleIdIdx: index('dresscodes_rundown_id_idx').on(table.scheduleId),
 	}),

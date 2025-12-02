@@ -48,4 +48,25 @@ export class RouteMatcher {
 	static isAuthPage(pathname: string): boolean {
 		return AUTH_PAGES.some((page) => pathname.startsWith(page));
 	}
+
+	/**
+	 * Check if pathname is the onboarding route
+	 * 
+	 * @param pathname - Request pathname
+	 * @returns true if pathname is the onboarding route
+	 */
+	static isOnboardingRoute(pathname: string): boolean {
+		return pathname.startsWith(ROUTES.PROTECTED.ONBOARDING);
+	}
+
+	/**
+	 * Check if pathname requires an active workspace
+	 * Dashboard routes require a workspace, but onboarding does not
+	 * 
+	 * @param pathname - Request pathname
+	 * @returns true if pathname requires an active workspace
+	 */
+	static requiresWorkspace(pathname: string): boolean {
+		return pathname.startsWith(ROUTES.PROTECTED.DASHBOARD);
+	}
 }
