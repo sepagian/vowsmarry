@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "08f6c31d-489f-428a-b31f-bfd20e8bf8e2",
+  "id": "a93a02da-e842-47cf-b81f-6ebffb3a0155",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account": {
@@ -128,6 +128,246 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "invitation": {
+      "name": "invitation",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inviter_id": {
+          "name": "inviter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'member'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "invitation_email_unique": {
+          "name": "invitation_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "invitation_inviter_id_user_id_fk": {
+          "name": "invitation_inviter_id_user_id_fk",
+          "tableFrom": "invitation",
+          "tableTo": "user",
+          "columnsFrom": [
+            "inviter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "invitation_organization_id_organization_id_fk": {
+          "name": "invitation_organization_id_organization_id_fk",
+          "tableFrom": "invitation",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "member": {
+      "name": "member",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'member'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "member_user_id_user_id_fk": {
+          "name": "member_user_id_user_id_fk",
+          "tableFrom": "member",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "member_organization_id_organization_id_fk": {
+          "name": "member_organization_id_organization_id_fk",
+          "tableFrom": "member",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "organization": {
+      "name": "organization",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "organization_slug_unique": {
+          "name": "organization_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "session": {
       "name": "session",
       "columns": {
@@ -187,6 +427,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "active_organization_id": {
+          "name": "active_organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -217,6 +464,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "session_active_organization_id_organization_id_fk": {
+          "name": "session_active_organization_id_organization_id_fk",
+          "tableFrom": "session",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "active_organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -1176,8 +1436,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "name": {
-          "name": "name",
+        "document_name": {
+          "name": "document_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1197,16 +1457,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
+        "document_status": {
+          "name": "document_status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'pending'"
         },
-        "due_date": {
-          "name": "due_date",
+        "document_due_date": {
+          "name": "document_due_date",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1226,15 +1486,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "filesize": {
-          "name": "filesize",
+        "file_size": {
+          "name": "file_size",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "mimetype": {
-          "name": "mimetype",
+        "mime_type": {
+          "name": "mime_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1645,38 +1905,38 @@
           "notNull": true,
           "autoincrement": false
         },
-        "description": {
-          "name": "description",
+        "expense_description": {
+          "name": "expense_description",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "category": {
-          "name": "category",
+        "expense_category": {
+          "name": "expense_category",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "amount": {
-          "name": "amount",
+        "expense_amount": {
+          "name": "expense_amount",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": 0
         },
-        "payment_status": {
-          "name": "payment_status",
+        "expense_payment_status": {
+          "name": "expense_payment_status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'unpaid'"
         },
-        "due_date": {
-          "name": "due_date",
+        "expense_due_date": {
+          "name": "expense_due_date",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1708,28 +1968,28 @@
         "expense_items_category_idx": {
           "name": "expense_items_category_idx",
           "columns": [
-            "category"
+            "expense_category"
           ],
           "isUnique": false
         },
         "expense_items_amount_idx": {
           "name": "expense_items_amount_idx",
           "columns": [
-            "amount"
+            "expense_amount"
           ],
           "isUnique": false
         },
         "expense_items_payment_status_idx": {
           "name": "expense_items_payment_status_idx",
           "columns": [
-            "payment_status"
+            "expense_payment_status"
           ],
           "isUnique": false
         },
         "expense_items_due_date_idx": {
           "name": "expense_items_due_date_idx",
           "columns": [
-            "due_date"
+            "expense_due_date"
           ],
           "isUnique": false
         }
@@ -2133,24 +2393,24 @@
           "notNull": true,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
+        "task_status": {
+          "name": "task_status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'pending'"
         },
-        "priority": {
-          "name": "priority",
+        "task_priority": {
+          "name": "task_priority",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'low'"
         },
-        "due_date": {
-          "name": "due_date",
+        "task_due_date": {
+          "name": "task_due_date",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -2203,21 +2463,21 @@
         "tasks_status_idx": {
           "name": "tasks_status_idx",
           "columns": [
-            "status"
+            "task_status"
           ],
           "isUnique": false
         },
         "tasks_priority_idx": {
           "name": "tasks_priority_idx",
           "columns": [
-            "priority"
+            "task_priority"
           ],
           "isUnique": false
         },
         "tasks_due_date_idx": {
           "name": "tasks_due_date_idx",
           "columns": [
-            "due_date"
+            "task_due_date"
           ],
           "isUnique": false
         },
@@ -2382,65 +2642,65 @@
           "notNull": true,
           "autoincrement": false
         },
-        "name": {
-          "name": "name",
+        "vendor_name": {
+          "name": "vendor_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "category": {
-          "name": "category",
+        "vendor_category": {
+          "name": "vendor_category",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "instagram": {
-          "name": "instagram",
+        "vendor_instagram": {
+          "name": "vendor_instagram",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "email": {
-          "name": "email",
+        "vendor_email": {
+          "name": "vendor_email",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "phone": {
-          "name": "phone",
+        "vendor_phone": {
+          "name": "vendor_phone",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "website": {
-          "name": "website",
+        "vendor_website": {
+          "name": "vendor_website",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
+        "vendor_status": {
+          "name": "vendor_status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'researching'"
         },
-        "rating": {
-          "name": "rating",
+        "vendor_rating": {
+          "name": "vendor_rating",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "total_cost": {
-          "name": "total_cost",
+        "vendor_total_cost": {
+          "name": "vendor_total_cost",
           "type": "real",
           "primaryKey": false,
           "notNull": false,
@@ -2472,21 +2732,21 @@
         "vendors_category_idx": {
           "name": "vendors_category_idx",
           "columns": [
-            "category"
+            "vendor_category"
           ],
           "isUnique": false
         },
         "vendors_status_idx": {
           "name": "vendors_status_idx",
           "columns": [
-            "status"
+            "vendor_status"
           ],
           "isUnique": false
         },
         "vendors_rating_idx": {
           "name": "vendors_rating_idx",
           "columns": [
-            "rating"
+            "vendor_rating"
           ],
           "isUnique": false
         }

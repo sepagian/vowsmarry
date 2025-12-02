@@ -16,6 +16,40 @@ CREATE TABLE `account` (
 );
 --> statement-breakpoint
 CREATE INDEX `account_userId_idx` ON `account` (`user_id`);--> statement-breakpoint
+CREATE TABLE `invitation` (
+	`id` text PRIMARY KEY NOT NULL,
+	`email` text NOT NULL,
+	`inviter_id` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`role` text DEFAULT 'member',
+	`status` text DEFAULT 'pending',
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`inviter_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`organization_id`) REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `invitation_email_unique` ON `invitation` (`email`);--> statement-breakpoint
+CREATE TABLE `member` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`organization_id` text NOT NULL,
+	`role` text DEFAULT 'member',
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`organization_id`) REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `organization` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`slug` text NOT NULL,
+	`logo` text,
+	`metadata` text,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `organization_slug_unique` ON `organization` (`slug`);--> statement-breakpoint
 CREATE TABLE `session` (
 	`id` text PRIMARY KEY NOT NULL,
 	`expires_at` integer NOT NULL,
@@ -25,7 +59,9 @@ CREATE TABLE `session` (
 	`ip_address` text,
 	`user_agent` text,
 	`user_id` text NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
+	`active_organization_id` text,
+	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`active_organization_id`) REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `session_token_unique` ON `session` (`token`);--> statement-breakpoint
@@ -170,15 +206,15 @@ CREATE INDEX `rsvps_status_idx` ON `rsvps` (`status`);--> statement-breakpoint
 CREATE TABLE `documents` (
 	`id` text PRIMARY KEY NOT NULL,
 	`wedding_id` text NOT NULL,
-	`name` text NOT NULL,
+	`document_name` text NOT NULL,
 	`document_category` text NOT NULL,
 	`document_date` text NOT NULL,
-	`status` text DEFAULT 'pending' NOT NULL,
-	`due_date` text,
+	`document_status` text DEFAULT 'pending' NOT NULL,
+	`document_due_date` text,
 	`file_url` text NOT NULL,
 	`file_name` text NOT NULL,
-	`filesize` integer NOT NULL,
-	`mimetype` text NOT NULL,
+	`file_size` integer NOT NULL,
+	`mime_type` text NOT NULL,
 	`reminder_sent` integer DEFAULT false NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
@@ -237,21 +273,21 @@ CREATE UNIQUE INDEX `expense_categories_wedding_category_idx` ON `expense_catego
 CREATE TABLE `expense_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`wedding_id` text NOT NULL,
-	`description` text NOT NULL,
-	`category` text NOT NULL,
-	`amount` real DEFAULT 0 NOT NULL,
-	`payment_status` text DEFAULT 'unpaid' NOT NULL,
-	`due_date` text NOT NULL,
+	`expense_description` text NOT NULL,
+	`expense_category` text NOT NULL,
+	`expense_amount` real DEFAULT 0 NOT NULL,
+	`expense_payment_status` text DEFAULT 'unpaid' NOT NULL,
+	`expense_due_date` text NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`wedding_id`) REFERENCES `weddings`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `expense_items_wedding_id_idx` ON `expense_items` (`wedding_id`);--> statement-breakpoint
-CREATE INDEX `expense_items_category_idx` ON `expense_items` (`category`);--> statement-breakpoint
-CREATE INDEX `expense_items_amount_idx` ON `expense_items` (`amount`);--> statement-breakpoint
-CREATE INDEX `expense_items_payment_status_idx` ON `expense_items` (`payment_status`);--> statement-breakpoint
-CREATE INDEX `expense_items_due_date_idx` ON `expense_items` (`due_date`);--> statement-breakpoint
+CREATE INDEX `expense_items_category_idx` ON `expense_items` (`expense_category`);--> statement-breakpoint
+CREATE INDEX `expense_items_amount_idx` ON `expense_items` (`expense_amount`);--> statement-breakpoint
+CREATE INDEX `expense_items_payment_status_idx` ON `expense_items` (`expense_payment_status`);--> statement-breakpoint
+CREATE INDEX `expense_items_due_date_idx` ON `expense_items` (`expense_due_date`);--> statement-breakpoint
 CREATE TABLE `savings_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`wedding_id` text NOT NULL,
@@ -307,9 +343,9 @@ CREATE TABLE `tasks` (
 	`wedding_id` text NOT NULL,
 	`task_description` text NOT NULL,
 	`task_category` text NOT NULL,
-	`status` text DEFAULT 'pending' NOT NULL,
-	`priority` text DEFAULT 'low' NOT NULL,
-	`due_date` text NOT NULL,
+	`task_status` text DEFAULT 'pending' NOT NULL,
+	`task_priority` text DEFAULT 'low' NOT NULL,
+	`task_due_date` text NOT NULL,
 	`completed_at` integer,
 	`assigned_to` text,
 	`created_by` text NOT NULL,
@@ -319,9 +355,9 @@ CREATE TABLE `tasks` (
 );
 --> statement-breakpoint
 CREATE INDEX `tasks_wedding_id_idx` ON `tasks` (`wedding_id`);--> statement-breakpoint
-CREATE INDEX `tasks_status_idx` ON `tasks` (`status`);--> statement-breakpoint
-CREATE INDEX `tasks_priority_idx` ON `tasks` (`priority`);--> statement-breakpoint
-CREATE INDEX `tasks_due_date_idx` ON `tasks` (`due_date`);--> statement-breakpoint
+CREATE INDEX `tasks_status_idx` ON `tasks` (`task_status`);--> statement-breakpoint
+CREATE INDEX `tasks_priority_idx` ON `tasks` (`task_priority`);--> statement-breakpoint
+CREATE INDEX `tasks_due_date_idx` ON `tasks` (`task_due_date`);--> statement-breakpoint
 CREATE INDEX `tasks_created_by_idx` ON `tasks` (`created_by`);--> statement-breakpoint
 CREATE INDEX `tasks_assigned_to_idx` ON `tasks` (`assigned_to`);--> statement-breakpoint
 CREATE TABLE `users` (
@@ -343,24 +379,24 @@ CREATE INDEX `users_role_idx` ON `users` (`user_role`);--> statement-breakpoint
 CREATE TABLE `vendors` (
 	`id` text PRIMARY KEY NOT NULL,
 	`wedding_id` text NOT NULL,
-	`name` text NOT NULL,
-	`category` text NOT NULL,
-	`instagram` text,
-	`email` text,
-	`phone` text,
-	`website` text,
-	`status` text DEFAULT 'researching' NOT NULL,
-	`rating` text NOT NULL,
-	`total_cost` real,
+	`vendor_name` text NOT NULL,
+	`vendor_category` text NOT NULL,
+	`vendor_instagram` text,
+	`vendor_email` text,
+	`vendor_phone` text,
+	`vendor_website` text,
+	`vendor_status` text DEFAULT 'researching' NOT NULL,
+	`vendor_rating` text NOT NULL,
+	`vendor_total_cost` real,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`wedding_id`) REFERENCES `weddings`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `vendors_wedding_id_idx` ON `vendors` (`wedding_id`);--> statement-breakpoint
-CREATE INDEX `vendors_category_idx` ON `vendors` (`category`);--> statement-breakpoint
-CREATE INDEX `vendors_status_idx` ON `vendors` (`status`);--> statement-breakpoint
-CREATE INDEX `vendors_rating_idx` ON `vendors` (`rating`);--> statement-breakpoint
+CREATE INDEX `vendors_category_idx` ON `vendors` (`vendor_category`);--> statement-breakpoint
+CREATE INDEX `vendors_status_idx` ON `vendors` (`vendor_status`);--> statement-breakpoint
+CREATE INDEX `vendors_rating_idx` ON `vendors` (`vendor_rating`);--> statement-breakpoint
 CREATE TABLE `weddings` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
