@@ -6,17 +6,23 @@
 	import { enhance } from '$app/forms';
 	import { active } from '$lib/actions/active.svelte';
 	import { currentUser, userEmail } from '$lib/stores/auth';
+	import type { WithoutChildren } from '$lib/utils.js';
+	import type { ComponentProps } from 'svelte';
 
 	const sidebar = useSidebar();
+	let {
+		items,
+		...restProps
+	}: { items: { title: string; url: string; icon: string }[] } & WithoutChildren<
+		ComponentProps<typeof Sidebar.Group>
+	> = $props();
 
 	// Better Auth stores the full name in the 'name' field
 	const fullName = $derived($currentUser?.name || '');
 	const nameParts = $derived(fullName.split(' '));
 	const firstName = $derived(nameParts[0] || '');
 	const lastName = $derived(nameParts.slice(1).join(' ') || '');
-	const displayName = $derived(
-		fullName || $currentUser?.email?.split('@')[0] || 'User',
-	);
+	const displayName = $derived(fullName || $currentUser?.email?.split('@')[0] || 'User');
 	const displayEmail = $derived($userEmail || '');
 	const initials = $derived(
 		firstName && lastName
@@ -28,14 +34,9 @@
 					.toUpperCase()
 					.slice(0, 2) || 'U',
 	);
-
-	const userNavItems = [
-		{ title: 'Account', url: '/account', icon: 'i-lucide:user' },
-		{ title: 'Settings', url: '/settings', icon: 'i-lucide:settings' },
-	];
 </script>
 
-<Sidebar.Menu>
+<Sidebar.Menu {...restProps}>
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
@@ -75,7 +76,7 @@
 				</DropdownMenu.Label>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					{#each userNavItems as item (item.title)}
+					{#each items as item (item.title)}
 						<DropdownMenu.Item class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
 							{#if item.url}
 								<a
