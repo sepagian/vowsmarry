@@ -1,10 +1,11 @@
 <script lang="ts">
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
-	import { buttonVariants } from '$lib/components/ui/button/index';
+	import { Button } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import AppearanceSwitcher from '../appearance-switcher.svelte';
 	import { page } from '$app/state';
+	import { enhance } from '$app/forms';
 
 	const breadcrumbs = $derived(
 		page.url.pathname
@@ -48,6 +49,27 @@
 		</div>
 		<div class="flex justify-end gap-4">
 			<AppearanceSwitcher />
+			<form
+				method="POST"
+				action="/logout"
+				use:enhance={() => {
+					return async ({ update }) => {
+						await update();
+					};
+				}}
+			>
+				<Button
+					variant="outline"
+					class="px-2"
+					onclick={(e) => {
+						e.preventDefault();
+						const form = e.currentTarget.closest('form');
+						if (form) form.submit();
+					}}
+				>
+					<div class="i-lucide:log-out h-5 w-5"></div>
+				</Button>
+			</form>
 		</div>
 	</div>
 </header>
