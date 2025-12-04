@@ -198,9 +198,9 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 /**
  * Auth Guard Hook
  *
- * Enforces route protection rules based on authentication status.
+ * Enforces route protection rules based on authentication status and workspace access.
  * This hook runs after Better Auth has populated event.locals, so we can
- * reliably check if the user is authenticated.
+ * reliably check if the user is authenticated and has an active workspace.
  *
  * Route Protection Rules:
  *
@@ -210,15 +210,22 @@ const betterAuth: Handle = async ({ event, resolve }) => {
  *    - /robots.txt, /favicon.ico - Static files
  *
  * 2. Protected Routes (Require Authentication):
- *    - /dashboard/* - Main application dashboard
+ *    - /dashboard/* - Main application dashboard (requires workspace)
+ *    - /onboarding - Workspace setup (requires auth, no workspace needed)
+ *    - /account - User account settings (requires auth, no workspace needed)
  *    - Redirects to /login if not authenticated
  *
- * 3. Auth Pages (Redirect if Authenticated):
+ * 3. Workspace-Required Routes (Require Authentication + Active Workspace):
+ *    - /dashboard/* - All dashboard routes require an active workspace
+ *    - Redirects to /onboarding if authenticated but no workspace
+ *
+ * 4. Auth Pages (Redirect if Authenticated):
  *    - /login, /register - Authentication forms
- *    - Redirects to /dashboard if already authenticated
+ *    - Redirects to /dashboard if authenticated with workspace
+ *    - Redirects to /onboarding if authenticated without workspace
  *    - Prevents authenticated users from seeing login/register pages
  *
- * 4. Public Routes (Always Allow):
+ * 5. Public Routes (Always Allow):
  *    - /, /about, etc. - Public pages
  *    - Accessible without authentication
  *
@@ -230,6 +237,10 @@ const betterAuth: Handle = async ({ event, resolve }) => {
  * - The session is not expired
  * - The user associated with the session exists
  *
+ * Workspace Check:
+ * A user has an active workspace if activeWorkspaceId exists in event.locals.
+ * This is set by the betterAuth hook when loading the session.
+ *
  * Redirect Behavior:
  * - Uses 303 status code (See Other) for POST-redirect-GET pattern
  * - Preserves request method semantics
@@ -238,19 +249,35 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 const authGuard: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 
+	// Allow public assets (CSS, JS, images, etc.)
 	if (RouteMatcher.isPublicAsset(pathname)) {
 		return resolve(event);
 	}
 
-	const { session, user } = event.locals;
+	const { session, user, activeWorkspaceId } = event.locals;
 	const isAuthenticated = !!(session && user);
+	const hasWorkspace = !!activeWorkspaceId;
 
+	// Redirect unauthenticated users trying to access protected routes
 	if (!isAuthenticated && RouteMatcher.isProtectedRoute(pathname)) {
 		redirect(303, ROUTES.PUBLIC.LOGIN);
 	}
 
+	// Redirect authenticated users away from auth pages
 	if (isAuthenticated && RouteMatcher.isAuthPage(pathname)) {
-		redirect(303, ROUTES.PROTECTED.DASHBOARD);
+		// If user has a workspace, send them to dashboard
+		// If no workspace, send them to onboarding
+		const destination = hasWorkspace ? ROUTES.PROTECTED.DASHBOARD : ROUTES.PROTECTED.ONBOARDING;
+		redirect(303, destination);
+	}
+
+	// Check workspace requirement for dashboard routes
+	if (isAuthenticated && RouteMatcher.requiresWorkspace(pathname)) {
+		// User is authenticated but has no active workspace
+		// Redirect to onboarding to create/select a workspace
+		if (!hasWorkspace) {
+			redirect(303, ROUTES.PROTECTED.ONBOARDING);
+		}
 	}
 
 	return resolve(event);
