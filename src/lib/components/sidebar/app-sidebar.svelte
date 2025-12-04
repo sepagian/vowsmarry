@@ -2,17 +2,24 @@
 	lang="ts"
 	module
 >
-	const navMainItems = [
-		{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // DASHBOARD
-		{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // TASKS
-		{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // DOCUMENTS & PAPERWORK
-		{ title: 'Finance', url: '/dashboard/finance', icon: 'i-lucide:dollar-sign' }, // EXPENSES AND SAVINGS
-		{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' }, // VENDORS
-		{ title: 'Schedules', url: '/dashboard/schedules', icon: 'i-lucide:calendar-1' }, // RUNDOWN & DRESSCODES
-		{ title: 'Invitation', url: '/dashboard/invitation', icon: 'i-lucide:mail' }, // OVERVIEW, TEMPLATES, COUPLES DETAILS
-		{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // LOVE STORY & GALLERY
-		{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // RSVPS
-	];
+	const data = {
+		navMain: [
+			{ title: 'Dashboard', url: '/dashboard', icon: 'i-lucide:home' }, // DASHBOARD
+			{ title: 'Tasks', url: '/dashboard/task', icon: 'i-lucide:square-check' }, // TASKS
+			{ title: 'Documents', url: '/dashboard/document', icon: 'i-lucide:file-text' }, // DOCUMENTS & PAPERWORK
+			{ title: 'Finance', url: '/dashboard/finance', icon: 'i-lucide:dollar-sign' }, // EXPENSES AND SAVINGS
+			{ title: 'Vendors', url: '/dashboard/vendor', icon: 'i-lucide:signature' }, // VENDORS
+			{ title: 'Schedules', url: '/dashboard/schedules', icon: 'i-lucide:calendar-1' }, // RUNDOWN & DRESSCODES
+			{ title: 'Invitation', url: '/dashboard/invitation', icon: 'i-lucide:mail' }, // OVERVIEW, TEMPLATES, COUPLES DETAILS
+			{ title: 'Story', url: '/dashboard/invitation/story', icon: 'i-lucide:notebook-pen' }, // LOVE STORY & GALLERY
+			{ title: 'Guests', url: '/dashboard/invitation/guest', icon: 'i-lucide:users' }, // RSVPS
+		],
+		navSecondary: [{ title: 'Settings', url: '/settings/workspace', icon: 'i-lucide:settings' }],
+		navUser: [
+			{ title: 'Account', url: '/settings/account', icon: 'i-lucide:user' },
+			{ title: 'Billing', url: '/settings/account', icon: 'i-lucide:credit-card' },
+		],
+	};
 </script>
 
 <script lang="ts">
@@ -22,6 +29,7 @@
 	import { isAuthenticated } from '$lib/stores/auth';
 
 	import type { ComponentProps } from 'svelte';
+	import NavSecondary from './nav-secondary.svelte';
 
 	let {
 		collapsible = 'icon',
@@ -38,11 +46,15 @@
 >
 	<Sidebar.Header class="h-13.75 bg-background"></Sidebar.Header>
 	<Sidebar.Content class="align-center bg-background">
-		<NavMain items={navMainItems} />
+		<NavMain items={data.navMain} />
+		<NavSecondary
+			items={data.navSecondary}
+			class="mt-auto"
+		/>
 	</Sidebar.Content>
 	<Sidebar.Footer class="bg-background">
 		{#if $isAuthenticated}
-			<NavUser />
+			<NavUser items={data.navUser} />
 		{/if}
 	</Sidebar.Footer>
 </Sidebar.Root>
