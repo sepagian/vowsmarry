@@ -22,7 +22,7 @@
 	}
 </script>
 
-<div class="w-full h-xl pt-4">
+<div class="w-full h-fit pt-4">
 	<FieldSet.Root class="justify-between rounded-xl overflow-hidden">
 		<div class="flex flex-col">
 			<FieldSet.Title class="p-6 font-bold flex flex-col gap-1">
