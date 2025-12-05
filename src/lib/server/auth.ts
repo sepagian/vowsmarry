@@ -72,8 +72,7 @@ export function getAuth(d1: D1Database) {
 			expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
 			updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
 			cookieCache: {
-				enabled: true,
-				maxAge: SESSION_CONFIG.CACHE_TTL_SECONDS,
+				enabled: false,
 			},
 		},
 
@@ -87,9 +86,7 @@ export function getAuth(d1: D1Database) {
 			},
 		},
 
-		trustedOrigins: dev
-			? ['http://localhost:5173', 'http://localhost:4173']
-			: [BETTER_AUTH_URL],
+		trustedOrigins: dev ? ['http://localhost:5173', 'http://localhost:4173'] : [BETTER_AUTH_URL],
 
 		plugins: [
 			organization({
