@@ -1,78 +1,153 @@
 <script lang="ts">
+	import type { SuperValidated } from 'sveltekit-superforms';
+	import type { UserData } from '$lib/validation/planner';
+	import { superForm } from 'sveltekit-superforms';
+	import { valibot } from 'sveltekit-superforms/adapters';
 	import { Separator } from '$lib/components/ui/separator/index';
 	import { Input } from '$lib/components/ui/input/';
-	import { Button } from '$lib/components/ui/button/index';
-	import * as Field from '$lib/components/ui/field';
-	import * as Select from '$lib/components/ui/select';
-	import * as InputGroup from '$lib/components/ui/input-group';
-	import { userRole } from '$lib/validation/planner';
+	import * as Form from '$lib/components/ui/form/index';
+	import { userRole, userSchema } from '$lib/validation/planner';
+	import { toast } from 'svelte-sonner';
+	import { invalidateAll } from '$app/navigation';
+
+	interface Props {
+		profileForm: SuperValidated<UserData>;
+		user: {
+			id: string;
+			name: string;
+			email: string;
+			emailVerified: boolean;
+			image: string | null;
+			phone?: string | null;
+			role?: string | null;
+		};
+	}
+
+	let { profileForm, user }: Props = $props();
+
+	const form = superForm(profileForm, {
+		validators: valibot(userSchema),
+		onResult: async ({ result }) => {
+			if (result.type === 'success' && result.data?.success) {
+				toast.success(result.data.message || 'Profile updated successfully');
+				await invalidateAll();
+			} else if (result.type === 'failure') {
+				toast.error(result.data?.message || 'Failed to update profile');
+			}
+		},
+		onError: () => {
+			toast.error('An error occurred while updating profile');
+		},
+	});
+
+	const { form: formData, errors, enhance } = form;
 </script>
 
-<div class="flex flex-col">
-	<h1 class="font-extrabold text-xl">Profile</h1>
-	<span class="text-muted-foreground text-sm"
-		>Update your name, photo, and basic information so everything stays familiar across your
-		workspace.</span
-	>
-</div>
-
-<Field.Set>
-	<Field.Group class="grid gap-6">
-		<Field.Field class="flex sm:flex-row gap-4 items-center">
-			<div class="flex flex-col">
-				<Field.Label for="name">Full name</Field.Label>
-				<Field.Description>This appears across your workspace.</Field.Description>
-			</div>
-			<Input
-				id="name"
-				placeholder="John Doe"
-			/>
-		</Field.Field>
-		<Field.Field class="flex sm:flex-row gap-4 items-center">
-			<div class="flex flex-col">
-				<Field.Label for="email">Email address</Field.Label>
-				<Field.Description>Your primary contact for updates and sign-in.</Field.Description>
-			</div>
-			<Input
-				type="email"
-				id="email"
-				placeholder="johndoe@email.com"
-			/>
-		</Field.Field>
-		<Field.Field class="flex sm:flex-row gap-4 items-center">
-			<div class="flex flex-col">
-				<Field.Label for="phone">Phone number</Field.Label>
-				<Field.Description>Used for quick verification or important notices.</Field.Description>
-			</div>
-			<InputGroup.Root>
-				<InputGroup.Addon>
-					<InputGroup.Text>+62</InputGroup.Text>
-				</InputGroup.Addon>
-				<InputGroup.Input
-					type="tel"
-					id="phone"
-					placeholder="8123 456 7890"
-				/>
-			</InputGroup.Root>
-		</Field.Field>
-		<Field.Field class="flex sm:flex-row gap-2 items-center">
-			<div class="flex flex-col">
-				<Field.Label for="role">Role</Field.Label>
-				<Field.Description>Tell others what you do here.</Field.Description>
-			</div>
-			<Select.Root type="single">
-				<Select.Trigger class="w-[180px]">Select your Role</Select.Trigger>
-				<Select.Content>
-					{#each userRole as role (role.value)}
-						<Select.Item value={role.value}>{role.label}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-		</Field.Field>
-	</Field.Group>
-	<div class="flex justify-end">
-		<Button>Save Changes</Button>
+<form
+	method="POST"
+	action="?/updateProfile"
+	use:enhance
+	class="flex flex-col gap-4"
+>
+	<div class="flex flex-col">
+		<h1 class="font-extrabold text-xl">Profile</h1>
+		<span class="text-muted-foreground text-sm"
+			>Update your name, photo, and basic information so everything stays familiar across your
+			workspace.</span
+		>
 	</div>
-</Field.Set>
 
-<Separator />
+	<div class="grid gap-6">
+		<Form.Field
+			{form}
+			name="userName"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
+							<Form.Label>Full name</Form.Label>
+							<Form.Description>This appears across your workspace.</Form.Description>
+						</div>
+						<div class="flex-1">
+							<Input
+								{...props}
+								type="text"
+								bind:value={$formData.userName}
+								placeholder="John Doe"
+							/>
+						</div>
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="userEmail"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
+							<Form.Label>Email address</Form.Label>
+							<Form.Description>Your primary contact for updates and sign-in.</Form.Description>
+						</div>
+						<div class="flex-1">
+							<Input
+								{...props}
+								type="email"
+								bind:value={$formData.userEmail}
+								placeholder="johndoe@email.com"
+							/>
+						</div>
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="userRole"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
+							<Form.Label>Role</Form.Label>
+							<Form.Description>Tell others what you do here.</Form.Description>
+						</div>
+						<div class="flex-1">
+							<select
+								{...props}
+								bind:value={$formData.userRole}
+								class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								{#each userRole as role (role.value)}
+									<option value={role.value}>{role.label}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		{#if user.emailVerified}
+			<div class="flex items-center gap-2 text-sm text-green-600">
+				<span class="i-lucide:check-circle"></span>
+				<span>Email verified</span>
+			</div>
+		{:else}
+			<div class="flex items-center gap-2 text-sm text-amber-600">
+				<span class="i-lucide:alert-circle"></span>
+				<span>Email not verified</span>
+			</div>
+		{/if}
+	</div>
+
+	<Separator />
+</form>
