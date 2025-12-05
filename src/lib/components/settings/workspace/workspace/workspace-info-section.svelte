@@ -38,7 +38,12 @@
 	});
 </script>
 
-<form method="POST" action="?/updateWorkspaceInfo" use:enhance class="flex flex-col gap-4">
+<form
+	method="POST"
+	action="?/updateWorkspaceInfo"
+	use:enhance
+	class="flex flex-col gap-4"
+>
 	<div class="flex flex-col">
 		<h1 class="font-extrabold text-xl">Workspace Info</h1>
 		<span class="text-muted-foreground text-sm"
@@ -47,11 +52,14 @@
 	</div>
 
 	<div class="grid gap-6">
-		<Form.Field {form} name="groomName">
+		<Form.Field
+			{form}
+			name="groomName"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Groom Name</Form.Label>
 							<Form.Description>The groom's name</Form.Description>
 						</div>
@@ -69,11 +77,14 @@
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 
-		<Form.Field {form} name="brideName">
+		<Form.Field
+			{form}
+			name="brideName"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Bride Name</Form.Label>
 							<Form.Description>The bride's name</Form.Description>
 						</div>
@@ -91,11 +102,14 @@
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 
-		<Form.Field {form} name="workspaceName">
+		<Form.Field
+			{form}
+			name="workspaceName"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Wedding Title</Form.Label>
 							<Form.Description
 								>A name for your wedding workspace, something that feels like you.</Form.Description
@@ -115,11 +129,14 @@
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 
-		<Form.Field {form} name="slug">
+		<Form.Field
+			{form}
+			name="slug"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Invitation Link</Form.Label>
 							<Form.Description
 								>This becomes your unique invitation address. Keep it simple and meaningful.</Form.Description
