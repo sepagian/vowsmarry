@@ -61,7 +61,7 @@
 				<Button
 					variant="outline"
 					class="px-2"
-					onclick={(e) => {
+					onclick={(e: MouseEvent & { currentTarget: HTMLButtonElement }) => {
 						e.preventDefault();
 						const form = e.currentTarget.closest('form');
 						if (form) form.submit();
