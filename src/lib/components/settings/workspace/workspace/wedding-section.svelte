@@ -38,7 +38,12 @@
 	});
 </script>
 
-<form method="POST" action="?/updateWeddingDetails" use:enhance class="flex flex-col gap-4">
+<form
+	method="POST"
+	action="?/updateWeddingDetails"
+	use:enhance
+	class="flex flex-col gap-4"
+>
 	<div class="flex flex-col">
 		<h1 class="font-extrabold text-xl">Wedding Details</h1>
 		<span class="text-muted-foreground text-sm"
@@ -47,11 +52,14 @@
 	</div>
 
 	<div class="grid gap-6">
-		<Form.Field {form} name="weddingDate">
+		<Form.Field
+			{form}
+			name="weddingDate"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Wedding Date</Form.Label>
 							<Form.Description>When will your day unfold?</Form.Description>
 						</div>
@@ -68,11 +76,14 @@
 			<Form.FieldErrors class="text-xs text-red-500" />
 		</Form.Field>
 
-		<Form.Field {form} name="weddingVenue">
+		<Form.Field
+			{form}
+			name="weddingVenue"
+		>
 			<Form.Control>
 				{#snippet children({ props })}
-					<div class="flex sm:flex-row gap-4 items-center">
-						<div class="flex flex-col flex-1">
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
 							<Form.Label>Wedding Location</Form.Label>
 							<Form.Description>Where will your wedding take place?</Form.Description>
 						</div>
@@ -93,5 +104,3 @@
 
 	<Separator />
 </form>
-
-
