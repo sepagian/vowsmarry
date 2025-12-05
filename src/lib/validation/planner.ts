@@ -301,11 +301,11 @@ export const weddingSchema = v.object({
 export type WeddingData = v.InferInput<typeof weddingSchema>;
 
 export const userSchema = v.object({
-	userName: v.string(),
+	userName: v.pipe(v.string(), v.nonEmpty('Name is required')),
 	userEmail: v.pipe(v.string(), v.email()),
-	userPhone: v.string(),
-	userRole: v.picklist(userRole.map((r) => r.value, 'Please select a role')),
-	userAvatarUrl: v.pipe(v.string(), v.url()),
+	userPhone: v.optional(v.string()),
+	userRole: v.optional(v.picklist(userRole.map((r) => r.value))),
+	userAvatarUrl: v.optional(v.pipe(v.string(), v.url())),
 });
 
 export type UserData = v.InferInput<typeof userSchema>;
