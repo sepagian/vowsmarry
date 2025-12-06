@@ -19,7 +19,6 @@
 			emailVerified: boolean;
 			image: string | null;
 			phone?: string | null;
-			role?: string | null;
 		};
 	}
 
@@ -101,34 +100,6 @@
 								bind:value={$formData.userEmail}
 								placeholder="johndoe@email.com"
 							/>
-						</div>
-					</div>
-				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
-		</Form.Field>
-
-		<Form.Field
-			{form}
-			name="userRole"
-		>
-			<Form.Control>
-				{#snippet children({ props })}
-					<div class="flex flex-col sm:flex-row gap-2 align-center">
-						<div class="flex flex-col flex-1 gap-1">
-							<Form.Label>Role</Form.Label>
-							<Form.Description>Tell others what you do here.</Form.Description>
-						</div>
-						<div class="flex-1">
-							<select
-								{...props}
-								bind:value={$formData.userRole}
-								class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-							>
-								{#each userRole as role (role.value)}
-									<option value={role.value}>{role.label}</option>
-								{/each}
-							</select>
 						</div>
 					</div>
 				{/snippet}
