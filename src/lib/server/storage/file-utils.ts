@@ -26,7 +26,7 @@ export interface UploadResult {
 export interface UploadOptions {
 	/** Path prefix for organizing files (e.g., 'documents', 'avatars', 'gallery') */
 	pathPrefix: string;
-	/** Scope identifier (e.g., weddingId, userId) for file organization */
+	/** Scope identifier (e.g., organizationId, userId) for file organization */
 	scopeId: string;
 	/** Optional metadata to attach to the file */
 	metadata?: Record<string, string>;
@@ -37,8 +37,8 @@ export interface UploadOptions {
 export interface DocumentUploadOptions extends UploadOptions {
 	/** Kysely database instance for storing document metadata */
 	db: Kysely<Database>;
-	/** Wedding ID for the document */
-	weddingId: string;
+	/** Organization ID for the document */
+	organizationId: string;
 	/** Document name */
 	documentName: string;
 	/** Document category */
@@ -103,7 +103,7 @@ export function generateFileKey(
  * @example
  * const result = await uploadFile(file, {
  *   pathPrefix: 'documents',
- *   scopeId: weddingId,
+ *   scopeId: organizationId,
  *   metadata: { category: 'legal' }
  * });
  */
@@ -345,17 +345,17 @@ export async function getDocumentMetadata(documentId: string, db: Kysely<Databas
 }
 
 /**
- * Gets all documents for a wedding from D1
+ * Gets all documents for an organization from D1
  * 
- * @param weddingId - The wedding ID
+ * @param organizationId - The organization ID
  * @param db - Kysely database instance
  * @returns Array of document metadata
  */
-export async function getWeddingDocuments(weddingId: string, db: Kysely<Database>) {
+export async function getOrganizationDocuments(organizationId: string, db: Kysely<Database>) {
 	return await db
 		.selectFrom('documents')
 		.selectAll()
-		.where('weddingId', '=', weddingId)
+		.where('organizationId', '=', organizationId)
 		.orderBy('createdAt', 'desc')
 		.execute();
 }
@@ -396,8 +396,8 @@ export async function getInvitationGallery(invitationId: string, db: Kysely<Data
 // ============================================================================
 
 /**
- * Uploads a document file for a wedding and stores metadata in D1
- * Path: documents/{weddingId}/{timestamp}-{fileName}
+ * Uploads a document file for an organization and stores metadata in D1
+ * Path: documents/{organizationId}/{timestamp}-{fileName}
  * 
  * @param file - The file to upload
  * @param options - Document upload options including database instance
@@ -410,7 +410,7 @@ export async function uploadDocumentFile(
 ): Promise<UploadResult> {
 	const {
 		db,
-		weddingId,
+		organizationId,
 		documentName,
 		documentCategory,
 		documentDate,
@@ -421,7 +421,7 @@ export async function uploadDocumentFile(
 	// Upload file to R2
 	const uploadResult = await uploadFile(file, {
 		pathPrefix: 'documents',
-		scopeId: weddingId,
+		scopeId: organizationId,
 		metadata: options.metadata,
 		cacheControl: options.cacheControl,
 	});
@@ -432,7 +432,7 @@ export async function uploadDocumentFile(
 			.insertInto('documents')
 			.values({
 				id: crypto.randomUUID(),
-				weddingId,
+				organizationId,
 				documentName,
 				documentCategory,
 				documentDate,
@@ -552,32 +552,32 @@ export async function uploadAvatarImage(
 }
 
 /**
- * Uploads a vendor attachment for a wedding
- * Path: vendors/{weddingId}/{timestamp}-{fileName}
+ * Uploads a vendor attachment for an organization
+ * Path: vendors/{organizationId}/{timestamp}-{fileName}
  * Note: Vendor attachment URLs can be stored in vendor-related tables
  */
 export async function uploadVendorAttachment(
-	weddingId: string,
+	organizationId: string,
 	file: File
 ): Promise<UploadResult> {
 	return uploadFile(file, {
 		pathPrefix: 'vendors',
-		scopeId: weddingId,
+		scopeId: organizationId,
 	});
 }
 
 /**
- * Uploads a dresscode image for a wedding
- * Path: dresscodes/{weddingId}/{timestamp}-{fileName}
+ * Uploads a dresscode image for an organization
+ * Path: dresscodes/{organizationId}/{timestamp}-{fileName}
  * Note: Dresscode image URLs are stored in the dresscodes table
  */
 export async function uploadDresscodeImage(
-	weddingId: string,
+	organizationId: string,
 	file: File
 ): Promise<UploadResult> {
 	return uploadFile(file, {
 		pathPrefix: 'dresscodes',
-		scopeId: weddingId,
+		scopeId: organizationId,
 	});
 }
 
@@ -597,7 +597,7 @@ export async function uploadDresscodeImage(
  * try {
  *   const result = await replaceFile(oldUrl, newFile, {
  *     pathPrefix: 'documents',
- *     scopeId: weddingId
+ *     scopeId: organizationId
  *   });
  *   // New file uploaded successfully, old file deleted
  * } catch (error) {
