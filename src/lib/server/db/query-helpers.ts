@@ -2,17 +2,17 @@ import type { Kysely } from 'kysely';
 import type { Database } from './schema/types';
 
 /**
- * Get count of records in a table for a specific wedding
+ * Get count of records in a table for a specific organization
  */
 export async function getTableCount(
 	db: Kysely<Database>,
 	table: 'tasks' | 'expense_items' | 'documents' | 'vendors',
-	weddingId: string,
+	organizationId: string,
 ): Promise<number> {
 	const result = await db
 		.selectFrom(table)
 		.select((eb) => eb.fn.countAll<number>().as('count'))
-		.where('weddingId', '=', weddingId)
+		.where('organizationId', '=', organizationId)
 		.executeTakeFirst();
 
 	return result?.count ?? 0;
@@ -25,12 +25,12 @@ export async function getTableCount(
 export async function getLastUpdate(
 	db: Kysely<Database>,
 	table: 'tasks' | 'expense_items' | 'documents' | 'vendors',
-	weddingId: string,
+	organizationId: string,
 ): Promise<number | null> {
 	const result = await db
 		.selectFrom(table)
 		.select('updatedAt')
-		.where('weddingId', '=', weddingId)
+		.where('organizationId', '=', organizationId)
 		.orderBy('updatedAt', 'desc')
 		.limit(1)
 		.executeTakeFirst();
