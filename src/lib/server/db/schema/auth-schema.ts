@@ -120,6 +120,12 @@ export const organization = sqliteTable('organization', {
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.notNull(),
+	// Wedding-specific fields (migrated from weddings table)
+	groomName: text('groom_name'),
+	brideName: text('bride_name'),
+	weddingDate: text('wedding_date'), // ISO date string (YYYY-MM-DD)
+	weddingVenue: text('wedding_venue'),
+	weddingBudget: text('wedding_budget'), // Stored as text to match Better Auth's type system
 });
 
 export const member = sqliteTable('member', {
@@ -147,6 +153,7 @@ export const invitation = sqliteTable('invitation', {
 		.references(() => organization.id),
 	role: text('role', { enum: memberRoleValues }).default('member'),
 	status: text('status', { enum: invitationStatusValues }).default('pending'),
+	expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
 	createdAt: integer('created_at', { mode: 'timestamp_ms' })
 		.default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
 		.notNull(),
