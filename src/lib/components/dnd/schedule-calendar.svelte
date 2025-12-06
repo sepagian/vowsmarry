@@ -30,10 +30,12 @@
 		schedules = [],
 		tasks = [],
 		expenses = [],
+		workspaceId = null,
 	}: {
 		schedules: Schedule[];
 		tasks: Task[];
 		expenses: Expense[];
+		workspaceId?: string | null;
 	} = $props();
 
 	// State for selected event and modal
@@ -138,10 +140,21 @@
 				events: [],
 			});
 
-			// Initialize stores
-			calendarState.setSchedules(schedules || []);
-			tasksState.set(tasks || []);
-			expensesState.set(expenses || []);
+			// Initialize stores with workspace context
+			// Clear stores if workspace changed to prevent stale data
+			if (!calendarState.isWorkspace(workspaceId)) {
+				calendarState.clearWorkspace();
+			}
+			if (!tasksState.isWorkspace(workspaceId)) {
+				tasksState.clearWorkspace();
+			}
+			if (!expensesState.isWorkspace(workspaceId)) {
+				expensesState.clearWorkspace();
+			}
+			
+			calendarState.setSchedules(schedules || [], workspaceId);
+			tasksState.set(tasks || [], workspaceId);
+			expensesState.set(expenses || [], workspaceId);
 
 			setTimeout(() => {
 				isLoading = false;
@@ -156,9 +169,14 @@
 	});
 
 	// Update stores when props change
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		try {
-			calendarState.setSchedules(schedules || []);
+			// Clear store if workspace changed to prevent stale data
+			if (!calendarState.isWorkspace(workspaceId)) {
+				calendarState.clearWorkspace();
+			}
+			calendarState.setSchedules(schedules || [], workspaceId);
 		} catch (error) {
 			console.error('Error updating schedules store:', error);
 		}
@@ -166,7 +184,11 @@
 
 	$effect(() => {
 		try {
-			tasksState.set(tasks || []);
+			// Clear store if workspace changed to prevent stale data
+			if (!tasksState.isWorkspace(workspaceId)) {
+				tasksState.clearWorkspace();
+			}
+			tasksState.set(tasks || [], workspaceId);
 		} catch (error) {
 			console.error('Error updating tasks store:', error);
 		}
@@ -174,7 +196,11 @@
 
 	$effect(() => {
 		try {
-			expensesState.set(expenses || []);
+			// Clear store if workspace changed to prevent stale data
+			if (!expensesState.isWorkspace(workspaceId)) {
+				expensesState.clearWorkspace();
+			}
+			expensesState.set(expenses || [], workspaceId);
 		} catch (error) {
 			console.error('Error updating expenses store:', error);
 		}
