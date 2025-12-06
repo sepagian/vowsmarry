@@ -59,7 +59,7 @@ export const workspaceInfoSchema = v.object({
 
 /**
  * Wedding details update schema
- * For updating wedding date and venue
+ * For updating wedding date, venue, and budget
  */
 export const weddingDetailsSchema = v.object({
 	weddingDate: v.pipe(v.string(), v.nonEmpty('Wedding date is required')),
@@ -67,6 +67,12 @@ export const weddingDetailsSchema = v.object({
 		v.string(),
 		v.nonEmpty('Wedding venue is required'),
 		v.minLength(2, 'Venue must be at least 2 characters'),
+	),
+	weddingBudget: v.optional(
+		v.pipe(
+			v.string(),
+			v.regex(/^\d+(\.\d{1,2})?$/, 'Budget must be a valid number with up to 2 decimal places'),
+		),
 	),
 });
 
