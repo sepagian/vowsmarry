@@ -26,14 +26,6 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 		throw redirect(302, '/login');
 	}
 
-	// Fetch wedding planner user data if exists
-	const [plannerUser] = await plannerDb
-		.selectFrom('users')
-		.selectAll()
-		.where('userEmail', '=', userData.email)
-		.limit(1)
-		.execute();
-
 	// Fetch active sessions
 	const activeSessions = await plannerDb
 		.selectFrom('session')
@@ -47,8 +39,6 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 		{
 			userName: userData.name,
 			userEmail: userData.email,
-			userPhone: plannerUser?.userPhone || undefined,
-			userRole: plannerUser?.userRole || 'partner',
 			userAvatarUrl: userData.image || undefined,
 		},
 		valibot(userSchema)
@@ -63,8 +53,6 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 			email: userData.email,
 			emailVerified: Boolean(userData.emailVerified),
 			image: userData.image,
-			phone: plannerUser?.userPhone,
-			role: plannerUser?.userRole,
 		},
 		activeSessions: activeSessions.map((s) => ({
 			id: s.id,
@@ -102,7 +90,7 @@ export const actions: Actions = {
 			console.log('Updating user profile for userId:', userId);
 			console.log('Form data:', form.data);
 
-			// Update Better Auth user table
+			// Update Better Auth user table with all user data
 			// Note: D1 requires timestamps as numbers, not Date objects
 			await plannerDb
 				.updateTable('user')
@@ -115,34 +103,7 @@ export const actions: Actions = {
 				.where('id', '=', userId)
 				.execute();
 
-			console.log('Updated Better Auth user table');
-
-			// Update or create planner user record
-			const [existingPlannerUser] = await plannerDb
-				.selectFrom('users')
-				.selectAll()
-				.where('userEmail', '=', locals.user.email)
-				.limit(1)
-				.execute();
-
-			console.log('Existing planner user:', existingPlannerUser);
-
-			if (existingPlannerUser) {
-				await plannerDb
-					.updateTable('users')
-					.set({
-						userName: form.data.userName,
-						userEmail: form.data.userEmail,
-						userPhone: form.data.userPhone || null,
-						userRole: form.data.userRole || 'partner',
-						userAvatarUrl: form.data.userAvatarUrl || null,
-						updatedAt: Date.now(),
-					})
-					.where('id', '=', existingPlannerUser.id)
-					.execute();
-
-				console.log('Updated planner user table');
-			}
+			console.log('Updated user profile in user table');
 
 			console.log('Profile update successful');
 			return { form, success: true, message: 'Profile updated successfully' };
@@ -291,9 +252,6 @@ export const actions: Actions = {
 		try {
 			// Delete user account (cascade will handle sessions and accounts)
 			await plannerDb.deleteFrom('user').where('id', '=', userId).execute();
-
-			// Also delete from planner users table
-			await plannerDb.deleteFrom('users').where('userEmail', '=', locals.user.email).execute();
 
 			// Redirect to home page after account deletion
 			throw redirect(302, '/');
