@@ -10,41 +10,15 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('vendor:list');
 	const vendorForm = await superValidate(valibot(vendorSchema));
 
-	const { user } = locals;
+	const { user, activeWorkspaceId } = locals;
 
-	if (!user) {
-		redirect(302, '/login');
-	}
-
-	const wedding = await plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', user.id)
-		.executeTakeFirst();
-
-	if (!wedding) {
-		return {
-			vendorForm,
-			vendorStats: {
-				researching: 0,
-				contacted: 0,
-				quoted: 0,
-				booked: 0,
-			},
-			update: {
-				researching: null,
-				contacted: null,
-				quoted: null,
-				booked: null,
-			},
-			vendors: [],
-		};
-	}
+	if (!user) redirect(302, '/login');
+	if (!activeWorkspaceId) redirect(302, '/onboarding');
 
 	const vendorList = await plannerDb
 		.selectFrom('vendors')
 		.selectAll()
-		.where('weddingId', '=', wedding.id)
+		.where('organizationId', '=', activeWorkspaceId)
 		.orderBy('vendorName', 'asc')
 		.execute();
 
@@ -60,7 +34,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('vendors')
 			.select('createdAt as updatedAt')
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where('vendorStatus', '=', 'researching')
 			.executeTakeFirst()
 			.then((result) => result?.updatedAt ?? null),
@@ -68,7 +42,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('vendors')
 			.select('createdAt as updatedAt')
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where('vendorStatus', '=', 'contacted')
 			.executeTakeFirst()
 			.then((result) => result?.updatedAt ?? null),
@@ -76,7 +50,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('vendors')
 			.select('createdAt as updatedAt')
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where('vendorStatus', '=', 'quoted')
 			.executeTakeFirst()
 			.then((result) => result?.updatedAt ?? null),
@@ -84,7 +58,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('vendors')
 			.select('createdAt as updatedAt')
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where('vendorStatus', '=', 'booked')
 			.executeTakeFirst()
 			.then((result) => result?.updatedAt ?? null),
@@ -99,7 +73,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 };
 
 export const actions: Actions = {
-	createVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	createVendor: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(vendorSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -111,7 +85,7 @@ export const actions: Actions = {
 				.insertInto('vendors')
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					vendorName,
 					vendorCategory,
 					vendorInstagram,
@@ -137,7 +111,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateVendor: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(vendorSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -161,7 +135,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', vendorId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -178,7 +152,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	deleteVendor: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteVendor: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const vendorId = data.get('id') as string;
 
@@ -186,7 +160,7 @@ export const actions: Actions = {
 			const deletedVendor = await plannerDb
 				.deleteFrom('vendors')
 				.where('id', '=', vendorId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -203,7 +177,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateVendorStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateVendorStatus: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const vendorId = data.get('id') as string;
 		const newStatus = data.get('status') as VendorStatus;
@@ -216,7 +190,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', vendorId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
