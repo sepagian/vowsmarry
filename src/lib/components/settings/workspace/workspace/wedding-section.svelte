@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/';
+	import { cn } from '$lib/utils/utils';
+	import { Input } from '$lib/components/ui/input/index';
+	import CurrencyInput from '@canutin/svelte-currency-input';
 	import { Separator } from '$lib/components/ui/separator/';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
@@ -9,11 +11,7 @@
 	import { weddingDetailsSchema } from '$lib/validation/workspace';
 	import { invalidateAll } from '$app/navigation';
 
-	const { weddingDetailsForm, organization } = $page.data;
-
-	// Debug: Log form data
-	console.log('Wedding Details Form Data:', weddingDetailsForm);
-	console.log('Organization:', organization);
+	const { weddingDetailsForm } = $page.data;
 
 	const form = superForm(weddingDetailsForm, {
 		validators: valibot(weddingDetailsSchema),
@@ -30,11 +28,20 @@
 		},
 	});
 
-	const { form: formData, errors, enhance } = form;
+	const { form: formData, enhance } = form;
 
-	// Debug: Log reactive form data
+	// Convert weddingBudget between number (for CurrencyInput) and string (for form)
+	let budgetValue = $state(
+		$formData.weddingBudget ? parseFloat($formData.weddingBudget) : undefined,
+	);
+
+	// Sync budgetValue changes back to form data as string
 	$effect(() => {
-		console.log('Current wedding form values:', $formData);
+		if (budgetValue !== undefined && !isNaN(budgetValue)) {
+			$formData.weddingBudget = budgetValue.toString();
+		} else {
+			$formData.weddingBudget = '';
+		}
 	});
 </script>
 
@@ -93,6 +100,40 @@
 								type="text"
 								bind:value={$formData.weddingVenue}
 								placeholder="Venue or City"
+							/>
+						</div>
+					</div>
+				{/snippet}
+			</Form.Control>
+			<Form.FieldErrors class="text-xs text-red-500" />
+		</Form.Field>
+
+		<Form.Field
+			{form}
+			name="weddingBudget"
+		>
+			<Form.Control>
+				{#snippet children({ props })}
+					<div class="flex flex-col sm:flex-row gap-2 align-center">
+						<div class="flex flex-col flex-1 gap-1">
+							<Form.Label>Wedding Budget</Form.Label>
+							<Form.Description>Your total budget for the wedding</Form.Description>
+						</div>
+						<div class="flex-1">
+							<CurrencyInput
+								{...props}
+								name="weddingBudget"
+								bind:value={budgetValue}
+								locale="id-ID"
+								currency="IDR"
+								inputClasses={{
+									formatted: cn(
+										'border-input bg-background selection:bg-primary dark:bg-input/30 selection:text-primary-foreground ring-offset-background placeholder:text-muted-foreground flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+										'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+										'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+									),
+									formattedPositive: 'text-base',
+								}}
 							/>
 						</div>
 					</div>
