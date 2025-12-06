@@ -48,9 +48,17 @@
 	});
 
 	// Initialize store with server data
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.documents) {
-			documentsState.set(data.documents);
+			const workspaceId = data.workspace?.id || null;
+			
+			// Clear store if workspace changed to prevent stale data
+			if (!documentsState.isWorkspace(workspaceId)) {
+				documentsState.clearWorkspace();
+			}
+			
+			documentsState.set(data.documents, workspaceId);
 		}
 	});
 
