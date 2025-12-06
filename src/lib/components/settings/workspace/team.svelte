@@ -1,8 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -43,9 +50,7 @@
 	const currentUser = $page.data.user;
 
 	// Find current user's role in the organization
-	const currentUserMember = organization?.members?.find(
-		(m: any) => m.userId === currentUser?.id
-	);
+	const currentUserMember = organization?.members?.find((m: any) => m.userId === currentUser?.id);
 	const isOwner = currentUserMember?.role === 'owner';
 
 	function formatDate(date: string | Date) {
@@ -76,9 +81,7 @@
 				<div class="i-lucide:users h-5 w-5"></div>
 				Team Members
 			</CardTitle>
-			<CardDescription>
-				People who have access to this wedding workspace
-			</CardDescription>
+			<CardDescription>People who have access to this wedding workspace</CardDescription>
 		</CardHeader>
 		<CardContent>
 			{#if organization?.members && organization.members.length > 0}
@@ -100,11 +103,13 @@
 									Joined {formatDate(member.createdAt)}
 								</div>
 							</div>
-
 							{#if isOwner && member.userId !== currentUser?.id}
 								<AlertDialog>
 									<AlertDialogTrigger>
-										<Button variant="ghost" size="icon">
+										<Button
+											variant="ghost"
+											size="icon"
+										>
 											<div class="i-lucide:user-minus h-5 w-5"></div>
 										</Button>
 									</AlertDialogTrigger>
@@ -112,15 +117,44 @@
 										<AlertDialogHeader>
 											<AlertDialogTitle>Remove Member</AlertDialogTitle>
 											<AlertDialogDescription>
-												Are you sure you want to remove {member.user?.name} from this workspace?
-												They will lose access to all wedding planning data.
+												Are you sure you want to remove {member.user?.name} from this workspace? They will
+												lose access to all wedding planning data.
 											</AlertDialogDescription>
 										</AlertDialogHeader>
 										<AlertDialogFooter>
 											<AlertDialogCancel>Cancel</AlertDialogCancel>
-											<form method="POST" action="?/removeMember" use:enhance>
-												<input type="hidden" name="memberIdOrEmail" value={member.user?.email} />
-												<AlertDialogAction type="submit">Remove</AlertDialogAction>
+											<form
+												method="POST"
+												action="?/removeMember"
+												use:enhance={() => {
+													return async ({ result, update }) => {
+														if (result.type === 'success') {
+															const data = result.data as {
+																success?: boolean;
+																message?: string;
+																redirect?: string;
+															};
+															if (data?.success) {
+																toast.success(data.message || 'Successfully removed member');
+																// Redirect to onboarding after leaving
+																if (data.redirect) {
+																	await goto(data.redirect);
+																}
+															}
+														} else if (result.type === 'failure') {
+															const data = result.data as { message?: string };
+															toast.error(data?.message || 'Failed to remove member');
+															await update();
+														}
+													};
+												}}
+											>
+												<input
+													type="hidden"
+													name="memberId"
+													value={member.userId}
+												/>
+												<AlertDialogAction type="submit">Remove Member</AlertDialogAction>
 											</form>
 										</AlertDialogFooter>
 									</AlertDialogContent>
@@ -143,9 +177,7 @@
 					<div class="i-lucide:mail h-5 w-5"></div>
 					Pending Invitations
 				</CardTitle>
-				<CardDescription>
-					Invitations that haven't been accepted yet
-				</CardDescription>
+				<CardDescription>Invitations that haven't been accepted yet</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div class="space-y-4">
@@ -160,9 +192,21 @@
 								</div>
 								<div class="flex items-center gap-2">
 									<Badge variant="outline">Pending</Badge>
-									<form method="POST" action="?/cancelInvitation" use:enhance>
-										<input type="hidden" name="invitationId" value={invitation.id} />
-										<Button type="submit" variant="ghost" size="icon">
+									<form
+										method="POST"
+										action="?/cancelInvitation"
+										use:enhance
+									>
+										<input
+											type="hidden"
+											name="invitationId"
+											value={invitation.id}
+										/>
+										<Button
+											type="submit"
+											variant="ghost"
+											size="icon"
+										>
 											<div class="i-lucide:x h-5 w-5"></div>
 										</Button>
 									</form>
@@ -184,7 +228,12 @@
 			</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<form method="POST" action="?/inviteMember" use:formEnhance class="space-y-4">
+			<form
+				method="POST"
+				action="?/inviteMember"
+				use:formEnhance
+				class="space-y-4"
+			>
 				<div class="space-y-2">
 					<Label for="partnerEmail">Partner's Email</Label>
 					<Input
@@ -210,16 +259,12 @@
 	<Card class="border-destructive">
 		<CardHeader>
 			<CardTitle class="text-destructive">Leave Workspace</CardTitle>
-			<CardDescription>
-				Remove yourself from this wedding workspace
-			</CardDescription>
+			<CardDescription>Remove yourself from this wedding workspace</CardDescription>
 		</CardHeader>
 		<CardContent>
 			<AlertDialog>
 				<AlertDialogTrigger>
-					<Button variant="destructive">
-						Leave Workspace
-					</Button>
+					<Button variant="destructive">Leave Workspace</Button>
 				</AlertDialogTrigger>
 				<AlertDialogContent>
 					<AlertDialogHeader>
@@ -233,7 +278,32 @@
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<form method="POST" action="?/leaveWorkspace" use:enhance>
+						<form
+							method="POST"
+							action="?/leaveWorkspace"
+							use:enhance={() => {
+								return async ({ result, update }) => {
+									if (result.type === 'success') {
+										const data = result.data as {
+											success?: boolean;
+											message?: string;
+											redirect?: string;
+										};
+										if (data?.success) {
+											toast.success(data.message || 'Successfully left workspace');
+											// Redirect to onboarding after leaving
+											if (data.redirect) {
+												await goto(data.redirect);
+											}
+										}
+									} else if (result.type === 'failure') {
+										const data = result.data as { message?: string };
+										toast.error(data?.message || 'Failed to leave workspace');
+										await update();
+									}
+								};
+							}}
+						>
 							<AlertDialogAction type="submit">Leave Workspace</AlertDialogAction>
 						</form>
 					</AlertDialogFooter>
