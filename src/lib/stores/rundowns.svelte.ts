@@ -6,6 +6,12 @@ import { SvelteDate, SvelteMap } from 'svelte/reactivity';
  */
 class RundownsState {
 	schedules = $state<Schedule[]>([]);
+	
+	/**
+	 * Current workspace ID that this store's data belongs to
+	 * Used to ensure data consistency when workspace changes
+	 */
+	private currentWorkspaceId = $state<string | null>(null);
 
 	/**
 	 * Get upcoming schedules
@@ -75,10 +81,42 @@ class RundownsState {
 	}
 
 	/**
-	 * Set schedules
+	 * Get the current workspace ID
 	 */
-	set(schedules: Schedule[]): void {
+	get workspaceId(): string | null {
+		return this.currentWorkspaceId;
+	}
+
+	/**
+	 * Set schedules and optionally workspace context
+	 * 
+	 * @param schedules - Schedules to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
+	 */
+	set(schedules: Schedule[], workspaceId?: string | null): void {
 		this.schedules = schedules;
+		if (workspaceId !== undefined) {
+			this.currentWorkspaceId = workspaceId;
+		}
+	}
+
+	/**
+	 * Set the workspace context without changing schedules
+	 * 
+	 * @param workspaceId - Workspace ID to set
+	 */
+	setWorkspace(workspaceId: string | null): void {
+		this.currentWorkspaceId = workspaceId;
+	}
+
+	/**
+	 * Check if the store's data belongs to the given workspace
+	 * 
+	 * @param workspaceId - Workspace ID to check
+	 * @returns true if data belongs to the workspace, false otherwise
+	 */
+	isWorkspace(workspaceId: string | null): boolean {
+		return this.currentWorkspaceId === workspaceId;
 	}
 
 	/**
@@ -128,6 +166,15 @@ class RundownsState {
 	 */
 	clear(): void {
 		this.schedules = [];
+	}
+
+	/**
+	 * Clear all schedules and workspace context
+	 * Should be called when switching workspaces to prevent stale data
+	 */
+	clearWorkspace(): void {
+		this.schedules = [];
+		this.currentWorkspaceId = null;
 	}
 }
 
