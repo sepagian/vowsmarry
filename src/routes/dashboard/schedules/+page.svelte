@@ -6,13 +6,21 @@
 	let { data } = $props();
 
 	// Update rundownsState for backward compatibility with existing components
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.schedules) {
-			rundownsState.set(data.schedules);
+			const workspaceId = data.workspace?.id || null;
+			
+			// Clear store if workspace changed to prevent stale data
+			if (!rundownsState.isWorkspace(workspaceId)) {
+				rundownsState.clearWorkspace();
+			}
+			
+			rundownsState.set(data.schedules, workspaceId);
 		}
 	});
 
-	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
+	const weddingDate = data.workspace?.weddingDate ? new Date(data.workspace.weddingDate) : null;
 	const daysUntilWedding = weddingDate
 		? Math.ceil((weddingDate.getTime() - new Date().getTime()) / 86400000)
 		: '0';
@@ -67,5 +75,6 @@
 		schedules={data.schedules}
 		tasks={data.tasks}
 		expenses={data.expenses}
+		workspaceId={data.workspace?.id}
 	/>
 </div>
