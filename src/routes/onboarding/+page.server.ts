@@ -7,6 +7,8 @@ import { workspaceSchema, inviteSchema } from '$lib/validation/workspace';
 import { getUser } from '$lib/server/auth-helpers';
 import { parseUserName } from '$lib/utils/user-utils';
 import { getAuth } from '$lib/server/auth';
+import { sendInvitationEmail } from '$lib/server/email/send-invitation';
+import { BETTER_AUTH_URL } from '$env/static/private';
 
 export const load: PageServerLoad = async ({ locals, depends }) => {
 	depends('dashboard:data');
@@ -56,73 +58,18 @@ function generateSlug(groomName: string, brideName: string, weddingDate: string)
 
 export const actions: Actions = {
 	/**
-	 * Store wedding data temporarily (step 2)
-	 * This data will be used later when creating the workspace organization
+	 * Create workspace organization with wedding data (combined step 2 & 3)
+	 * Creates organization with wedding metadata directly
 	 */
-	createWeddingData: async ({ request, locals, plannerDb }) => {
-		const form = await superValidate(request, valibot(weddingSchema));
+	createWorkspace: async ({ request, platform, plannerDb }) => {
+		// Parse both forms from the request
+		const formData = await request.formData();
+		const weddingForm = await superValidate(formData, valibot(weddingSchema));
+		const workspaceForm = await superValidate(formData, valibot(workspaceSchema));
 
-		if (!form.valid) {
-			return fail(400, { form });
+		if (!weddingForm.valid) {
+			return fail(400, { form: weddingForm });
 		}
-
-		const user = await getUser(locals.user);
-
-		try {
-			// Check if wedding already exists
-			const existingWedding = await plannerDb
-				.selectFrom('weddings')
-				.selectAll()
-				.where('userId', '=', user.id)
-				.executeTakeFirst();
-
-			const now = Date.now();
-
-			if (existingWedding) {
-				// Update existing wedding
-				await plannerDb
-					.updateTable('weddings')
-					.set({
-						groomName: form.data.groomName,
-						brideName: form.data.brideName,
-						weddingDate: form.data.weddingDate,
-						weddingVenue: form.data.weddingVenue,
-						weddingBudget: form.data.weddingBudget,
-						updatedAt: now,
-					})
-					.where('userId', '=', user.id)
-					.execute();
-			} else {
-				// Create new wedding
-				await plannerDb
-					.insertInto('weddings')
-					.values({
-						id: crypto.randomUUID(),
-						userId: user.id,
-						groomName: form.data.groomName,
-						brideName: form.data.brideName,
-						weddingDate: form.data.weddingDate,
-						weddingVenue: form.data.weddingVenue,
-						weddingBudget: form.data.weddingBudget,
-						createdAt: now,
-						updatedAt: now,
-					})
-					.execute();
-			}
-
-			return { form, success: true };
-		} catch (error) {
-			console.error('Error creating wedding data:', error);
-			return fail(500, { form });
-		}
-	},
-
-	/**
-	 * Create workspace organization with wedding metadata (step 3)
-	 * Uses the wedding data stored in step 2 to populate organization metadata
-	 */
-	createWorkspace: async ({ request, platform, locals, plannerDb }) => {
-		const workspaceForm = await superValidate(request, valibot(workspaceSchema));
 
 		if (!workspaceForm.valid) {
 			return fail(400, { form: workspaceForm });
@@ -136,34 +83,19 @@ export const actions: Actions = {
 		}
 
 		const auth = getAuth(platform.env.vowsmarry);
-		const user = await getUser(locals.user);
 
 		try {
-			// Get the wedding data for this user (created in step 2)
-			const wedding = await plannerDb
-				.selectFrom('weddings')
-				.selectAll()
-				.where('userId', '=', user.id)
-				.executeTakeFirst();
-
-			if (!wedding) {
-				return fail(400, {
-					form: workspaceForm,
-					message: 'Wedding data not found. Please complete step 2 first.',
-				});
-			}
-
 			// Generate slug from couple names and wedding date if not provided
 			let slug = workspaceForm.data.slug;
 			if (!slug) {
 				slug = generateSlug(
-					wedding.groomName ?? 'groom',
-					wedding.brideName ?? 'bride',
-					wedding.weddingDate ?? new Date().toISOString().split('T')[0]
+					weddingForm.data.groomName,
+					weddingForm.data.brideName,
+					weddingForm.data.weddingDate
 				);
 			}
 
-			// Validate slug uniqueness by querying the organization table directly
+			// Validate slug uniqueness
 			const existingOrg = await plannerDb
 				.selectFrom('organization')
 				.select('id')
@@ -177,11 +109,16 @@ export const actions: Actions = {
 				});
 			}
 
-			// Create organization with only name and slug
+			// Create organization with wedding data as additional fields
 			const organization = await auth.api.createOrganization({
 				body: {
 					name: workspaceForm.data.workspaceName,
 					slug: slug,
+					groomName: weddingForm.data.groomName,
+					brideName: weddingForm.data.brideName,
+					weddingDate: weddingForm.data.weddingDate,
+					weddingVenue: weddingForm.data.weddingVenue,
+					weddingBudget: weddingForm.data.weddingBudget.toString(),
 				},
 				headers: request.headers,
 			});
@@ -201,7 +138,12 @@ export const actions: Actions = {
 				headers: request.headers,
 			});
 
-			return { form: workspaceForm, organizationId: organization.id, success: true };
+			return { 
+				weddingForm, 
+				workspaceForm, 
+				organizationId: organization.id, 
+				success: true 
+			};
 		} catch (error) {
 			console.error('Error creating workspace:', error);
 			return fail(500, {
@@ -215,6 +157,14 @@ export const actions: Actions = {
 	 * Invite partner to the wedding workspace with admin role
 	 */
 	invitePartner: async ({ request, platform, locals }) => {
+		const { user } = locals;
+
+		if (!user) {
+			return fail(401, {
+				message: 'Authentication required',
+			});
+		}
+
 		const form = await superValidate(request, valibot(inviteSchema));
 
 		if (!form.valid) {
@@ -241,8 +191,23 @@ export const actions: Actions = {
 				});
 			}
 
-			// Invite partner with admin role (co-owner equivalent) using Better Auth API
-			await auth.api.createInvitation({
+			// Get organization details for email
+			const organization = await auth.api.getFullOrganization({
+				headers: request.headers,
+				query: {
+					organizationId: activeWorkspaceId,
+				},
+			});
+
+			if (!organization) {
+				return fail(500, {
+					form,
+					message: 'Organization not found',
+				});
+			}
+
+			// Create invitation in Better Auth
+			const invitation = await auth.api.createInvitation({
 				body: {
 					email: form.data.partnerEmail,
 					role: 'admin',
@@ -250,6 +215,20 @@ export const actions: Actions = {
 				},
 				headers: request.headers,
 			});
+
+			// Send invitation email
+			try {
+				await sendInvitationEmail({
+					inviteeEmail: form.data.partnerEmail,
+					inviterName: user.name,
+					organizationName: organization.name,
+					invitationId: invitation.id,
+					baseUrl: BETTER_AUTH_URL,
+				});
+			} catch (emailErr) {
+				console.error('Failed to send invitation email:', emailErr);
+				// Don't fail the whole operation if email fails
+			}
 
 			return { form, success: true };
 		} catch (error) {
