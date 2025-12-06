@@ -4,7 +4,7 @@ import type { Database } from '$lib/server/db/schema/types';
 import type { Session, User } from 'better-auth/types';
 
 /**
- * Organization type from Better Auth with wedding-specific metadata.
+ * Organization type from Better Auth with wedding-specific fields.
  * Represents a wedding workspace that couples use to collaborate on planning.
  */
 export interface Organization {
@@ -16,19 +16,20 @@ export interface Organization {
 	slug: string;
 	/** Optional organization logo URL */
 	logo: string | null;
-	/** Wedding-specific metadata fields */
-	metadata: {
-		/** ISO date string for wedding date */
-		weddingDate?: string;
-		/** Venue name */
-		weddingVenue?: string;
-		/** Groom's name */
-		groomName?: string;
-		/** Bride's name */
-		brideName?: string;
-	} | null;
+	/** Generic metadata field (JSON) */
+	metadata: string | null;
 	/** Organization creation timestamp */
 	createdAt: Date;
+	/** Groom's name */
+	groomName?: string | null;
+	/** Bride's name */
+	brideName?: string | null;
+	/** ISO date string for wedding date (YYYY-MM-DD) */
+	weddingDate?: string | null;
+	/** Venue name */
+	weddingVenue?: string | null;
+	/** Wedding budget (stored as string to match Better Auth's type system) */
+	weddingBudget?: string | null;
 }
 
 declare global {
