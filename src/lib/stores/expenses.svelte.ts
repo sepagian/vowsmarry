@@ -215,10 +215,21 @@ class ExpensesState extends BaseStore<Expense> {
 	}
 
 	/**
-	 * Override set method to clear date cache
+	 * Override set method to clear date cache and handle workspace context
+	 * 
+	 * @param items - Expenses to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
 	 */
-	override set(items: Expense[]): void {
-		super.set(items);
+	override set(items: Expense[], workspaceId?: string | null): void {
+		super.set(items, workspaceId);
+		this.clearAllDateCaches();
+	}
+
+	/**
+	 * Override clearWorkspace to also clear date cache
+	 */
+	override clearWorkspace(): void {
+		super.clearWorkspace();
 		this.clearAllDateCaches();
 	}
 
