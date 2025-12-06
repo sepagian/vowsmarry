@@ -102,6 +102,12 @@ export interface OrganizationTable {
 	logo: string | null;
 	metadata: string | null; // JSON stored as text
 	createdAt: Generated<Timestamp>;
+	// Wedding-specific fields (migrated from weddings table)
+	groomName: string | null;
+	brideName: string | null;
+	weddingDate: string | null; // ISO date string (YYYY-MM-DD)
+	weddingVenue: string | null;
+	weddingBudget: string | null; // Stored as text to match Better Auth's type system
 }
 
 export interface MemberTable {
@@ -139,7 +145,7 @@ export interface WeddingsTable {
 
 export interface UsersTable {
 	id: Generated<string>;
-	weddingId: string;
+	organizationId: string;
 	userName: string | null;
 	userEmail: string | null;
 	userPhone: string | null;
@@ -151,8 +157,7 @@ export interface UsersTable {
 
 export interface TasksTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	taskDescription: string;
 	taskCategory: Category;
 	taskStatus: Generated<TaskStatus>;
@@ -167,8 +172,7 @@ export interface TasksTable {
 
 export interface DocumentsTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	documentName: string;
 	documentCategory: DocumentCategory;
 	documentDate: string; // ISO date string
@@ -185,8 +189,7 @@ export interface DocumentsTable {
 
 export interface ExpenseCategoriesTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	category: Category | null;
 	allocatedAmount: Generated<number>;
 	spentAmount: Generated<number>;
@@ -196,8 +199,7 @@ export interface ExpenseCategoriesTable {
 
 export interface ExpenseItemsTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	expenseDescription: string;
 	expenseCategory: Category;
 	expenseAmount: Generated<number>;
@@ -209,8 +211,7 @@ export interface ExpenseItemsTable {
 
 export interface SavingsItemsTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	savingAmount: number;
 	savingDescription: string | null;
 	savingDate: Generated<string>; // ISO date string
@@ -219,8 +220,7 @@ export interface SavingsItemsTable {
 
 export interface VendorsTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	vendorName: string;
 	vendorCategory: Category;
 	vendorInstagram: string | null;
@@ -236,8 +236,7 @@ export interface VendorsTable {
 
 export interface SchedulesTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	scheduleName: string;
 	scheduleCategory: RundownType;
 	scheduleDate: string; // ISO date string
@@ -253,8 +252,7 @@ export interface SchedulesTable {
 
 export interface DowryTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	dowryDescription: string | null;
 	dowryCategory: DowryType;
 	dowryPrice: number;
@@ -268,8 +266,7 @@ export interface DowryTable {
 
 export interface SouvenirsTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	vendorId: string;
 	souvenirName: string;
 	souvenirQuantity: number;
@@ -283,8 +280,7 @@ export interface SouvenirsTable {
 
 export interface DresscodesTable {
 	id: Generated<string>;
-	weddingId: string;
-	organizationId: string | null;
+	organizationId: string;
 	scheduleId: string;
 	dresscodeDescription: string;
 	dresscodeRole: DresscodeRole;
@@ -297,7 +293,7 @@ export interface DresscodesTable {
 
 export interface InvitationsTable {
 	id: Generated<string>;
-	weddingId: string;
+	organizationId: string;
 	slug: string;
 	template: string;
 	status: Generated<InvitationStatus | null>;
