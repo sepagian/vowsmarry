@@ -93,6 +93,16 @@ export function getAuth(d1: D1Database) {
 				schema: {
 					organization: {
 						additionalFields: {
+							groomName: {
+								type: 'string',
+								input: true,
+								required: false,
+							},
+							brideName: {
+								type: 'string',
+								input: true,
+								required: false,
+							},
 							weddingDate: {
 								type: 'string',
 								input: true,
@@ -103,12 +113,7 @@ export function getAuth(d1: D1Database) {
 								input: true,
 								required: false,
 							},
-							groomName: {
-								type: 'string',
-								input: true,
-								required: false,
-							},
-							brideName: {
+							weddingBudget: {
 								type: 'string',
 								input: true,
 								required: false,
