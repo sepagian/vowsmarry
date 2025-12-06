@@ -9,7 +9,9 @@
 
 	function handleSaveAll() {
 		// Trigger form submissions by dispatching submit events
-		const forms = document.querySelectorAll('form[action*="updateWorkspace"], form[action*="updateWedding"]');
+		const forms = document.querySelectorAll(
+			'form[action*="updateWorkspaceInfo"], form[action*="updateWeddingDetails"]',
+		);
 		forms.forEach((form) => {
 			if (form instanceof HTMLFormElement) {
 				form.requestSubmit();
