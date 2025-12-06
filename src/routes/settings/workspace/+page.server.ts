@@ -8,12 +8,14 @@ import {
 	workspaceInfoSchema,
 	weddingDetailsSchema,
 } from '$lib/validation/workspace';
+import { sendInvitationEmail } from '$lib/server/email/send-invitation';
+import { BETTER_AUTH_URL } from '$env/static/private';
 
 /**
  * Load workspace data including organization details, members, and pending invitations
  */
-export const load: PageServerLoad = async ({ locals, platform, request, plannerDb }) => {
-	const { session, user, activeWorkspaceId } = locals;
+export const load: PageServerLoad = async ({ locals, platform, request }) => {
+	const { session, user, activeWorkspaceId, activeWorkspace } = locals;
 
 	// Require authentication
 	if (!session || !user) {
@@ -21,7 +23,7 @@ export const load: PageServerLoad = async ({ locals, platform, request, plannerD
 	}
 
 	// Require active workspace
-	if (!activeWorkspaceId) {
+	if (!activeWorkspaceId || !activeWorkspace) {
 		throw error(403, 'No active workspace');
 	}
 
@@ -48,48 +50,29 @@ export const load: PageServerLoad = async ({ locals, platform, request, plannerD
 			},
 		});
 
-		// Fetch wedding data from weddings table using userId
-		const weddingData = await plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst();
-
-		// Debug logging
-		console.log('Organization data:', {
-			name: organization?.name,
-			slug: organization?.slug,
-			metadata: organization?.metadata,
-		});
-		console.log('Wedding data from DB:', weddingData);
-
 		// Initialize forms
 		const inviteForm = await superValidate(valibot(inviteSchema));
 
-		// Initialize workspace info form with current data from weddings table
+		// Initialize workspace info form with current data from activeWorkspace
 		const workspaceInfoForm = await superValidate(
 			{
-				workspaceName: organization?.name || '',
-				slug: organization?.slug || '',
-				groomName: weddingData?.groomName || '',
-				brideName: weddingData?.brideName || '',
+				workspaceName: activeWorkspace.name || '',
+				slug: activeWorkspace.slug || '',
+				groomName: activeWorkspace.groomName || '',
+				brideName: activeWorkspace.brideName || '',
 			},
 			valibot(workspaceInfoSchema),
 		);
 
-		// Initialize wedding details form with current data from weddings table
+		// Initialize wedding details form with current data from activeWorkspace
 		const weddingDetailsForm = await superValidate(
 			{
-				weddingDate: weddingData?.weddingDate || '',
-				weddingVenue: weddingData?.weddingVenue || '',
+				weddingDate: activeWorkspace.weddingDate || '',
+				weddingVenue: activeWorkspace.weddingVenue || '',
+				weddingBudget: activeWorkspace.weddingBudget || '',
 			},
 			valibot(weddingDetailsSchema),
 		);
-
-		console.log('Form initial values:', {
-			workspaceInfo: workspaceInfoForm.data,
-			weddingDetails: weddingDetailsForm.data,
-		});
 
 		return {
 			organization,
@@ -97,7 +80,6 @@ export const load: PageServerLoad = async ({ locals, platform, request, plannerD
 			inviteForm,
 			workspaceInfoForm,
 			weddingDetailsForm,
-			weddingData, // Include wedding data for reference
 		};
 	} catch (err) {
 		console.error('Failed to load workspace data:', err);
@@ -109,7 +91,7 @@ export const actions: Actions = {
 	/**
 	 * Update workspace information (name, slug, couple names)
 	 */
-	updateWorkspaceInfo: async ({ request, locals, platform, plannerDb }) => {
+	updateWorkspaceInfo: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
 		if (!session || !user) {
@@ -133,12 +115,14 @@ export const actions: Actions = {
 		const auth = getAuth(platform.env.vowsmarry);
 
 		try {
-			// Update organization name and slug in Better Auth
+			// Update organization with name, slug, and couple names in Better Auth
 			await auth.api.updateOrganization({
 				body: {
 					data: {
 						name: form.data.workspaceName,
 						slug: form.data.slug,
+						groomName: form.data.groomName,
+						brideName: form.data.brideName,
 					},
 				},
 				query: {
@@ -146,17 +130,6 @@ export const actions: Actions = {
 				},
 				headers: request.headers,
 			});
-
-			// Update couple names in weddings table
-			await plannerDb
-				.updateTable('weddings')
-				.set({
-					groomName: form.data.groomName,
-					brideName: form.data.brideName,
-					updatedAt: Date.now(), // Use timestamp instead of Date object
-				})
-				.where('userId', '=', user.id)
-				.execute();
 
 			return {
 				form,
@@ -168,7 +141,7 @@ export const actions: Actions = {
 
 			const errorMessage = err instanceof Error ? err.message : String(err);
 
-			if (errorMessage.includes('slug')) {
+			if (errorMessage.includes('slug') || errorMessage.includes('UNIQUE constraint')) {
 				return fail(400, {
 					form,
 					message: 'This slug is already taken. Please choose a different one.',
@@ -183,9 +156,9 @@ export const actions: Actions = {
 	},
 
 	/**
-	 * Update wedding details (date and venue)
+	 * Update wedding details (date, venue, and budget)
 	 */
-	updateWeddingDetails: async ({ request, locals, plannerDb }) => {
+	updateWeddingDetails: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
 		if (!session || !user) {
@@ -202,17 +175,38 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
+		if (!platform) {
+			return fail(500, { form, message: 'Platform not available' });
+		}
+
+		const auth = getAuth(platform.env.vowsmarry);
+
 		try {
-			// Update wedding details in weddings table
-			await plannerDb
-				.updateTable('weddings')
-				.set({
-					weddingDate: form.data.weddingDate,
-					weddingVenue: form.data.weddingVenue,
-					updatedAt: Date.now(), // Use timestamp instead of Date object
-				})
-				.where('userId', '=', user.id)
-				.execute();
+			// Prepare update data
+			const updateData: {
+				weddingDate: string;
+				weddingVenue: string;
+				weddingBudget?: string;
+			} = {
+				weddingDate: form.data.weddingDate,
+				weddingVenue: form.data.weddingVenue,
+			};
+
+			// Only include weddingBudget if provided
+			if (form.data.weddingBudget) {
+				updateData.weddingBudget = form.data.weddingBudget;
+			}
+
+			// Update wedding details in organization
+			await auth.api.updateOrganization({
+				body: {
+					data: updateData,
+				},
+				query: {
+					organizationId: activeWorkspaceId,
+				},
+				headers: request.headers,
+			});
 
 			return {
 				form,
@@ -256,8 +250,23 @@ export const actions: Actions = {
 		const auth = getAuth(platform.env.vowsmarry);
 
 		try {
-			// Invite member with admin role (co-owner equivalent)
-			await auth.api.createInvitation({
+			// Get organization details for email
+			const organization = await auth.api.getFullOrganization({
+				headers: request.headers,
+				query: {
+					organizationId: activeWorkspaceId,
+				},
+			});
+
+			if (!organization) {
+				return fail(500, {
+					form,
+					message: 'Organization not found',
+				});
+			}
+
+			// Create invitation in Better Auth
+			const invitation = await auth.api.createInvitation({
 				body: {
 					email: form.data.partnerEmail,
 					role: 'admin',
@@ -265,6 +274,21 @@ export const actions: Actions = {
 				},
 				headers: request.headers,
 			});
+
+			// Send invitation email
+			try {
+				await sendInvitationEmail({
+					inviteeEmail: form.data.partnerEmail,
+					inviterName: user.name,
+					organizationName: organization.name,
+					invitationId: invitation.id,
+					baseUrl: BETTER_AUTH_URL,
+				});
+			} catch (emailErr) {
+				console.error('Failed to send invitation email:', emailErr);
+				// Don't fail the whole operation if email fails
+				// The invitation is still created in the database
+			}
 
 			return {
 				form,
@@ -320,9 +344,14 @@ export const actions: Actions = {
 				headers: request.headers,
 			});
 
+			// Clear the active workspace from locals
+			locals.activeWorkspaceId = null;
+			locals.activeWorkspace = null;
+
 			return {
 				success: true,
 				message: 'Successfully left workspace',
+				redirect: '/onboarding',
 			};
 		} catch (err) {
 			console.error('Failed to leave workspace:', err);
@@ -401,6 +430,91 @@ export const actions: Actions = {
 
 			return fail(500, {
 				message: 'Failed to remove member',
+			});
+		}
+	},
+
+	/**
+	 * Resend an invitation email
+	 */
+	resendInvitation: async ({ request, locals, platform }) => {
+		const { session, user, activeWorkspaceId } = locals;
+
+		if (!session || !user) {
+			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!activeWorkspaceId) {
+			return fail(403, { message: 'No active workspace' });
+		}
+
+		const formData = await request.formData();
+		const invitationId = formData.get('invitationId') as string;
+
+		if (!invitationId) {
+			return fail(400, { message: 'Invitation ID is required' });
+		}
+
+		if (!platform) {
+			return fail(500, { message: 'Platform not available' });
+		}
+
+		const auth = getAuth(platform.env.vowsmarry);
+
+		try {
+			// Get invitation details
+			const invitation = await auth.api.getInvitation({
+				query: {
+					id: invitationId,
+				},
+				headers: request.headers,
+			});
+
+			if (!invitation) {
+				return fail(404, { message: 'Invitation not found' });
+			}
+
+			if (invitation.status !== 'pending') {
+				return fail(400, { message: 'Can only resend pending invitations' });
+			}
+
+			// Get organization details
+			const organization = await auth.api.getFullOrganization({
+				headers: request.headers,
+				query: {
+					organizationId: activeWorkspaceId,
+				},
+			});
+
+			if (!organization) {
+				return fail(500, { message: 'Organization not found' });
+			}
+
+			// Resend invitation email
+			try {
+				await sendInvitationEmail({
+					inviteeEmail: invitation.email,
+					inviterName: user.name,
+					organizationName: organization.name,
+					invitationId: invitation.id,
+					baseUrl: BETTER_AUTH_URL,
+				});
+
+				return {
+					success: true,
+					message: 'Invitation email resent successfully',
+				};
+			} catch (emailErr) {
+				console.error('Failed to resend invitation email:', emailErr);
+				return fail(500, {
+					message: 'Failed to send invitation email',
+				});
+			}
+		} catch (err) {
+			console.error('Failed to resend invitation:', err);
+
+			return fail(500, {
+				message: 'Failed to resend invitation',
 			});
 		}
 	},
