@@ -146,6 +146,12 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 							logo: workspace.logo ?? null,
 							metadata: workspace.metadata ?? null,
 							createdAt: workspace.createdAt,
+							// Wedding-specific fields
+							groomName: workspace.groomName ?? null,
+							brideName: workspace.brideName ?? null,
+							weddingDate: workspace.weddingDate ?? null,
+							weddingVenue: workspace.weddingVenue ?? null,
+							weddingBudget: workspace.weddingBudget ?? null,
 						};
 						
 						if (dev) {
