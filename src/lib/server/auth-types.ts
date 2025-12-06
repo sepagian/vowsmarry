@@ -15,6 +15,7 @@ export type AuthUser = BetterAuthUser;
 export type AuthSession = BetterAuthSession;
 
 /**
+ * @deprecated Wedding data is now stored in the organization table
  * Wedding record type inferred from database query
  * Represents a user's wedding planning data
  */
@@ -27,8 +28,10 @@ export type Wedding = Selectable<WeddingsTable>;
 export type AuthContext = {
 	/** Authenticated Better Auth user */
 	user: AuthUser;
-	/** User's wedding record */
+	/** @deprecated Use organizationId instead - User's wedding record */
 	wedding: Wedding;
+	/** Active organization/workspace ID */
+	organizationId: string;
 	/** Kysely database instance for planner operations */
 	plannerDb: Kysely<Database>;
 };
