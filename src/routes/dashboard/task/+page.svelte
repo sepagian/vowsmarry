@@ -9,9 +9,17 @@
 	let { data } = $props();
 
 	// Update store whenever data changes (including after invalidation)
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.tasks) {
-			tasksState.set(data.tasks);
+			const workspaceId = data.workspace?.id || null;
+			
+			// Clear store if workspace changed to prevent stale data
+			if (!tasksState.isWorkspace(workspaceId)) {
+				tasksState.clearWorkspace();
+			}
+			
+			tasksState.set(data.tasks, workspaceId);
 		}
 	});
 
