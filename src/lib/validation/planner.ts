@@ -303,8 +303,6 @@ export type WeddingData = v.InferInput<typeof weddingSchema>;
 export const userSchema = v.object({
 	userName: v.pipe(v.string(), v.nonEmpty('Name is required')),
 	userEmail: v.pipe(v.string(), v.email()),
-	userPhone: v.optional(v.string()),
-	userRole: v.optional(v.picklist(userRole.map((r) => r.value))),
 	userAvatarUrl: v.optional(v.pipe(v.string(), v.url())),
 });
 
@@ -374,7 +372,7 @@ export type ExpenseData = v.InferInput<typeof expenseSchema>;
 
 export const savingSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	savingId: v.string(),
 	savingDescription: v.pipe(
 		v.string(),
@@ -441,7 +439,7 @@ export type ScheduleData = v.InferInput<typeof scheduleSchema>;
 
 export const dowrySchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	dowryDescription: v.pipe(
 		safeString(),
 		v.nonEmpty('Dowry description is required'),
@@ -465,7 +463,7 @@ export type DowryData = v.InferInput<typeof dowrySchema>;
 
 export const souvenirSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	souvenirName: v.pipe(
 		safeString(),
 		v.nonEmpty('Souvenir name is required'),
@@ -487,7 +485,7 @@ export type SouvenirData = v.InferInput<typeof souvenirSchema>;
 
 export const dresscodeSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	scheduleId: v.string(),
 	dresscodeDescription: v.pipe(safeString(), v.nonEmpty('Dresscode description is required')),
 	dresscodeRole: v.picklist(dresscodeRoleEnum.map((r) => r.value, 'Please select a role')),
