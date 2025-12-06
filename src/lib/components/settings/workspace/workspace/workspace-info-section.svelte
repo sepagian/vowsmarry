@@ -12,9 +12,6 @@
 
 	const { workspaceInfoForm } = $page.data;
 
-	// Debug: Log form data
-	console.log('Workspace Info Form Data:', workspaceInfoForm);
-
 	const form = superForm(workspaceInfoForm, {
 		validators: valibot(workspaceInfoSchema),
 		onResult: async ({ result }) => {
@@ -30,12 +27,7 @@
 		},
 	});
 
-	const { form: formData, errors, enhance } = form;
-
-	// Debug: Log reactive form data
-	$effect(() => {
-		console.log('Current form values:', $formData);
-	});
+	const { form: formData, enhance } = form;
 </script>
 
 <form
