@@ -11,40 +11,21 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('calendar:data');
 	const scheduleForm = await superValidate(valibot(scheduleSchema));
 
-	const { user } = locals;
+	const { user, activeWorkspaceId } = locals;
 
 	if (!user) {
 		redirect(302, '/login');
 	}
 
-	const wedding = await plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', user.id)
-		.executeTakeFirst();
-
-	if (!wedding) {
-		return {
-			scheduleForm,
-			schedules: [],
-			tasks: [],
-			expenses: [],
-			stats: {
-				totalEvents: 0,
-				completedEvents: 0,
-				remainingEvents: 0,
-				nextEvent: null,
-			},
-			wedding: null,
-			update: {},
-		};
+	if (!activeWorkspaceId) {
+		redirect(302, '/onboarding');
 	}
 
 	const [rundownList, tasksList, expensesList, completedEventsCount, nextEvent, totalEvents] = await Promise.all([
 		plannerDb
 			.selectFrom('schedules')
 			.selectAll()
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.orderBy('scheduleDate', 'asc')
 			.orderBy('scheduleStartTime', 'asc')
 			.execute(),
@@ -52,21 +33,21 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('tasks')
 			.selectAll()
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.orderBy('taskDueDate', 'asc')
 			.execute(),
 
 		plannerDb
 			.selectFrom('expense_items')
 			.selectAll()
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.orderBy('expenseDueDate', 'asc')
 			.execute(),
 
 		plannerDb
 			.selectFrom('schedules')
 			.select((eb) => eb.fn.countAll<number>().as('count'))
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where(sql`datetime(schedule_date || ' ' || schedule_end_time)`, '<', sql`datetime('now')`)
 			.executeTakeFirst()
 			.then((result) => result?.count ?? 0),
@@ -74,7 +55,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('schedules')
 			.selectAll()
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.where(sql`datetime(schedule_date || ' ' || schedule_start_time)`, '>', sql`datetime('now')`)
 			.orderBy('scheduleDate', 'asc')
 			.orderBy('scheduleStartTime', 'asc')
@@ -83,7 +64,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		plannerDb
 			.selectFrom('schedules')
 			.select((eb) => eb.fn.countAll<number>().as('count'))
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.executeTakeFirst()
 			.then((result) => result?.count ?? 0),
 	]);
@@ -106,13 +87,12 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 					}
 				: null,
 		},
-		wedding,
 		update: {},
 	};
 };
 
 export const actions: Actions = {
-	createSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	createSchedule: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(scheduleSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -133,7 +113,7 @@ export const actions: Actions = {
 				.insertInto('schedules')
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					scheduleName,
 					scheduleCategory,
 					scheduleDate: String(scheduleDate),
@@ -158,7 +138,7 @@ export const actions: Actions = {
 			});
 		}
 	}),
-	updateSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateSchedule: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(scheduleSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -193,7 +173,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', scheduleId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -209,7 +189,7 @@ export const actions: Actions = {
 			});
 		}
 	}),
-	deleteSchedule: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteSchedule: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const scheduleId = data.get('id') as string;
 
@@ -217,7 +197,7 @@ export const actions: Actions = {
 			const deletedRundown = await plannerDb
 				.deleteFrom('schedules')
 				.where('id', '=', scheduleId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
