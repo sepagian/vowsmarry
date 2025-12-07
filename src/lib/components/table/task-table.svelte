@@ -278,8 +278,9 @@
 					<Table.Row>
 						<Table.Cell
 							colspan={columns.length}
-							class="h-24 text-center">No results.</Table.Cell
-						>
+							class="h-24 text-center text-muted-foreground">
+							No tasks in this workspace yet. Create your first task to get started!
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>
