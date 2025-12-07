@@ -4,6 +4,7 @@
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionSavings from '$lib/components/section/section-savings.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 	import { formatDistanceToNow } from 'date-fns';
 
 	import { expensesState } from '$lib/stores/expenses.svelte';
@@ -85,6 +86,8 @@
 
 	const overviewTitle = 'Finances Overview';
 </script>
+
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
