@@ -4,7 +4,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
+	import { auth } from '$lib/utils/toasts';
 	import type { PageData } from './$types';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data }: { data: PageData } = $props();
 
@@ -12,6 +14,33 @@
 
 	// Check if the logged-in user's email matches the invitation
 	const emailMatches = userEmail === invitation.email;
+
+	const handleAccept: SubmitFunction = () => {
+		return async ({ result }) => {
+			if (result.type === 'success') {
+				auth.success.invitationAccepted();
+			} else if (result.type === 'failure') {
+				const errorType = result.data?.errorType;
+				if (errorType === 'invitation_not_found') {
+					auth.error.invitationNotFound();
+				} else if (errorType === 'already_member') {
+					auth.error.alreadyMember();
+				} else {
+					auth.error.unexpectedError();
+				}
+			}
+		};
+	};
+
+	const handleReject: SubmitFunction = () => {
+		return async ({ result }) => {
+			if (result.type === 'success') {
+				auth.success.invitationRejected();
+			} else if (result.type === 'failure') {
+				auth.error.unexpectedError();
+			}
+		};
+	};
 
 </script>
 
@@ -106,13 +135,13 @@
 			{:else}
 				<!-- Accept/Reject Actions -->
 				<div class="flex gap-3 pt-4">
-					<form method="POST" action="?/accept" use:enhance class="flex-1">
+					<form method="POST" action="?/accept" use:enhance={handleAccept} class="flex-1">
 						<Button type="submit" class="w-full" size="lg">
 							<div class="i-lucide:check h-5 w-5 mr-2"></div>
 							Accept Invitation
 						</Button>
 					</form>
-					<form method="POST" action="?/reject" use:enhance>
+					<form method="POST" action="?/reject" use:enhance={handleReject}>
 						<Button type="submit" variant="outline" size="lg">
 							<div class="i-lucide:x h-5 w-5 mr-2"></div>
 							Decline
