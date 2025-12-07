@@ -31,12 +31,6 @@
 				<SiteHeader />
 				<main>
 					<div class="flex flex-col gap-4 p-4 max-w-screen-xl mx-auto">
-						<a
-							href="/dashboard"
-							class="text-sm"
-							><div class="i-lucide:arrow-left"></div>
-							Back to Dashboard
-						</a>
 						{@render children()}
 					</div>
 				</main>
