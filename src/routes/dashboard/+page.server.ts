@@ -2,11 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import {
-	expenseSchema,
-	weddingSchema,
-	type ExpenseData,
-} from '$lib/validation/planner';
+import { expenseSchema, weddingSchema, type ExpenseData } from '$lib/validation/planner';
 import { getUser, withAuth } from '$lib/server/auth-helpers';
 import { getTableCount, getLastUpdate } from '$lib/server/db/query-helpers';
 import { handleActionError } from '$lib/server/error-handler';
@@ -88,8 +84,6 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 		.where('user.id', '!=', user.id)
 		.execute();
 
-	const partnerName = members.length > 0 ? members[0].name : 'your partner';
-
 	return {
 		user: {
 			id: user.id,
@@ -101,10 +95,11 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 			id: activeWorkspace.id,
 			groomName: activeWorkspace.groomName || null,
 			brideName: activeWorkspace.brideName || null,
-			partnerName,
 			weddingDate: activeWorkspace.weddingDate || null,
 			weddingVenue: activeWorkspace.weddingVenue || null,
-			weddingBudget: activeWorkspace.weddingBudget ? parseFloat(activeWorkspace.weddingBudget) : null,
+			weddingBudget: activeWorkspace.weddingBudget
+				? parseFloat(activeWorkspace.weddingBudget)
+				: null,
 		},
 		expenseForm,
 		weddingForm,
