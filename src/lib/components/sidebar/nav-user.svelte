@@ -4,8 +4,8 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import { useSidebar } from '$lib/components/ui/sidebar/index';
 	import { enhance } from '$app/forms';
-	import { active } from '$lib/actions/active.svelte';
 	import { currentUser, userEmail } from '$lib/stores/auth';
+	import { toggleMode, mode } from 'mode-watcher';
 	import type { WithoutChildren } from '$lib/utils.js';
 	import type { ComponentProps } from 'svelte';
 
@@ -50,70 +50,55 @@
 							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{displayName}</span>
-							<span class="truncate text-xs text-gray-500">{displayEmail}</span>
+							<span class="truncate font-medium {sidebar.isMobile ? 'hidden' : ''}"
+								>{displayName}</span
+							>
+							<span class="truncate text-xs text-gray-500 {sidebar.isMobile ? 'hidden' : ''}"
+								>{displayEmail}</span
+							>
 						</div>
-						<div class="i-lucide:chevron-down ml-auto h-5 w-5"></div>
+						<div class="i-lucide:chevron-down ml-auto h-4 w-4"></div>
 					</Sidebar.MenuButton>
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
-				side={sidebar.isMobile ? 'bottom' : 'right'}
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-52 rounded-lg"
+				side={sidebar.isMobile ? 'bottom' : 'bottom'}
 				align="end"
 				sideOffset={4}
 			>
-				<DropdownMenu.Label class="p-0 font-normal">
-					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
-						</Avatar.Root>
-						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{displayName}</span>
-							<span class="truncate text-xs text-gray-500">{displayEmail}</span>
-						</div>
-					</div>
-				</DropdownMenu.Label>
-				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					{#each items as item (item.title)}
-						<DropdownMenu.Item class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-							{#if item.url}
-								<a
-									href={item.url}
-									use:active
-									class="flex flex-1 rounded-r-xl gap-2 items-center"
-								>
-									{#if item.icon}
-										<div class="{item.icon} h-4 w-4"></div>
-									{/if}
-									<span class="text-sm">{item.title}</span>
-								</a>
-							{/if}
-						</DropdownMenu.Item>
-					{/each}
+					<DropdownMenu.Item
+						class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center justify-between"
+						onclick={toggleMode}
+					>
+						Switch theme
+						{#if mode.current === 'dark'}
+							<div class="i-tabler:sun-filled h-4 w-4 mr-1"></div>
+						{:else}
+							<div class="i-tabler:moon-filled h-4 w-4 mr-1"></div>
+						{/if}
+					</DropdownMenu.Item>
 				</DropdownMenu.Group>
-				<DropdownMenu.Separator />
 				<form
 					method="POST"
 					action="/logout"
 					use:enhance={() => {
-						// Show loading toast while logout is processing
 						return async ({ update }) => {
 							await update();
 						};
 					}}
 				>
 					<DropdownMenu.Item
-						class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center justify-between"
 						onclick={(e) => {
 							e.preventDefault();
 							const form = e.currentTarget.closest('form');
 							if (form) form.submit();
 						}}
 					>
-						<div class="i-lucide:log-out h-5 w-5"></div>
 						Log out
+						<div class="i-tabler:logout h-4 w-4 mr-1"></div>
 					</DropdownMenu.Item>
 				</form>
 			</DropdownMenu.Content>
