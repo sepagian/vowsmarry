@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
@@ -10,6 +10,12 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 	// Check authentication
 	if (!locals.user) {
 		throw redirect(302, '/login');
+	}
+
+	const { activeWorkspaceId, activeWorkspace } = locals;
+
+	if (!activeWorkspaceId || !activeWorkspace) {
+		throw error(403, 'No active workspace');
 	}
 
 	const userId = locals.user.id;
@@ -41,7 +47,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 			userEmail: userData.email,
 			userAvatarUrl: userData.image || undefined,
 		},
-		valibot(userSchema)
+		valibot(userSchema),
 	);
 
 	const passwordForm = await superValidate(valibot(validateChangePasswordSchema));
@@ -61,6 +67,16 @@ export const load: PageServerLoad = async ({ locals, plannerDb }) => {
 			userAgent: s.userAgent,
 			expiresAt: s.expiresAt,
 		})),
+		workspace: {
+			id: activeWorkspace.id,
+			groomName: activeWorkspace.groomName || null,
+			brideName: activeWorkspace.brideName || null,
+			weddingDate: activeWorkspace.weddingDate || null,
+			weddingVenue: activeWorkspace.weddingVenue || null,
+			weddingBudget: activeWorkspace.weddingBudget
+				? parseFloat(activeWorkspace.weddingBudget)
+				: null,
+		},
 		profileForm,
 		passwordForm,
 	};
@@ -77,7 +93,11 @@ export const actions: Actions = {
 
 		const form = await superValidate(request, valibot(userSchema));
 
-		console.log('Form validation result:', { valid: form.valid, errors: form.errors, data: form.data });
+		console.log('Form validation result:', {
+			valid: form.valid,
+			errors: form.errors,
+			data: form.data,
+		});
 
 		if (!form.valid) {
 			console.log('Form validation failed:', form.errors);
