@@ -1,11 +1,10 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { useSidebar } from '$lib/components/ui/sidebar/index';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
-	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
-	import AppearanceSwitcher from '../appearance-switcher.svelte';
-	import { page } from '$app/state';
-	import { enhance } from '$app/forms';
+	import NavUser from './nav-user.svelte';
 
 	const breadcrumbs = $derived(
 		page.url.pathname
@@ -18,14 +17,35 @@
 				return { title, href, isLast: index === arr.length - 1 };
 			}),
 	);
+
+	let data = {
+		navUser: [],
+	};
+
+	const sidebar = useSidebar();
+
+	const toggleIcon = $derived(
+		sidebar.open
+			? 'i-tabler:layout-sidebar-left-collapse-filled'
+			: 'i-tabler:layout-sidebar-right-collapse-filled',
+	);
 </script>
 
 <header
-	class="sticky top-0 z-50 flex items-center border-b flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear bg-background"
+	class="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear"
 >
-	<div class="h-14 flex w-full items-center gap-2 justify-between px-4">
+	<div class=" flex w-full items-center gap-2 justify-between px-4">
 		<div class="flex items-center gap-2">
-			<Sidebar.Trigger />
+			<Button
+				variant="ghost"
+				size="sm"
+				class="p-0"
+				onclick={sidebar.toggle}
+			>
+				<div
+					class="{toggleIcon} h-7 w-7 text-muted-foreground hover:text-foreground transition-all duration-300 ease-in-out"
+				></div>
+			</Button>
 			<Separator
 				orientation="vertical"
 				class="mr-2 h-14"
@@ -47,29 +67,16 @@
 				</Breadcrumb.List>
 			</Breadcrumb.Root>
 		</div>
-		<div class="flex justify-end gap-4">
-			<AppearanceSwitcher />
-			<form
-				method="POST"
-				action="/logout"
-				use:enhance={() => {
-					return async ({ update }) => {
-						await update();
-					};
-				}}
-			>
+		<div class="flex justify-end gap-4 items-center">
+			<a href="/settings/workspace">
 				<Button
 					variant="outline"
-					class="px-2"
-					onclick={(e: MouseEvent & { currentTarget: HTMLButtonElement }) => {
-						e.preventDefault();
-						const form = e.currentTarget.closest('form');
-						if (form) form.submit();
-					}}
+					size="icon"
+					class="p-2"
+					><div class="i-tabler:settings-filled h-6 w-6 text-muted-foreground"></div></Button
 				>
-					<div class="i-lucide:log-out h-5 w-5"></div>
-				</Button>
-			</form>
+			</a>
+			<NavUser items={data.navUser} />
 		</div>
 	</div>
 </header>
