@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog/index';
 	import * as Select from '$lib/components/ui/select/index';
 	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
@@ -12,6 +11,8 @@
 	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
 	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 	import { createFormDataWithId } from '$lib/utils/form-helpers';
+	import { confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
+
 	let { expense, data, onUpdate, onDelete } = $props<{
 		expense: Expense;
 		data: any;
@@ -20,8 +21,6 @@
 	}>();
 
 	let editDialogOpen = $state(false);
-	let deleteDialogOpen = $state(false);
-	let isDeleting = $state(false);
 
 	const form = superForm(data.expenseForm, {
 		validators: valibot(expenseSchema),
@@ -50,34 +49,22 @@
 		editDialogOpen = true;
 	}
 
-	function openDeleteDialog() {
-		deleteDialogOpen = true;
-	}
+	async function handleDelete() {
+		const formData = createFormDataWithId(expense.id);
 
-	async function handleDelete(e: Event) {
-		e.preventDefault();
-		isDeleting = true;
-		try {
-			const formData = createFormDataWithId(expense.id);
+		const response = await fetch('?/deleteExpenseItem', {
+			method: 'POST',
+			body: formData,
+		});
 
-			const response = await fetch('?/deleteExpenseItem', {
-				method: 'POST',
-				body: formData,
-			});
+		const result = (await response.json()) as { type: string; error?: string };
 
-			const result = (await response.json()) as { type: string; error?: string };
-
-			if (result.type === 'success') {
-				CrudToasts.success('delete', 'expense');
-				await InvalidationService.invalidateExpense();
-				deleteDialogOpen = false;
-			} else {
-				CrudToasts.error('delete', result.error || 'Failed to delete expense', 'expense');
-			}
-		} catch (error) {
-			CrudToasts.error('delete', 'Network error occurred', 'expense');
-		} finally {
-			isDeleting = false;
+		if (result.type === 'success') {
+			CrudToasts.success('delete', 'expense');
+			await InvalidationService.invalidateExpense();
+		} else {
+			CrudToasts.error('delete', result.error || 'Failed to delete expense', 'expense');
+			throw new Error(result.error || 'Failed to delete expense');
 		}
 	}
 
@@ -109,7 +96,13 @@
 		size="sm"
 		class="h-8 w-8 p-0"
 		title="Delete expense"
-		onclick={openDeleteDialog}
+		onclick={() => {
+			confirmDelete({
+				title: 'Are you sure?',
+				description: `This will permanently delete the expense "${expense.expenseDescription}". This action cannot be undone.`,
+				onConfirm: handleDelete
+			});
+		}}
 	>
 		<div class="i-lucide:trash2 h-4 w-4 bg-red-500"></div>
 	</Button>
@@ -254,26 +247,3 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
-
-<!-- Delete Confirmation Dialog -->
-<AlertDialog.Root bind:open={deleteDialogOpen}>
-	<AlertDialog.Content>
-		<AlertDialog.Header>
-			<AlertDialog.Title>Are you sure?</AlertDialog.Title>
-			<AlertDialog.Description>
-				This will permanently delete the expense "{expense.expenseDescription}". This action cannot
-				be undone.
-			</AlertDialog.Description>
-		</AlertDialog.Header>
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<Button
-				onclick={handleDelete}
-				disabled={isDeleting}
-				class="bg-red-600 hover:bg-red-700"
-			>
-				{isDeleting ? 'Deleting...' : 'Delete'}
-			</Button>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>
