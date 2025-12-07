@@ -76,8 +76,6 @@
 					invalidate('document:list');
 				});
 				
-				// Close dialog after successful creation
-				await new Promise((resolve) => setTimeout(resolve, 500));
 				open = false;
 			} else {
 				console.error('Form validation failed:', f.errors);

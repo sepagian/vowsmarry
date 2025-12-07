@@ -16,26 +16,20 @@
 
 	let { data, open = $bindable() } = $props();
 
-	function wait(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
 	const form = superForm(data.vendorForm, {
 		validators: valibot(vendorSchema),
-		onUpdate: async ({ form: f }) => {
-			if (f.valid) {
-				const vendorName = f.data.vendorName || 'Vendor';
+		resetForm: true,
+		onResult: async ({ result }) => {
+			if (result.type === 'success') {
+				const vendorName = $formData.vendorName || 'Vendor';
 				CrudToasts.success('create', 'vendor', { itemName: vendorName });
 				await InvalidationService.invalidateVendor();
-				await wait(500);
 				open = false;
-			} else {
+			} else if (result.type === 'failure') {
 				FormToasts.emptyFormError();
+			} else if (result.type === 'error') {
+				CrudToasts.error('create', 'An error occurred while saving the vendor', 'vendor');
 			}
-		},
-		onError: () => {
-			// Use CRUD toast for server errors
-			CrudToasts.error('create', 'An error occurred while saving the vendor', 'vendor');
 		},
 	});
 	const { form: formData, enhance } = form;

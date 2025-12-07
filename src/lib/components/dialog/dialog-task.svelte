@@ -16,26 +16,20 @@
 
 	let { data, open = $bindable() } = $props();
 
-	function wait(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
 	const form = superForm(data.taskForm, {
 		validators: valibot(taskSchema),
-		onUpdate: async ({ form: f }) => {
-			if (f.valid) {
-				const taskName = f.data.taskDescription || 'Task';
+		resetForm: true,
+		onResult: async ({ result }) => {
+			if (result.type === 'success') {
+				const taskName = $formData.taskDescription || 'Task';
 				CrudToasts.success('create', 'task', { itemName: taskName });
 				await InvalidationService.invalidateTask();
-				await wait(500);
 				open = false;
-			} else {
+			} else if (result.type === 'failure') {
 				FormToasts.emptyFormError();
+			} else if (result.type === 'error') {
+				CrudToasts.error('create', 'An error occurred while saving the task', 'task');
 			}
-		},
-		onError: () => {
-			// Use CRUD toast for server errors
-			CrudToasts.error('create', 'An error occurred while saving the task', 'task');
 		},
 	});
 	const { form: formData, enhance } = form;

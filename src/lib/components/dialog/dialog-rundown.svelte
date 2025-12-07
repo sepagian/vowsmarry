@@ -12,33 +12,27 @@
 
 	let { data, open = $bindable() } = $props();
 
-	function wait(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
 	const form = superForm(data.scheduleForm, {
 		validators: valibot(scheduleSchema),
-		onUpdate: async ({ form: f }) => {
-			if (f.valid) {
-				const eventTitle = f.data.scheduleName || 'Rundown item';
+		resetForm: true,
+		onResult: async ({ result }) => {
+			if (result.type === 'success') {
+				const eventTitle = $formData.scheduleName || 'Rundown item';
 				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
 				await InvalidationService.invalidateRundown();
-				await wait(500);
 				open = false;
-			} else {
+			} else if (result.type === 'failure') {
 				FormToasts.emptyFormError();
+			} else if (result.type === 'error') {
+				CrudToasts.error('create', 'An error occurred while saving the schedule event', 'rundown');
 			}
-		},
-		onError: () => {
-			// Use CRUD toast for server errors
-			CrudToasts.error('create', 'An error occurred while saving the schedule event', 'rundown');
 		},
 	});
 	const { form: formData, enhance } = form;
 
 	const selectedCategory = $derived(
-		$formData.category
-			? scheduleCategoryEnum.find((c) => c.value === $formData.category)?.label
+		$formData.scheduleCategory
+			? scheduleCategoryEnum.find((c) => c.value === $formData.scheduleCategory)?.label
 			: 'Choose category',
 	);
 </script>

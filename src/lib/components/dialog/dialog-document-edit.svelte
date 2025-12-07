@@ -68,13 +68,13 @@
 					delete (window as any).__documentEditFormResolve;
 					delete (window as any).__documentEditFormReject;
 				}
-				// Close dialog on success
-				open = false;
 				
 				// Invalidate document list to refresh data
 				await import('$app/navigation').then(({ invalidate }) => {
 					invalidate('document:list');
 				});
+				
+				open = false;
 			} else {
 				FormToasts.emptyFormError({
 					formName: 'document',

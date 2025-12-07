@@ -11,25 +11,20 @@
 
 	let { data, open = $bindable() } = $props();
 
-	function wait(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
 	const form = superForm(data.expenseForm, {
 		validators: valibot(expenseSchema),
-		onUpdate: async ({ form: f }) => {
-			if (f.valid) {
-				const expenseDescription = f.data.expenseDescription || 'Expense';
+		resetForm: true,
+		onResult: async ({ result }) => {
+			if (result.type === 'success') {
+				const expenseDescription = $formData.expenseDescription || 'Expense';
 				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
 				await InvalidationService.invalidateExpense();
-				await wait(500);
 				open = false;
-			} else {
+			} else if (result.type === 'failure') {
 				FormToasts.emptyFormError();
+			} else if (result.type === 'error') {
+				CrudToasts.error('create', 'An error occurred while saving the expense', 'expense');
 			}
-		},
-		onError: () => {
-			CrudToasts.error('create', 'An error occurred while saving the expense', 'expense');
 		},
 	});
 	const { form: formData, enhance } = form;
