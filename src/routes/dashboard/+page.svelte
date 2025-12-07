@@ -17,12 +17,12 @@
 	$effect(() => {
 		if (data.expenses) {
 			const workspaceId = data.workspace?.id || null;
-			
+
 			// Clear store if workspace changed to prevent stale data
 			if (!expensesState.isWorkspace(workspaceId)) {
 				expensesState.clearWorkspace();
 			}
-			
+
 			expensesState.set(data.expenses, workspaceId);
 		}
 	});
@@ -58,30 +58,34 @@
 <div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
 	<div class="flex justify-between gap-2 px-4 align-center">
 		<div class="flex flex-col gap-2">
-			<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
-			<p class="text-muted-foreground">
-				{#if data.workspace}
-					Plan your wedding with {data.workspace.groomName && data.workspace.brideName ? `${data.workspace.groomName} & ${data.workspace.brideName}` : 'your partner'}
-					{#if daysUntilWedding !== null}
-						- {daysUntilWedding} days to go!
-					{/if}
+			{#if data.workspace}
+				{@const groomName = data.workspace.groomName}
+				{@const brideName = data.workspace.brideName}
+				{#if groomName && brideName}
+					<h1 class="text-2xl font-semibold">{groomName} & {brideName}'s Wedding</h1>
 				{:else}
-					Let's start planning your perfect wedding!
+					<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
 				{/if}
-			</p>
+				<p class="text-muted-foreground">
+					{#if daysUntilWedding !== null}
+						{#if daysUntilWedding === 0}
+							Today is the big day! 🎉
+						{:else if daysUntilWedding === 1}
+							Tomorrow is the big day! 🎉
+						{:else if daysUntilWedding > 0}
+							{daysUntilWedding} days until your wedding
+						{:else}
+							Celebrating your marriage
+						{/if}
+					{:else}
+						Planning your perfect wedding together
+					{/if}
+				</p>
+			{:else}
+				<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
+				<p class="text-muted-foreground">Let's start planning your perfect wedding!</p>
+			{/if}
 		</div>
-		{#if data.workspace}
-			<a
-				href="/settings/workspace"
-				class="{buttonVariants({
-					variant: 'default',
-					size: 'default',
-				})} self-center"
-			>
-				<div class="i-lucide:pencil"></div>
-				<span class="hidden lg:inline">Edit workspace details</span>
-			</a>
-		{/if}
 	</div>
 
 	<SectionCards
