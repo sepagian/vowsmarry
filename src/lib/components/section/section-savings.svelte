@@ -12,8 +12,7 @@
 		</Empty.Media>
 		<Empty.Title>Your saving journey starts soon</Empty.Title>
 		<Empty.Description>
-			We’re crafting a space to help you and your partner grow your wedding fund — together, one
-			goal at a time.
+			Track your wedding savings in this workspace. Build your wedding fund together, one goal at a time.
 		</Empty.Description>
 	</Empty.Header>
 	<Empty.Content></Empty.Content>
