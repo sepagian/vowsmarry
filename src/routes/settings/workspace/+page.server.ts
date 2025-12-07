@@ -1,13 +1,9 @@
-import { fail, error, type Actions } from '@sveltejs/kit';
+import { fail, error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getAuth } from '$lib/server/auth';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import {
-	inviteSchema,
-	workspaceInfoSchema,
-	weddingDetailsSchema,
-} from '$lib/validation/workspace';
+import { inviteSchema, workspaceInfoSchema, weddingDetailsSchema } from '$lib/validation/workspace';
 import { sendInvitationEmail } from '$lib/server/email/send-invitation';
 import { BETTER_AUTH_URL } from '$env/static/private';
 
@@ -79,6 +75,16 @@ export const load: PageServerLoad = async ({ locals, platform, request }) => {
 			invitations: invitations || [],
 			inviteForm,
 			workspaceInfoForm,
+			workspace: {
+				id: activeWorkspace.id,
+				groomName: activeWorkspace.groomName || null,
+				brideName: activeWorkspace.brideName || null,
+				weddingDate: activeWorkspace.weddingDate || null,
+				weddingVenue: activeWorkspace.weddingVenue || null,
+				weddingBudget: activeWorkspace.weddingBudget
+					? parseFloat(activeWorkspace.weddingBudget)
+					: null,
+			},
 			weddingDetailsForm,
 		};
 	} catch (err) {
