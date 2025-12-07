@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import TaskTable from '$lib/components/table/task-table.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 
 	import { tasksState } from '$lib/stores/tasks.svelte';
 	import { formatDistanceToNow } from 'date-fns';
@@ -62,6 +63,8 @@
 			},
 		]);
 </script>
+
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
