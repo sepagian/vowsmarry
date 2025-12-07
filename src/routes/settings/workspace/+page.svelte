@@ -3,6 +3,7 @@
 	import Workspace from '$lib/components/settings/workspace/workspace.svelte';
 	import Team from '$lib/components/settings/workspace/team.svelte';
 	import Integration from '$lib/components/settings/workspace/integration.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 
 	let triggers = [
 		{ value: 'workspace', title: 'Workspace', component: Workspace },
@@ -10,6 +11,8 @@
 		{ value: 'integration', title: 'Integration', component: Integration },
 	];
 </script>
+
+<ConfirmDeleteDialog />
 
 <h1 class="font-bold text-2xl">Workspace Settings</h1>
 
