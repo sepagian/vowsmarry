@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 	import { documentsState } from '$lib/stores/documents.svelte';
 	import type { DocumentCategory } from '$lib/types';
 
@@ -64,6 +65,8 @@
 
 	let docsCards = $derived(documentsState.documents);
 </script>
+
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
 	<SectionCards
