@@ -39,6 +39,7 @@ export default defineConfig({
 			},
 			collections: {
 				lucide: () => import('@iconify-json/lucide/icons.json').then((i) => i.default),
+				tabler: () => import('@iconify-json/tabler/icons.json').then((i) => i.default),
 			},
 		}),
 		presetAttributify(),
