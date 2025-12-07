@@ -8,8 +8,8 @@
 	import * as Form from '$lib/components/ui/form/index';
 	import * as Password from '$lib/components/ui/password/index';
 	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
-	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
+	import { auth } from '$lib/utils/toasts';
 
 	type PasswordData = InferInput<typeof validateChangePasswordSchema>;
 
@@ -24,14 +24,23 @@
 		resetForm: true,
 		onResult: async ({ result }) => {
 			if (result.type === 'success' && result.data?.success) {
-				toast.success(result.data.message || 'Password changed successfully');
+				auth.success.passwordChangeSuccess();
 				await invalidateAll();
 			} else if (result.type === 'failure') {
-				toast.error(result.data?.message || 'Failed to change password');
+				const errorType = result.data?.errorType;
+				if (errorType === 'incorrect_password') {
+					auth.error.incorrectPassword();
+				} else if (errorType === 'password_mismatch') {
+					auth.error.passwordMismatch();
+				} else if (errorType === 'weak_password') {
+					auth.error.weakPassword();
+				} else {
+					auth.error.passwordUpdateFailed();
+				}
 			}
 		},
 		onError: () => {
-			toast.error('An error occurred while changing password');
+			auth.error.unexpectedError();
 		},
 	});
 
