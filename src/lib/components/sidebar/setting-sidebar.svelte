@@ -4,43 +4,34 @@
 >
 	const data = {
 		navMain: [
-			{ title: 'Account', url: '/settings/account', icon: 'i-lucide:user' }, // DASHBOARD
-			{ title: 'Workspace', url: '/settings/workspace', icon: 'i-lucide:inbox' }, // TASKS
-		],
-		navUser: [
-			{ title: 'Account', url: '/settings/account', icon: 'i-lucide:user' },
-			{ title: 'Billing', url: '/settings/account', icon: 'i-lucide:credit-card' },
+			{ title: 'Account', url: '/settings/account', icon: 'i-tabler:user-filled' }, // DASHBOARD
+			{ title: 'Workspace', url: '/settings/workspace', icon: 'i-tabler:category-filled' }, // TASKS
 		],
 	};
 </script>
 
 <script lang="ts">
 	import NavMain from './nav-main.svelte';
-	import NavUser from './nav-user.svelte';
+	import NavWorkspace from './nav-workspace.svelte';
+	import { page } from '$app/stores';
+
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
-	import { isAuthenticated } from '$lib/stores/auth';
 	import type { ComponentProps } from 'svelte';
 
-	let {
-		collapsible = 'icon',
-		variant = 'sidebar',
-		...restProps
-	}: ComponentProps<typeof Sidebar.Root> = $props();
+	let { collapsible = 'offcanvas', ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
+	const workspace = $derived($page.data.workspace || null);
 </script>
 
 <Sidebar.Root
 	class="bg-background"
 	{collapsible}
-	{variant}
 	{...restProps}
 >
-	<Sidebar.Header class="h-13.75 bg-background"></Sidebar.Header>
+	<Sidebar.Header class="h-fit bg-background">
+		<NavWorkspace {workspace} />
+	</Sidebar.Header>
 	<Sidebar.Content class="align-center bg-background">
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
-	<Sidebar.Footer class="bg-background">
-		{#if $isAuthenticated}
-			<NavUser items={data.navUser} />
-		{/if}
-	</Sidebar.Footer>
+	<Sidebar.Footer class="bg-background"></Sidebar.Footer>
 </Sidebar.Root>
