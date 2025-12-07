@@ -41,9 +41,38 @@ export function createAuthFormHandler(options: {
 function handleSpecificError(error: string, errorType?: string) {
 	// Centralized error type mapping
 	const errorMap: Record<string, () => void> = {
+		// Authentication errors
 		invalid_credentials: authToasts.error.invalidCredentials,
 		email_not_confirmed: authToasts.error.emailNotConfirmed,
+		email_not_verified: authToasts.error.emailNotConfirmed,
 		rate_limit: authToasts.error.tooManyRequests,
+		user_not_found: authToasts.error.userNotFound,
+		email_already_exists: authToasts.error.emailAlreadyExists,
+		weak_password: authToasts.error.weakPassword,
+		invalid_email: authToasts.error.invalidEmail,
+		
+		// Password errors
+		password_mismatch: authToasts.error.passwordMismatch,
+		incorrect_password: authToasts.error.incorrectPassword,
+		password_reset_failed: authToasts.error.passwordResetFailed,
+		invalid_token: authToasts.error.invalidResetToken,
+		
+		// Session errors
+		session_expired: authToasts.error.sessionExpired,
+		unauthorized: authToasts.error.unauthorized,
+		
+		// Organization errors
+		organization_not_found: authToasts.error.organizationNotFound,
+		invitation_failed: authToasts.error.invitationFailed,
+		invitation_not_found: authToasts.error.invitationNotFound,
+		already_member: authToasts.error.alreadyMember,
+		
+		// Generic errors
+		database_error: authToasts.error.databaseError,
+		configuration_error: authToasts.error.configurationError,
+		validation_error: authToasts.error.validationError,
+		network_error: authToasts.error.networkError,
+		server_error: authToasts.error.serverError,
 	};
 
 	if (errorType && errorMap[errorType]) {
@@ -51,14 +80,6 @@ function handleSpecificError(error: string, errorType?: string) {
 		return;
 	}
 
-	// Pattern matching for error messages
-	if (error.includes('already registered') || error.includes('already exists')) {
-		authToasts.error.emailAlreadyExists();
-	} else if (error.includes('password') && (error.includes('weak') || error.includes('strength'))) {
-		authToasts.error.weakPassword();
-	} else if (error.includes('email') && error.includes('invalid')) {
-		authToasts.error.invalidEmail();
-	} else {
-		handleAuthError({ message: error });
-	}
+	// Fall back to handleAuthError for pattern matching
+	handleAuthError({ message: error });
 }
