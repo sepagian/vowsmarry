@@ -1,20 +1,23 @@
 <script lang="ts">
-	import * as Password from '$lib/components/ui/password/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Button } from '$lib/components/ui/button/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { validateRegisterSchema } from '$lib/validation/auth';
-	import { createAuthFormHandler } from '$lib/hooks/use-auth-form.svelte';
-	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
+	import type { ZxcvbnResult } from "@zxcvbn-ts/core";
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+
+	import { Button } from "$lib/components/ui/button/index";
+	import * as Form from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import * as Password from "$lib/components/ui/password/index";
+
+	import { validateRegisterSchema } from "$lib/validation/auth";
+
+	import { createAuthFormHandler } from "$lib/hooks/use-auth-form.svelte";
 
 	let { data } = $props();
 
 	const form = superForm(data.registrationForm, {
 		validators: valibot(validateRegisterSchema),
 		...createAuthFormHandler({
-			successMessage: 'Welcome back! Redirecting to your dashboard...',
+			successMessage: "Welcome back! Redirecting to your dashboard...",
 		}),
 	});
 
@@ -30,16 +33,9 @@
 			Create your account and start planning your wedding with ease and joy.
 		</p>
 	</div>
-	<form
-		method="POST"
-		class="flex flex-col gap-2"
-		use:enhance
-	>
+	<form method="POST" class="flex flex-col gap-2" use:enhance>
 		<div class="grid sm:grid-cols-2 gap-2">
-			<Form.Field
-				{form}
-				name="firstName"
-			>
+			<Form.Field {form} name="firstName">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>First Name</Form.Label>
@@ -51,12 +47,9 @@
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
+				<Form.FieldErrors class="text-xs text-red-500"/>
 			</Form.Field>
-			<Form.Field
-				{form}
-				name="lastName"
-			>
+			<Form.Field {form} name="lastName">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Last Name</Form.Label>
@@ -68,13 +61,10 @@
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
+				<Form.FieldErrors class="text-xs text-red-500"/>
 			</Form.Field>
 		</div>
-		<Form.Field
-			{form}
-			name="email"
-		>
+		<Form.Field {form} name="email">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Email</Form.Label>
@@ -86,12 +76,9 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
-		<Form.Field
-			{form}
-			name="password"
-		>
+		<Form.Field {form} name="password">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Password</Form.Label>
@@ -103,19 +90,13 @@
 						>
 							<Password.ToggleVisibility />
 						</Password.Input>
-						<Password.Strength
-							bind:strength
-							class="border-1 h-2"
-						/>
+						<Password.Strength bind:strength class="border-1 h-2" />
 					</Password.Root>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
-		<Form.Field
-			{form}
-			name="confirmPassword"
-		>
+		<Form.Field {form} name="confirmPassword">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Confirm Password</Form.Label>
@@ -130,21 +111,14 @@
 					</Password.Root>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
-		<Button
-			type="submit"
-			variant="outline"
-			class="w-full cursor-pointer">Create an account</Button
-		>
+		<Button type="submit" variant="outline" class="w-full cursor-pointer">
+			Create an account
+		</Button>
 	</form>
 	<div class="text-center text-sm">
 		Already have an account?
-		<a
-			href="/login"
-			class="underline"
-		>
-			Login
-		</a>
+		<a href="/login" class="underline"> Login </a>
 	</div>
 </div>

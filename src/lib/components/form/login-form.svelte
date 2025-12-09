@@ -1,12 +1,15 @@
 <script lang="ts">
-	import * as Password from '$lib/components/ui/password/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Button } from '$lib/components/ui/button/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { loginSchema } from '$lib/validation/auth';
-	import { createAuthFormHandler, useUrlMessages } from '$lib/hooks/';
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+
+	import { Button } from "$lib/components/ui/button/index";
+	import * as Form from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import * as Password from "$lib/components/ui/password/index";
+
+	import { loginSchema } from "$lib/validation/auth";
+
+	import { createAuthFormHandler, useUrlMessages } from "$lib/hooks/";
 
 	let { data } = $props();
 
@@ -15,7 +18,7 @@
 	const form = superForm(data.loginForm, {
 		validators: valibot(loginSchema),
 		...createAuthFormHandler({
-			successMessage: 'Welcome back! Redirecting to your dashboard...',
+			successMessage: "Welcome back! Redirecting to your dashboard...",
 		}),
 	});
 
@@ -31,15 +34,8 @@
 			Log in to continue where you left off — your journey together awaits.
 		</p>
 	</div>
-	<form
-		method="POST"
-		class="flex flex-col gap-2"
-		use:enhance
-	>
-		<Form.Field
-			{form}
-			name="email"
-		>
+	<form method="POST" class="flex flex-col gap-2" use:enhance>
+		<Form.Field {form} name="email">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Email</Form.Label>
@@ -51,12 +47,9 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
-		<Form.Field
-			{form}
-			name="password"
-		>
+		<Form.Field {form} name="password">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Password</Form.Label>
@@ -72,28 +65,18 @@
 				{/snippet}
 			</Form.Control>
 			<div class="flex flex-1 justify-between">
-				<Form.FieldErrors class="text-xs text-red-500" />
-				<a
-					href="/forgot-password"
-					class="ml-auto text-xs hover:underline"
-				>
+				<Form.FieldErrors class="text-xs text-red-500"/>
+				<a href="/forgot-password" class="ml-auto text-xs hover:underline">
 					Forgot your password?
 				</a>
 			</div>
 		</Form.Field>
-		<Button
-			type="submit"
-			variant="outline"
-			class="w-full cursor-pointer">Login</Button
-		>
+		<Button type="submit" variant="outline" class="w-full cursor-pointer">
+			Login
+		</Button>
 	</form>
 	<div class="text-center text-sm">
 		Don't have an account?
-		<a
-			href="/register"
-			class="underline"
-		>
-			Sign up
-		</a>
+		<a href="/register" class="underline"> Sign up </a>
 	</div>
 </div>
