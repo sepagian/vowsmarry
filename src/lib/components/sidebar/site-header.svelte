@@ -1,9 +1,12 @@
 <script lang="ts">
+
 	import { page } from '$app/state';
-	import { useSidebar } from '$lib/components/ui/sidebar/index';
+
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index';
 	import { Button } from '$lib/components/ui/button/index';
 	import { Separator } from '$lib/components/ui/separator/index';
+	import { useSidebar } from '$lib/components/ui/sidebar/index';
+
 	import NavUser from './nav-user.svelte';
 
 	const breadcrumbs = $derived(

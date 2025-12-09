@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { active } from '$lib/actions/active.svelte';
+	import type { ComponentProps } from 'svelte';
+
 	import { Button } from '$lib/components/ui/button/';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+
+	import { active } from '$lib/actions/active.svelte';
 	import type { WithoutChildren } from '$lib/utils.js';
-	import type { ComponentProps } from 'svelte';
 
 	let {
 		items,

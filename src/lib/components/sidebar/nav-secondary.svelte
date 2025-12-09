@@ -1,7 +1,10 @@
 <script lang="ts">
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import type { WithoutChildren } from '$lib/utils.js';
 	import type { ComponentProps } from 'svelte';
+
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+
+	import type { WithoutChildren } from '$lib/utils.js';
+
 	let {
 		items,
 		...restProps

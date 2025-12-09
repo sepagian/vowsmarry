@@ -2,9 +2,9 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
-	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
-	import PlusIcon from '@lucide/svelte/icons/plus';
+
 	import type { Organization } from '../../../app.d';
+
 	
 	let {
 		workspace,

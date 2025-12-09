@@ -1,13 +1,17 @@
 <script lang="ts">
+	import { mode, toggleMode } from 'mode-watcher';
+	import type { ComponentProps } from 'svelte';
+
+	import { enhance } from '$app/forms';
+
 	import * as Avatar from '$lib/components/ui/avatar/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Sidebar from '$lib/components/ui/sidebar/index';
 	import { useSidebar } from '$lib/components/ui/sidebar/index';
-	import { enhance } from '$app/forms';
+
 	import { currentUser, userEmail } from '$lib/stores/auth';
-	import { toggleMode, mode } from 'mode-watcher';
+
 	import type { WithoutChildren } from '$lib/utils.js';
-	import type { ComponentProps } from 'svelte';
 
 	const sidebar = useSidebar();
 	let {
