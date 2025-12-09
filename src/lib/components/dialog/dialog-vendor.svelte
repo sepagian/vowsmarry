@@ -1,18 +1,18 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as Select from '$lib/components/ui/select/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+	import * as Dialog from "$lib/components/ui/dialog/index";
+	import * as Form from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import * as Select from "$lib/components/ui/select/index";
+	import { InvalidationService } from "$lib/utils/invalidation-helpers";
+	import { CrudToasts, FormToasts } from "$lib/utils/toasts";
 	import {
-		vendorSchema,
 		categoryEnum,
-		vendorStatusEnum,
 		vendorRatingEnum,
-	} from '$lib/validation/planner';
-	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+		vendorSchema,
+		vendorStatusEnum,
+	} from "$lib/validation/planner";
 
 	let { data, open = $bindable() } = $props();
 
@@ -20,15 +20,19 @@
 		validators: valibot(vendorSchema),
 		resetForm: true,
 		onResult: async ({ result }) => {
-			if (result.type === 'success') {
-				const vendorName = $formData.vendorName || 'Vendor';
-				CrudToasts.success('create', 'vendor', { itemName: vendorName });
+			if (result.type === "success") {
+				const vendorName = $formData.vendorName || "Vendor";
+				CrudToasts.success("create", "vendor", { itemName: vendorName });
 				await InvalidationService.invalidateVendor();
 				open = false;
-			} else if (result.type === 'failure') {
+			} else if (result.type === "failure") {
 				FormToasts.emptyFormError();
-			} else if (result.type === 'error') {
-				CrudToasts.error('create', 'An error occurred while saving the vendor', 'vendor');
+			} else if (result.type === "error") {
+				CrudToasts.error(
+					"create",
+					"An error occurred while saving the vendor",
+					"vendor"
+				);
 			}
 		},
 	});
@@ -37,19 +41,19 @@
 	const selectedCategory = $derived(
 		$formData.vendorCategory
 			? categoryEnum.find((c) => c.value === $formData.vendorCategory)?.label
-			: 'Choose category',
+			: "Choose category"
 	);
 
 	const selectedStatus = $derived(
 		$formData.vendorStatus
 			? vendorStatusEnum.find((s) => s.value === $formData.vendorStatus)?.label
-			: 'Select progress status',
+			: "Select progress status"
 	);
 
 	const selectedRating = $derived(
 		$formData.vendorRating
 			? vendorRatingEnum.find((r) => r.value === $formData.vendorRating)?.label
-			: 'Select vendor rating',
+			: "Select vendor rating"
 	);
 </script>
 
@@ -71,28 +75,17 @@
 			}
 		}}
 	>
-		<Form.Field
-			{form}
-			name="vendorName"
-		>
+		<Form.Field {form} name="vendorName">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Name</Form.Label>
-					<Input
-						{...props}
-						type="text"
-						bind:value={$formData.vendorName}
-					/>
+					<Input {...props} type="text" bind:value={$formData.vendorName} />
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
 		<div class="flex w-full gap-4">
-			<Form.Field
-				{form}
-				name="category"
-				class="flex flex-col w-full"
-			>
+			<Form.Field {form} name="category" class="flex flex-col w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Category</Form.Label>
@@ -101,10 +94,7 @@
 							bind:value={$formData.vendorCategory}
 							name={props.name}
 						>
-							<Select.Trigger
-								{...props}
-								class="flex w-full"
-							>
+							<Select.Trigger {...props} class="flex w-full">
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
@@ -117,13 +107,9 @@
 						</Select.Root>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
+				<Form.FieldErrors class="text-xs"/>
 			</Form.Field>
-			<Form.Field
-				{form}
-				name="vendorInstagram"
-				class="flex flex-col w-full"
-			>
+			<Form.Field {form} name="vendorInstagram" class="flex flex-col w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Instagram</Form.Label>
@@ -134,15 +120,11 @@
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
+				<Form.FieldErrors class="text-xs text-red-500"/>
 			</Form.Field>
 		</div>
 		<div class="flex w-full gap-4">
-			<Form.Field
-				{form}
-				name="vendorStatus"
-				class="flex flex-col w-full"
-			>
+			<Form.Field {form} name="vendorStatus" class="flex flex-col w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Status</Form.Label>
@@ -151,10 +133,7 @@
 							bind:value={$formData.vendorStatus}
 							name={props.name}
 						>
-							<Select.Trigger
-								{...props}
-								class="flex w-full"
-							>
+							<Select.Trigger {...props} class="flex w-full">
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
@@ -167,13 +146,9 @@
 						</Select.Root>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
+				<Form.FieldErrors class="text-xs"/>
 			</Form.Field>
-			<Form.Field
-				{form}
-				name="vendorRating"
-				class="flex flex-col w-full"
-			>
+			<Form.Field {form} name="vendorRating" class="flex flex-col w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Rating</Form.Label>
@@ -182,10 +157,7 @@
 							bind:value={$formData.vendorRating}
 							name={props.name}
 						>
-							<Select.Trigger
-								{...props}
-								class="flex w-full"
-							>
+							<Select.Trigger {...props} class="flex w-full">
 								{selectedRating} stars
 							</Select.Trigger>
 							<Select.Content>
@@ -198,7 +170,7 @@
 						</Select.Root>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs" />
+				<Form.FieldErrors class="text-xs"/>
 			</Form.Field>
 		</div>
 

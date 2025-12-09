@@ -1,14 +1,17 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as Select from '$lib/components/ui/select/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Textarea } from '$lib/components/ui/textarea/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
-	import { scheduleSchema, scheduleCategoryEnum } from '$lib/validation/planner';
-	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+	import * as Dialog from "$lib/components/ui/dialog/index";
+	import * as Form from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import * as Select from "$lib/components/ui/select/index";
+	import { Textarea } from "$lib/components/ui/textarea/index";
+	import { InvalidationService } from "$lib/utils/invalidation-helpers";
+	import { CrudToasts, FormToasts } from "$lib/utils/toasts";
+	import {
+		scheduleCategoryEnum,
+		scheduleSchema,
+	} from "$lib/validation/planner";
 
 	let { data, open = $bindable() } = $props();
 
@@ -16,15 +19,19 @@
 		validators: valibot(scheduleSchema),
 		resetForm: true,
 		onResult: async ({ result }) => {
-			if (result.type === 'success') {
-				const eventTitle = $formData.scheduleName || 'Rundown item';
-				CrudToasts.success('create', 'rundown', { itemName: eventTitle });
+			if (result.type === "success") {
+				const eventTitle = $formData.scheduleName || "Rundown item";
+				CrudToasts.success("create", "rundown", { itemName: eventTitle });
 				await InvalidationService.invalidateRundown();
 				open = false;
-			} else if (result.type === 'failure') {
+			} else if (result.type === "failure") {
 				FormToasts.emptyFormError();
-			} else if (result.type === 'error') {
-				CrudToasts.error('create', 'An error occurred while saving the schedule event', 'rundown');
+			} else if (result.type === "error") {
+				CrudToasts.error(
+					"create",
+					"An error occurred while saving the schedule event",
+					"rundown"
+				);
 			}
 		},
 	});
@@ -32,8 +39,9 @@
 
 	const selectedCategory = $derived(
 		$formData.scheduleCategory
-			? scheduleCategoryEnum.find((c) => c.value === $formData.scheduleCategory)?.label
-			: 'Choose category',
+			? scheduleCategoryEnum.find((c) => c.value === $formData.scheduleCategory)
+					?.label
+			: "Choose category"
 	);
 </script>
 
@@ -73,7 +81,7 @@
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 				<Form.Field
 					{form}
@@ -107,13 +115,10 @@
 							</Select.Root>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 			</div>
-			<Form.Field
-				{form}
-				name="scheduleNotes"
-			>
+			<Form.Field {form} name="scheduleNotes">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Description (Optional)</Form.Label>
@@ -124,7 +129,7 @@
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500" />
+				<Form.FieldErrors class="text-xs text-red-500"/>
 			</Form.Field>
 			<div class="flex flex-row items-start justify-between gap-2">
 				<Form.Field
@@ -142,7 +147,7 @@
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 				<Form.Field
 					{form}
@@ -159,7 +164,7 @@
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 			</div>
 			<div class="flex flex-row items-start justify-between gap-2">
@@ -178,7 +183,7 @@
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 				<Form.Field
 					{form}
@@ -195,7 +200,7 @@
 							/>
 						{/snippet}
 					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500" />
+					<Form.FieldErrors class="text-xs text-red-500"/>
 				</Form.Field>
 			</div>
 		</div>

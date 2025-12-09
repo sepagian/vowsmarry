@@ -1,13 +1,17 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as Select from '$lib/components/ui/select/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
-	import { expenseSchema, categoryEnum, expenseStatusEnum } from '$lib/validation/planner';
-	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+	import * as Dialog from "$lib/components/ui/dialog/index";
+	import * as Form from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import * as Select from "$lib/components/ui/select/index";
+	import { InvalidationService } from "$lib/utils/invalidation-helpers";
+	import { CrudToasts, FormToasts } from "$lib/utils/toasts";
+	import {
+		categoryEnum,
+		expenseSchema,
+		expenseStatusEnum,
+	} from "$lib/validation/planner";
 
 	let { data, open = $bindable() } = $props();
 
@@ -15,15 +19,21 @@
 		validators: valibot(expenseSchema),
 		resetForm: true,
 		onResult: async ({ result }) => {
-			if (result.type === 'success') {
-				const expenseDescription = $formData.expenseDescription || 'Expense';
-				CrudToasts.success('create', 'expense', { itemName: expenseDescription });
+			if (result.type === "success") {
+				const expenseDescription = $formData.expenseDescription || "Expense";
+				CrudToasts.success("create", "expense", {
+					itemName: expenseDescription,
+				});
 				await InvalidationService.invalidateExpense();
 				open = false;
-			} else if (result.type === 'failure') {
+			} else if (result.type === "failure") {
 				FormToasts.emptyFormError();
-			} else if (result.type === 'error') {
-				CrudToasts.error('create', 'An error occurred while saving the expense', 'expense');
+			} else if (result.type === "error") {
+				CrudToasts.error(
+					"create",
+					"An error occurred while saving the expense",
+					"expense"
+				);
 			}
 		},
 	});
@@ -32,13 +42,15 @@
 	const selectedCategory = $derived(
 		$formData.expenseCategory
 			? categoryEnum.find((c) => c.value === $formData.expenseCategory)?.label
-			: 'Choose category',
+			: "Choose category"
 	);
 
 	const selectedStatus = $derived(
 		$formData.expensePaymentStatus
-			? expenseStatusEnum.find((s) => s.value === $formData.expensePaymentStatus)?.label
-			: 'Select payment status',
+			? expenseStatusEnum.find(
+					(s) => s.value === $formData.expensePaymentStatus
+				)?.label
+			: "Select payment status"
 	);
 </script>
 
@@ -60,10 +72,7 @@
 			}
 		}}
 	>
-		<Form.Field
-			{form}
-			name="expenseDescription"
-		>
+		<Form.Field {form} name="expenseDescription">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Description</Form.Label>
@@ -74,12 +83,9 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
-		<Form.Field
-			{form}
-			name="expenseAmount"
-		>
+		<Form.Field {form} name="expenseAmount">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Amount</Form.Label>
@@ -91,14 +97,10 @@
 					/>
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
 		<div class="flex w-full gap-4">
-			<Form.Field
-				{form}
-				name="expenseCategory"
-				class="flex flex-col w-full"
-			>
+			<Form.Field {form} name="expenseCategory" class="flex flex-col w-full">
 				<Form.Control>
 					{#snippet children({ props })}
 						<Form.Label>Category</Form.Label>
@@ -107,10 +109,7 @@
 							bind:value={$formData.expenseCategory}
 							name={props.name}
 						>
-							<Select.Trigger
-								{...props}
-								class="flex w-full"
-							>
+							<Select.Trigger {...props} class="flex w-full">
 								{selectedCategory}
 							</Select.Trigger>
 							<Select.Content>
@@ -123,7 +122,7 @@
 						</Select.Root>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors />
+				<Form.FieldErrors/>
 			</Form.Field>
 			<Form.Field
 				{form}
@@ -138,10 +137,7 @@
 							bind:value={$formData.expensePaymentStatus}
 							name={props.name}
 						>
-							<Select.Trigger
-								{...props}
-								class="flex w-full"
-							>
+							<Select.Trigger {...props} class="flex w-full">
 								{selectedStatus}
 							</Select.Trigger>
 							<Select.Content>
@@ -154,24 +150,17 @@
 						</Select.Root>
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors />
+				<Form.FieldErrors/>
 			</Form.Field>
 		</div>
-		<Form.Field
-			{form}
-			name="expenseDueDate"
-		>
+		<Form.Field {form} name="expenseDueDate">
 			<Form.Control>
 				{#snippet children({ props })}
 					<Form.Label>Date</Form.Label>
-					<Input
-						{...props}
-						type="date"
-						bind:value={$formData.expenseDueDate}
-					/>
+					<Input {...props} type="date" bind:value={$formData.expenseDueDate} />
 				{/snippet}
 			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
+			<Form.FieldErrors class="text-xs text-red-500"/>
 		</Form.Field>
 		<Dialog.Footer>
 			<Form.Button>Add New Expense</Form.Button>

@@ -1,20 +1,19 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as Select from '$lib/components/ui/select/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { Button } from '$lib/components/ui/button/index';
-	import { Label } from '$lib/components/ui/label/index';
-	import { CrudToasts } from '$lib/utils/toasts';
-	import { vendorsState } from '$lib/stores/vendors.svelte';
+	import { Button } from "$lib/components/ui/button/index";
+	import * as Dialog from "$lib/components/ui/dialog/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import { Label } from "$lib/components/ui/label/index";
+	import * as Select from "$lib/components/ui/select/index";
+	import { vendorsState } from "$lib/stores/vendors.svelte";
+	import type { Vendor } from "$lib/types";
+	import { createFormDataWithId } from "$lib/utils/form-helpers";
+	import { InvalidationService } from "$lib/utils/invalidation-helpers";
+	import { CrudToasts } from "$lib/utils/toasts";
 	import {
 		categoryEnum,
-		vendorStatusEnum,
 		vendorRatingEnum,
-		type VendorData,
-	} from '$lib/validation/planner';
-	import type { Vendor } from '$lib/types';
-	import { InvalidationService } from '$lib/utils/invalidation-helpers';
-	import { createFormDataWithId } from '$lib/utils/form-helpers';
+		vendorStatusEnum,
+	} from "$lib/validation/planner";
 
 	let { vendor, open = $bindable() } = $props<{
 		vendor: Vendor;
@@ -33,19 +32,19 @@
 	const selectedCategory = $derived(
 		formData.vendorCategory
 			? categoryEnum.find((c) => c.value === formData.vendorCategory)?.label
-			: 'Choose category',
+			: "Choose category"
 	);
 
 	const selectedStatus = $derived(
 		formData.vendorStatus
 			? vendorStatusEnum.find((s) => s.value === formData.vendorStatus)?.label
-			: 'Select progress status',
+			: "Select progress status"
 	);
 
 	const selectedRating = $derived(
 		formData.vendorRating
 			? vendorRatingEnum.find((r) => r.value === formData.vendorRating)?.label
-			: 'Select vendor rating',
+			: "Select vendor rating"
 	);
 
 	async function handleSubmit(e: Event) {
@@ -66,24 +65,29 @@
 			const form = createFormDataWithId(vendor.id!, {
 				vendorName: formData.vendorName,
 				vendorCategory: formData.vendorCategory,
-				vendorInstagram: formData.vendorInstagram || '',
+				vendorInstagram: formData.vendorInstagram || "",
 				vendorStatus: formData.vendorStatus,
 				vendorRating: formData.vendorRating,
 			});
 
-			const response = await fetch('?/updateVendor', {
-				method: 'POST',
+			const response = await fetch("?/updateVendor", {
+				method: "POST",
 				body: form,
 			});
 
-			const result = (await response.json()) as { type: string; error?: string };
+			const result = (await response.json()) as {
+				type: string;
+				error?: string;
+			};
 
-			if (result.type === 'success') {
-				CrudToasts.success('update', 'vendor', { itemName: formData.vendorName });
+			if (result.type === "success") {
+				CrudToasts.success("update", "vendor", {
+					itemName: formData.vendorName,
+				});
 				await InvalidationService.invalidateVendor();
 				open = false;
 			} else {
-				throw new Error(result.error || 'Failed to update vendor');
+				throw new Error(result.error || "Failed to update vendor");
 			}
 		} catch (error) {
 			// Revert optimistic update on error
@@ -91,9 +95,9 @@
 				vendorsState.update(vendor.id!, originalVendor);
 			}
 			CrudToasts.error(
-				'update',
-				error instanceof Error ? error.message : 'Failed to update vendor',
-				'vendor',
+				"update",
+				error instanceof Error ? error.message : "Failed to update vendor",
+				"vendor"
 			);
 		} finally {
 			isSubmitting = false;
@@ -109,26 +113,15 @@
 				<p>Update vendor information</p>
 			</Dialog.Description>
 		</Dialog.Header>
-		<form
-			onsubmit={handleSubmit}
-			class="flex flex-col gap-4"
-		>
+		<form onsubmit={handleSubmit} class="flex flex-col gap-4">
 			<div class="flex flex-col gap-2">
 				<Label for="name">Name</Label>
-				<Input
-					id="name"
-					type="text"
-					bind:value={formData.vendorName}
-					required
-				/>
+				<Input id="name" type="text" bind:value={formData.vendorName} required/>
 			</div>
 			<div class="flex w-full gap-4">
 				<div class="flex flex-col w-full gap-2">
 					<Label for="category">Category</Label>
-					<Select.Root
-						type="single"
-						bind:value={formData.vendorCategory}
-					>
+					<Select.Root type="single" bind:value={formData.vendorCategory}>
 						<Select.Trigger class="flex w-full">
 							{selectedCategory}
 						</Select.Trigger>
@@ -153,10 +146,7 @@
 			<div class="flex w-full gap-4">
 				<div class="flex flex-col w-full gap-2">
 					<Label for="status">Status</Label>
-					<Select.Root
-						type="single"
-						bind:value={formData.vendorStatus}
-					>
+					<Select.Root type="single" bind:value={formData.vendorStatus}>
 						<Select.Trigger class="flex w-full">
 							{selectedStatus}
 						</Select.Trigger>
@@ -171,12 +161,9 @@
 				</div>
 				<div class="flex flex-col w-full gap-2">
 					<Label for="rating">Rating</Label>
-					<Select.Root
-						type="single"
-						bind:value={formData.vendorRating}
-					>
+					<Select.Root type="single" bind:value={formData.vendorRating}>
 						<Select.Trigger class="flex w-full">
-							{selectedRating} stars
+							{selectedRating}stars
 						</Select.Trigger>
 						<Select.Content>
 							{#each vendorRatingEnum as option (option.value)}
@@ -190,11 +177,8 @@
 			</div>
 
 			<Dialog.Footer>
-				<Button
-					type="submit"
-					disabled={isSubmitting}
-				>
-					{isSubmitting ? 'Updating...' : 'Update Vendor'}
+				<Button type="submit" disabled={isSubmitting}>
+					{isSubmitting ? "Updating..." : "Update Vendor"}
 				</Button>
 			</Dialog.Footer>
 		</form>

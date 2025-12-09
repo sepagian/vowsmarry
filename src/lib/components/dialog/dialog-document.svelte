@@ -1,21 +1,20 @@
 <script lang="ts">
+	import { filesProxy, superForm } from 'sveltekit-superforms';
+	import { valibot } from 'sveltekit-superforms/adapters';
+	import { Button } from '$lib/components/ui/button/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as Form from '$lib/components/ui/form/index';
-	import * as Select from '$lib/components/ui/select/index';
 	import {
 		displaySize,
-		MEGABYTE,
 		FileDropZone,
 		type FileDropZoneProps,
+		MEGABYTE,
 	} from '$lib/components/ui/file-drop-zone';
+	import * as Form from '$lib/components/ui/form/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { Button } from '$lib/components/ui/button/index';
-	import { superForm, filesProxy } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { CrudToasts, FormToasts } from '$lib/utils/toasts';
-	import toastService from '$lib/utils/toasts';
-	import { documentSchema, documentCategoryEnum } from '$lib/validation/planner';
+	import * as Select from '$lib/components/ui/select/index';
 	import { TOAST_CONFIG } from '$lib/constants/config';
+	import toastService, { CrudToasts, FormToasts } from '$lib/utils/toasts';
+	import { documentCategoryEnum, documentSchema } from '$lib/validation/planner';
 
 	let { data, open = $bindable() } = $props();
 
