@@ -1,10 +1,29 @@
 <script lang="ts">
 	import { superForm } from "sveltekit-superforms";
 	import { valibot } from "sveltekit-superforms/adapters";
-	import * as Dialog from "$lib/components/ui/dialog/index";
-	import * as Form from "$lib/components/ui/form/index";
+
+	import {
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle,
+	} from "$lib/components/ui/dialog/index";
+	import {
+		FormButton,
+		FormControl,
+		FormField,
+		FormFieldErrors,
+		FormLabel,
+	} from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
-	import * as Select from "$lib/components/ui/select/index";
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+	} from "$lib/components/ui/select/index";
+
 	import { InvalidationService } from "$lib/utils/invalidation-helpers";
 	import { CrudToasts, FormToasts } from "$lib/utils/toasts";
 	import {
@@ -54,13 +73,13 @@
 	);
 </script>
 
-<Dialog.Content class="sm:max-w-[425px]">
-	<Dialog.Header>
-		<Dialog.Title>Add an Expense</Dialog.Title>
-		<Dialog.Description>
+<DialogContent class="sm:max-w-[425px]">
+	<DialogHeader>
+		<DialogTitle>Add an Expense</DialogTitle>
+		<DialogDescription>
 			<p>Keep track of where the budget goes — from flowers to fireworks.</p>
-		</Dialog.Description>
-	</Dialog.Header>
+		</DialogDescription>
+	</DialogHeader>
 	<form
 		method="POST"
 		use:enhance
@@ -72,23 +91,23 @@
 			}
 		}}
 	>
-		<Form.Field {form} name="expenseDescription">
-			<Form.Control>
+		<FormField {form} name="expenseDescription">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Description</Form.Label>
+					<FormLabel>Description</FormLabel>
 					<Input
 						{...props}
 						type="text"
 						bind:value={$formData.expenseDescription}
 					/>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Form.Field {form} name="expenseAmount">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<FormField {form} name="expenseAmount">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Amount</Form.Label>
+					<FormLabel>Amount</FormLabel>
 					<Input
 						{...props}
 						type="number"
@@ -96,74 +115,74 @@
 						bind:value={$formData.expenseAmount}
 					/>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
 		<div class="flex w-full gap-4">
-			<Form.Field {form} name="expenseCategory" class="flex flex-col w-full">
-				<Form.Control>
+			<FormField {form} name="expenseCategory" class="flex flex-col w-full">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Category</Form.Label>
-						<Select.Root
+						<FormLabel>Category</FormLabel>
+						<Select
 							type="single"
 							bind:value={$formData.expenseCategory}
 							name={props.name}
 						>
-							<Select.Trigger {...props} class="flex w-full">
+							<SelectTrigger {...props} class="flex w-full">
 								{selectedCategory}
-							</Select.Trigger>
-							<Select.Content>
+							</SelectTrigger>
+							<SelectContent>
 								{#each categoryEnum as option (option.value)}
-									<Select.Item value={option.value}>
+									<SelectItem value={option.value}>
 										{option.label}
-									</Select.Item>
+									</SelectItem>
 								{/each}
-							</Select.Content>
-						</Select.Root>
+							</SelectContent>
+						</Select>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors/>
-			</Form.Field>
-			<Form.Field
+				</FormControl>
+				<FormFieldErrors/>
+			</FormField>
+			<FormField
 				{form}
 				name="expensePaymentStatus"
 				class="flex flex-col w-full"
 			>
-				<Form.Control>
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Payment Status</Form.Label>
-						<Select.Root
+						<FormLabel>Payment Status</FormLabel>
+						<Select
 							type="single"
 							bind:value={$formData.expensePaymentStatus}
 							name={props.name}
 						>
-							<Select.Trigger {...props} class="flex w-full">
+							<SelectTrigger {...props} class="flex w-full">
 								{selectedStatus}
-							</Select.Trigger>
-							<Select.Content>
+							</SelectTrigger>
+							<SelectContent>
 								{#each expenseStatusEnum as option (option.value)}
-									<Select.Item value={option.value}>
+									<SelectItem value={option.value}>
 										{option.label}
-									</Select.Item>
+									</SelectItem>
 								{/each}
-							</Select.Content>
-						</Select.Root>
+							</SelectContent>
+						</Select>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors/>
-			</Form.Field>
+				</FormControl>
+				<FormFieldErrors/>
+			</FormField>
 		</div>
-		<Form.Field {form} name="expenseDueDate">
-			<Form.Control>
+		<FormField {form} name="expenseDueDate">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Date</Form.Label>
+					<FormLabel>Date</FormLabel>
 					<Input {...props} type="date" bind:value={$formData.expenseDueDate} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Dialog.Footer>
-			<Form.Button>Add New Expense</Form.Button>
-		</Dialog.Footer>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<DialogFooter>
+			<FormButton>Add New Expense</FormButton>
+		</DialogFooter>
 	</form>
-</Dialog.Content>
+</DialogContent>
