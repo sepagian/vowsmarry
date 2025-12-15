@@ -1,24 +1,44 @@
 <script lang="ts">
 	import { filesProxy, superForm } from "sveltekit-superforms";
 	import { valibot } from "sveltekit-superforms/adapters";
+
 	import { Button } from "$lib/components/ui/button/index";
-	import * as Dialog from "$lib/components/ui/dialog/index";
+	import {
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle,
+	} from "$lib/components/ui/dialog/index";
 	import {
 		displaySize,
 		FileDropZone,
 		type FileDropZoneProps,
 		MEGABYTE,
 	} from "$lib/components/ui/file-drop-zone";
-	import * as Form from "$lib/components/ui/form/index";
+	import {
+		FormButton,
+		FormControl,
+		FormField,
+		FormFieldErrors,
+		FormLabel,
+	} from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
-	import * as Select from "$lib/components/ui/select/index";
-	import { TOAST_CONFIG } from "$lib/constants/config";
-	import type { Document } from "$lib/types";
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+	} from "$lib/components/ui/select/index";
+
 	import toastService, { CrudToasts, FormToasts } from "$lib/utils/toasts";
 	import {
 		documentCategoryEnum,
 		documentSchema,
 	} from "$lib/validation/planner";
+
+	import { TOAST_CONFIG } from "$lib/constants/config";
+	import type { Document } from "$lib/types";
 
 	let {
 		data,
@@ -102,7 +122,7 @@
 			CrudToasts.error(
 				"update",
 				"An error occurred while updating the document",
-				"document"
+				"document",
 			);
 
 			// Reject promise for toast
@@ -128,7 +148,7 @@
 		$formData.documentCategory
 			? documentCategoryEnum.find((c) => c.value === $formData.documentCategory)
 					?.label
-			: "Choose category"
+			: "Choose category",
 	);
 
 	const onUpload: FileDropZoneProps["onUpload"] = async (uploadedFiles) => {
@@ -150,13 +170,13 @@
 	const files = filesProxy(form, "file");
 </script>
 
-<Dialog.Content class="w-full sm:w-[120rem]">
-	<Dialog.Header>
-		<Dialog.Title>Edit Document</Dialog.Title>
-		<Dialog.Description>
+<DialogContent class="w-full sm:w-[120rem]">
+	<DialogHeader>
+		<DialogTitle>Edit Document</DialogTitle>
+		<DialogDescription>
 			<p>Update document information and optionally replace the file.</p>
-		</Dialog.Description>
-	</Dialog.Header>
+		</DialogDescription>
+	</DialogHeader>
 	<form
 		use:enhance
 		method="POST"
@@ -169,48 +189,48 @@
 			}
 		}}
 	>
-		<Form.Field {form} name="documentName">
-			<Form.Control>
+		<FormField {form} name="documentName">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Description</Form.Label>
+					<FormLabel>Description</FormLabel>
 					<Input {...props} type="text" bind:value={$formData.documentName} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Form.Field {form} name="documentCategory">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500" />
+		</FormField>
+		<FormField {form} name="documentCategory">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Category</Form.Label>
-					<Select.Root
+					<FormLabel>Category</FormLabel>
+					<Select
 						type="single"
 						bind:value={$formData.documentCategory}
 						name={props.name}
 					>
-						<Select.Trigger {...props} class="w-full">
+						<SelectTrigger {...props} class="w-full">
 							{selectedCategory}
-						</Select.Trigger>
-						<Select.Content>
+						</SelectTrigger>
+						<SelectContent>
 							{#each documentCategoryEnum as option (option.value)}
-								<Select.Item value={option.value}>
+								<SelectItem value={option.value}>
 									{option.label}
-								</Select.Item>
+								</SelectItem>
 							{/each}
-						</Select.Content>
-					</Select.Root>
+						</SelectContent>
+					</Select>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors/>
-		</Form.Field>
-		<Form.Field {form} name="documentDate">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors />
+		</FormField>
+		<FormField {form} name="documentDate">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Document Date</Form.Label>
+					<FormLabel>Document Date</FormLabel>
 					<Input {...props} type="date" bind:value={$formData.documentDate} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500" />
+		</FormField>
 
 		<!-- Display current file info -->
 		{#if document.fileName && $files.length === 0}
@@ -232,8 +252,8 @@
 			</div>
 		{/if}
 
-		<Form.Field {form} name="file">
-			<Form.Control>
+		<FormField {form} name="file">
+			<FormControl>
 				{#snippet children({ props })}
 					<FileDropZone
 						{...props}
@@ -287,12 +307,12 @@
 						{/each}
 					</div>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500" />
+		</FormField>
 
-		<Dialog.Footer>
-			<Form.Button type="submit">Update Document</Form.Button>
-		</Dialog.Footer>
+		<DialogFooter>
+			<FormButton type="submit">Update Document</FormButton>
+		</DialogFooter>
 	</form>
-</Dialog.Content>
+</DialogContent>
