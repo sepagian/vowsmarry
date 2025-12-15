@@ -1,13 +1,33 @@
 import { betterAuth } from 'better-auth';
-import { organization } from 'better-auth/plugins';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { organization } from 'better-auth/plugins';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
-import { getRequestEvent } from '$app/server';
 import { drizzle } from 'drizzle-orm/d1';
-import * as schema from './db/schema/auth-schema';
+
 import { dev } from '$app/environment';
+import { getRequestEvent } from '$app/server';
+
 import { BETTER_AUTH_SECRET, BETTER_AUTH_URL } from '$env/static/private';
+
+import { sendEmail } from '$lib/server/email';
+
 import { SESSION_CONFIG, VALIDATION_CONFIG } from '$lib/constants/config';
+
+import {
+	account,
+	accountRelations,
+	invitation,
+	invitationRelations,
+	member,
+	memberRelations,
+	organizationRelations,
+	organization as organizationTable,
+	session,
+	sessionRelations,
+	userRelations,
+	user as userTable,
+	verification,
+} from './db/schema/auth-schema';
 
 // Validate environment variables at module load time
 if (!BETTER_AUTH_SECRET) {
@@ -54,6 +74,21 @@ if (BETTER_AUTH_SECRET.length < 32) {
  * ```
  */
 export function getAuth(d1: D1Database) {
+	const schema = {
+		user: userTable,
+		session,
+		account,
+		verification,
+		userRelations,
+		sessionRelations,
+		accountRelations,
+		organization: organizationTable,
+		member,
+		invitation,
+		organizationRelations,
+		memberRelations,
+		invitationRelations,
+	};
 	const db = drizzle(d1, { schema });
 
 	return betterAuth({
@@ -63,9 +98,54 @@ export function getAuth(d1: D1Database) {
 
 		emailAndPassword: {
 			enabled: true,
-			requireEmailVerification: false,
+			requireEmailVerification: true,
 			minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
 			maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
+			sendResetPassword: async ({
+				user,
+				url,
+				token,
+			}: {
+				user: { email: string; name: string | null };
+				url: string;
+				token: string;
+			}) => {
+				await sendEmail({
+					type: 'password-reset',
+					to: user.email,
+					user: {
+						name: user.name || undefined,
+						email: user.email,
+					},
+					resetUrl: url,
+					token,
+				});
+			},
+		},
+
+		emailVerification: {
+			sendVerificationEmail: async ({
+				user,
+				url,
+				token,
+			}: {
+				user: { email: string; name: string | null };
+				url: string;
+				token: string;
+			}) => {
+				await sendEmail({
+					type: 'verification',
+					to: user.email,
+					user: {
+						name: user.name || undefined,
+						email: user.email,
+					},
+					verificationUrl: url,
+					token,
+				});
+			},
+			sendOnSignUp: true,
+			autoSignInAfterVerification: true,
 		},
 
 		session: {
