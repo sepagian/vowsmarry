@@ -3,7 +3,7 @@
 	import { superForm } from "sveltekit-superforms";
 	import { valibot } from "sveltekit-superforms/adapters";
 
-	import * as Form from "$lib/components/ui/form/index";
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
 
 	import { FormToasts } from "$lib/utils/toasts";
@@ -40,50 +40,50 @@
 	class="flex flex-col gap-4"
 >
 	<div class="flex flex-col sm:flex-row w-full gap-2">
-		<Form.Field {form} name="groomName" class="w-full">
-			<Form.Control>
+		<FormField {form} name="groomName" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Groom Name</Form.Label>
+					<FormLabel>Groom Name</FormLabel>
 					<Input {...props} type="text" bind:value={$formData.groomName} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left"/>
-		</Form.Field>
-		<Form.Field {form} name="brideName" class="w-full">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
+		<FormField {form} name="brideName" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Bride Name</Form.Label>
+					<FormLabel>Bride Name</FormLabel>
 					<Input {...props} type="text" bind:value={$formData.brideName} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
 	</div>
 	<div class="flex flex-row w-full gap-2">
-		<Form.Field {form} name="weddingDate" class="w-full">
-			<Form.Control>
+		<FormField {form} name="weddingDate" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Wedding Date</Form.Label>
+					<FormLabel>Wedding Date</FormLabel>
 					<Input {...props} type="date" bind:value={$formData.weddingDate} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left"/>
-		</Form.Field>
-		<Form.Field {form} name="weddingVenue" class="w-full">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
+		<FormField {form} name="weddingVenue" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Location</Form.Label>
+					<FormLabel>Location</FormLabel>
 					<Input {...props} type="text" bind:value={$formData.weddingVenue} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
 	</div>
 
-	<Form.Field {form} name="weddingBudget">
-		<Form.Control>
+	<FormField {form} name="weddingBudget">
+		<FormControl>
 			{#snippet children({ props })}
-				<Form.Label>Budget Allocated</Form.Label>
+				<FormLabel>Budget Allocated</FormLabel>
 				<CurrencyInput
 					{...props}
 					name="weddingBudget"
@@ -100,7 +100,7 @@
 					}}
 				/>
 			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors class="text-xs text-red-500 text-left"/>
-	</Form.Field>
+		</FormControl>
+		<FormFieldErrors class="text-xs text-red-500 text-left"/>
+	</FormField>
 </form>
