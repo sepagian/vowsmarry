@@ -5,8 +5,8 @@
 	import { valibot } from "sveltekit-superforms/adapters";
 
 	import { Button } from "$lib/components/ui/button/index";
-	import * as Form from "$lib/components/ui/form/index";
-	import * as Password from "$lib/components/ui/password/index";
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
+	import { Input as PasswordInput, Root as PasswordRoot, Strength as PasswordStrength, ToggleVisibility } from "$lib/components/ui/password/index";
 
 	import {
 		authToasts,
@@ -88,7 +88,7 @@
 
 <div class="flex flex-col gap-8">
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Let’s set you up with a fresh start</h1>
+		<h1 class="text-2xl font-bold">Let's set you up with a fresh start</h1>
 		<p class="text-muted-foreground text-balance text-sm">
 			Enter your new password below — and keep it somewhere safe this time 😉
 		</p>
@@ -97,41 +97,41 @@
 		<!-- Hidden token field -->
 		<input type="hidden" name="token" bind:value={$formData.token}>
 
-		<Form.Field {form} name="password">
-			<Form.Control>
+		<FormField {form} name="password">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.password}
 							placeholder="Enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-						<Password.Strength bind:strength class="border-1 h-2" />
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+						<PasswordStrength bind:strength class="border-1 h-2" />
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Form.Field {form} name="confirmPassword">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<FormField {form} name="confirmPassword">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Confirm Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Confirm Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.confirmPassword}
 							placeholder="Re-enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
 		<Button type="submit" variant="outline" class="w-full cursor-pointer">
 			Update password
 		</Button>
