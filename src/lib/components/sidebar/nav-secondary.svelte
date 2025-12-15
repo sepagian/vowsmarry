@@ -1,36 +1,39 @@
 <script lang="ts">
-	import type { ComponentProps } from 'svelte';
+	import type { ComponentProps } from "svelte";
 
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import {
+		SidebarGroup,
+		SidebarGroupContent,
+		SidebarMenu,
+		SidebarMenuButton,
+		SidebarMenuItem,
+	} from "$lib/components/ui/sidebar/";
 
-	import type { WithoutChildren } from '$lib/utils.js';
+	import type { WithoutChildren } from "$lib/utils.js";
 
 	let {
 		items,
 		...restProps
-	}: { items: { title: string; url: string; icon: string }[] } & WithoutChildren<
-		ComponentProps<typeof Sidebar.Group>
-	> = $props();
+	}: {
+		items: { title: string; url: string; icon: string }[];
+	} & WithoutChildren<ComponentProps<typeof SidebarGroup>> = $props();
 </script>
 
-<Sidebar.Group {...restProps}>
-	<Sidebar.GroupContent>
-		<Sidebar.Menu>
+<SidebarGroup {...restProps}>
+	<SidebarGroupContent>
+		<SidebarMenu>
 			{#each items as item (item.title)}
-				<Sidebar.MenuItem>
-					<Sidebar.MenuButton>
+				<SidebarMenuItem>
+					<SidebarMenuButton>
 						{#snippet child({ props })}
-							<a
-								href={item.url}
-								{...props}
-							>
+							<a href={item.url} {...props}>
 								<div class="{item.icon} h-4 w-4"></div>
 								<span>{item.title}</span>
 							</a>
 						{/snippet}
-					</Sidebar.MenuButton>
-				</Sidebar.MenuItem>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
 			{/each}
-		</Sidebar.Menu>
-	</Sidebar.GroupContent>
-</Sidebar.Group>
+		</SidebarMenu>
+	</SidebarGroupContent>
+</SidebarGroup>
