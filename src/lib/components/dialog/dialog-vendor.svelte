@@ -1,10 +1,29 @@
 <script lang="ts">
 	import { superForm } from "sveltekit-superforms";
 	import { valibot } from "sveltekit-superforms/adapters";
-	import * as Dialog from "$lib/components/ui/dialog/index";
-	import * as Form from "$lib/components/ui/form/index";
+
+	import {
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle,
+	} from "$lib/components/ui/dialog/index";
+	import {
+		FormButton,
+		FormControl,
+		FormField,
+		FormFieldErrors,
+		FormLabel,
+	} from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
-	import * as Select from "$lib/components/ui/select/index";
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+	} from "$lib/components/ui/select/index";
+
 	import { InvalidationService } from "$lib/utils/invalidation-helpers";
 	import { CrudToasts, FormToasts } from "$lib/utils/toasts";
 	import {
@@ -31,7 +50,7 @@
 				CrudToasts.error(
 					"create",
 					"An error occurred while saving the vendor",
-					"vendor"
+					"vendor",
 				);
 			}
 		},
@@ -41,29 +60,29 @@
 	const selectedCategory = $derived(
 		$formData.vendorCategory
 			? categoryEnum.find((c) => c.value === $formData.vendorCategory)?.label
-			: "Choose category"
+			: "Choose category",
 	);
 
 	const selectedStatus = $derived(
 		$formData.vendorStatus
 			? vendorStatusEnum.find((s) => s.value === $formData.vendorStatus)?.label
-			: "Select progress status"
+			: "Select progress status",
 	);
 
 	const selectedRating = $derived(
 		$formData.vendorRating
 			? vendorRatingEnum.find((r) => r.value === $formData.vendorRating)?.label
-			: "Select vendor rating"
+			: "Select vendor rating",
 	);
 </script>
 
-<Dialog.Content class="sm:max-w-[425px]">
-	<Dialog.Header>
-		<Dialog.Title>Add New Vendor</Dialog.Title>
-		<Dialog.Description>
+<DialogContent class="sm:max-w-[425px]">
+	<DialogHeader>
+		<DialogTitle>Add New Vendor</DialogTitle>
+		<DialogDescription>
 			<p>Add a new wedding service provider</p>
-		</Dialog.Description>
-	</Dialog.Header>
+		</DialogDescription>
+	</DialogHeader>
 	<form
 		use:enhance
 		method="POST"
@@ -75,107 +94,107 @@
 			}
 		}}
 	>
-		<Form.Field {form} name="vendorName">
-			<Form.Control>
+		<FormField {form} name="vendorName">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Name</Form.Label>
+					<FormLabel>Name</FormLabel>
 					<Input {...props} type="text" bind:value={$formData.vendorName} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500" />
+		</FormField>
 		<div class="flex w-full gap-4">
-			<Form.Field {form} name="category" class="flex flex-col w-full">
-				<Form.Control>
+			<FormField {form} name="category" class="flex flex-col w-full">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Category</Form.Label>
-						<Select.Root
+						<FormLabel>Category</FormLabel>
+						<Select
 							type="single"
 							bind:value={$formData.vendorCategory}
 							name={props.name}
 						>
-							<Select.Trigger {...props} class="flex w-full">
+							<SelectTrigger {...props} class="flex w-full">
 								{selectedCategory}
-							</Select.Trigger>
-							<Select.Content>
+							</SelectTrigger>
+							<SelectContent>
 								{#each categoryEnum as option (option.value)}
-									<Select.Item value={option.value}>
+									<SelectItem value={option.value}>
 										{option.label}
-									</Select.Item>
+									</SelectItem>
 								{/each}
-							</Select.Content>
-						</Select.Root>
+							</SelectContent>
+						</Select>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs"/>
-			</Form.Field>
-			<Form.Field {form} name="vendorInstagram" class="flex flex-col w-full">
-				<Form.Control>
+				</FormControl>
+				<FormFieldErrors class="text-xs" />
+			</FormField>
+			<FormField {form} name="vendorInstagram" class="flex flex-col w-full">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Instagram</Form.Label>
+						<FormLabel>Instagram</FormLabel>
 						<Input
 							{...props}
 							type="text"
 							bind:value={$formData.vendorInstagram}
 						/>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500"/>
-			</Form.Field>
+				</FormControl>
+				<FormFieldErrors class="text-xs text-red-500" />
+			</FormField>
 		</div>
 		<div class="flex w-full gap-4">
-			<Form.Field {form} name="vendorStatus" class="flex flex-col w-full">
-				<Form.Control>
+			<FormField {form} name="vendorStatus" class="flex flex-col w-full">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Status</Form.Label>
-						<Select.Root
+						<FormLabel>Status</FormLabel>
+						<Select
 							type="single"
 							bind:value={$formData.vendorStatus}
 							name={props.name}
 						>
-							<Select.Trigger {...props} class="flex w-full">
+							<SelectTrigger {...props} class="flex w-full">
 								{selectedStatus}
-							</Select.Trigger>
-							<Select.Content>
+							</SelectTrigger>
+							<SelectContent>
 								{#each vendorStatusEnum as option (option.value)}
-									<Select.Item value={option.value}>
+									<SelectItem value={option.value}>
 										{option.label}
-									</Select.Item>
+									</SelectItem>
 								{/each}
-							</Select.Content>
-						</Select.Root>
+							</SelectContent>
+						</Select>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs"/>
-			</Form.Field>
-			<Form.Field {form} name="vendorRating" class="flex flex-col w-full">
-				<Form.Control>
+				</FormControl>
+				<FormFieldErrors class="text-xs" />
+			</FormField>
+			<FormField {form} name="vendorRating" class="flex flex-col w-full">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Rating</Form.Label>
-						<Select.Root
+						<FormLabel>Rating</FormLabel>
+						<Select
 							type="single"
 							bind:value={$formData.vendorRating}
 							name={props.name}
 						>
-							<Select.Trigger {...props} class="flex w-full">
+							<SelectTrigger {...props} class="flex w-full">
 								{selectedRating} stars
-							</Select.Trigger>
-							<Select.Content>
+							</SelectTrigger>
+							<SelectContent>
 								{#each vendorRatingEnum as option (option.value)}
-									<Select.Item value={option.value}>
+									<SelectItem value={option.value}>
 										{option.label} stars
-									</Select.Item>
+									</SelectItem>
 								{/each}
-							</Select.Content>
-						</Select.Root>
+							</SelectContent>
+						</Select>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs"/>
-			</Form.Field>
+				</FormControl>
+				<FormFieldErrors class="text-xs" />
+			</FormField>
 		</div>
 
-		<Dialog.Footer>
-			<Form.Button>Add New Vendor</Form.Button>
-		</Dialog.Footer>
+		<DialogFooter>
+			<FormButton>Add New Vendor</FormButton>
+		</DialogFooter>
 	</form>
-</Dialog.Content>
+</DialogContent>
