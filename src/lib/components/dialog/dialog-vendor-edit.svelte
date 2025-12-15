@@ -1,11 +1,23 @@
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button/index";
-	import * as Dialog from "$lib/components/ui/dialog/index";
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle,
+	} from "$lib/components/ui/dialog/index";
 	import { Input } from "$lib/components/ui/input/index";
 	import { Label } from "$lib/components/ui/label/index";
-	import * as Select from "$lib/components/ui/select/index";
+	import {
+		Select,
+		SelectContent,
+		SelectItem,
+		SelectTrigger,
+	} from "$lib/components/ui/select/index";
+
 	import { vendorsState } from "$lib/stores/vendors.svelte";
-	import type { Vendor } from "$lib/types";
 	import { createFormDataWithId } from "$lib/utils/form-helpers";
 	import { InvalidationService } from "$lib/utils/invalidation-helpers";
 	import { CrudToasts } from "$lib/utils/toasts";
@@ -14,6 +26,8 @@
 		vendorRatingEnum,
 		vendorStatusEnum,
 	} from "$lib/validation/planner";
+
+	import type { Vendor } from "$lib/types";
 
 	let { vendor, open = $bindable() } = $props<{
 		vendor: Vendor;
@@ -32,19 +46,19 @@
 	const selectedCategory = $derived(
 		formData.vendorCategory
 			? categoryEnum.find((c) => c.value === formData.vendorCategory)?.label
-			: "Choose category"
+			: "Choose category",
 	);
 
 	const selectedStatus = $derived(
 		formData.vendorStatus
 			? vendorStatusEnum.find((s) => s.value === formData.vendorStatus)?.label
-			: "Select progress status"
+			: "Select progress status",
 	);
 
 	const selectedRating = $derived(
 		formData.vendorRating
 			? vendorRatingEnum.find((r) => r.value === formData.vendorRating)?.label
-			: "Select vendor rating"
+			: "Select vendor rating",
 	);
 
 	async function handleSubmit(e: Event) {
@@ -97,7 +111,7 @@
 			CrudToasts.error(
 				"update",
 				error instanceof Error ? error.message : "Failed to update vendor",
-				"vendor"
+				"vendor",
 			);
 		} finally {
 			isSubmitting = false;
@@ -105,34 +119,39 @@
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Content class="sm:max-w-[425px]">
-		<Dialog.Header>
-			<Dialog.Title>Edit Vendor</Dialog.Title>
-			<Dialog.Description>
+<Dialog bind:open>
+	<DialogContent class="sm:max-w-[425px]">
+		<DialogHeader>
+			<DialogTitle>Edit Vendor</DialogTitle>
+			<DialogDescription>
 				<p>Update vendor information</p>
-			</Dialog.Description>
-		</Dialog.Header>
+			</DialogDescription>
+		</DialogHeader>
 		<form onsubmit={handleSubmit} class="flex flex-col gap-4">
 			<div class="flex flex-col gap-2">
 				<Label for="name">Name</Label>
-				<Input id="name" type="text" bind:value={formData.vendorName} required/>
+				<Input
+					id="name"
+					type="text"
+					bind:value={formData.vendorName}
+					required
+				/>
 			</div>
 			<div class="flex w-full gap-4">
 				<div class="flex flex-col w-full gap-2">
 					<Label for="category">Category</Label>
-					<Select.Root type="single" bind:value={formData.vendorCategory}>
-						<Select.Trigger class="flex w-full">
+					<Select type="single" bind:value={formData.vendorCategory}>
+						<SelectTrigger class="flex w-full">
 							{selectedCategory}
-						</Select.Trigger>
-						<Select.Content>
+						</SelectTrigger>
+						<SelectContent>
 							{#each categoryEnum as option (option.value)}
-								<Select.Item value={option.value}>
+								<SelectItem value={option.value}>
 									{option.label}
-								</Select.Item>
+								</SelectItem>
 							{/each}
-						</Select.Content>
-					</Select.Root>
+						</SelectContent>
+					</Select>
 				</div>
 				<div class="flex flex-col w-full gap-2">
 					<Label for="instagram">Instagram</Label>
@@ -146,41 +165,39 @@
 			<div class="flex w-full gap-4">
 				<div class="flex flex-col w-full gap-2">
 					<Label for="status">Status</Label>
-					<Select.Root type="single" bind:value={formData.vendorStatus}>
-						<Select.Trigger class="flex w-full">
-							{selectedStatus}
-						</Select.Trigger>
-						<Select.Content>
+					<Select type="single" bind:value={formData.vendorStatus}>
+						<SelectTrigger class="flex w-full">{selectedStatus}</SelectTrigger>
+						<SelectContent>
 							{#each vendorStatusEnum as option (option.value)}
-								<Select.Item value={option.value}>
+								<SelectItem value={option.value}>
 									{option.label}
-								</Select.Item>
+								</SelectItem>
 							{/each}
-						</Select.Content>
-					</Select.Root>
+						</SelectContent>
+					</Select>
 				</div>
 				<div class="flex flex-col w-full gap-2">
 					<Label for="rating">Rating</Label>
-					<Select.Root type="single" bind:value={formData.vendorRating}>
-						<Select.Trigger class="flex w-full">
+					<Select type="single" bind:value={formData.vendorRating}>
+						<SelectTrigger class="flex w-full">
 							{selectedRating}stars
-						</Select.Trigger>
-						<Select.Content>
+						</SelectTrigger>
+						<SelectContent>
 							{#each vendorRatingEnum as option (option.value)}
-								<Select.Item value={option.value}>
+								<SelectItem value={option.value}>
 									{option.label} stars
-								</Select.Item>
+								</SelectItem>
 							{/each}
-						</Select.Content>
-					</Select.Root>
+						</SelectContent>
+					</Select>
 				</div>
 			</div>
 
-			<Dialog.Footer>
+			<DialogFooter>
 				<Button type="submit" disabled={isSubmitting}>
 					{isSubmitting ? "Updating..." : "Update Vendor"}
 				</Button>
-			</Dialog.Footer>
+			</DialogFooter>
 		</form>
-	</Dialog.Content>
-</Dialog.Root>
+	</DialogContent>
+</Dialog>
