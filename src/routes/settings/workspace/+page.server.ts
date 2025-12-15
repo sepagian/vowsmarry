@@ -1,11 +1,14 @@
-import { fail, error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { getAuth } from '$lib/server/auth';
+import { error, fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import { inviteSchema, workspaceInfoSchema, weddingDetailsSchema } from '$lib/validation/workspace';
-import { sendInvitationEmail } from '$lib/server/email/send-invitation';
+
 import { BETTER_AUTH_URL } from '$env/static/private';
+
+import { getAuth } from '$lib/server/auth';
+import { sendEmail } from '$lib/server/email';
+import { inviteSchema, weddingDetailsSchema, workspaceInfoSchema } from '$lib/validation/workspace';
+
+import type { Actions, PageServerLoad } from './$types';
 
 /**
  * Load workspace data including organization details, members, and pending invitations
@@ -13,14 +16,20 @@ import { BETTER_AUTH_URL } from '$env/static/private';
 export const load: PageServerLoad = async ({ locals, platform, request }) => {
 	const { session, user, activeWorkspaceId, activeWorkspace } = locals;
 
-	// Require authentication
-	if (!session || !user) {
+	if (!session) {
 		throw error(401, 'Authentication required');
 	}
 
-	// Require active workspace
-	if (!activeWorkspaceId || !activeWorkspace) {
+	if (!user) {
+		throw error(401, 'User not found');
+	}
+
+	if (!activeWorkspaceId) {
 		throw error(403, 'No active workspace');
+	}
+
+	if (!activeWorkspace) {
+		throw error(403, 'Active workspace not found');
 	}
 
 	if (!platform) {
@@ -82,7 +91,7 @@ export const load: PageServerLoad = async ({ locals, platform, request }) => {
 				weddingDate: activeWorkspace.weddingDate || null,
 				weddingVenue: activeWorkspace.weddingVenue || null,
 				weddingBudget: activeWorkspace.weddingBudget
-					? parseFloat(activeWorkspace.weddingBudget)
+					? Number.parseFloat(activeWorkspace.weddingBudget)
 					: null,
 			},
 			weddingDetailsForm,
@@ -97,11 +106,15 @@ export const actions: Actions = {
 	/**
 	 * Update workspace information (name, slug, couple names)
 	 */
-	updateWorkspaceInfo: async ({ request, locals, platform }) => {
+	updateWorkspaceInfo: async ({ request, locals, platform }: Parameters<Actions['updateWorkspaceInfo']>[0]) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!user) {
+			return fail(401, { message: 'User not found' });
 		}
 
 		if (!activeWorkspaceId) {
@@ -167,8 +180,12 @@ export const actions: Actions = {
 	updateWeddingDetails: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!user) {
+			return fail(401, { message: 'User not found' });
 		}
 
 		if (!activeWorkspaceId) {
@@ -235,8 +252,12 @@ export const actions: Actions = {
 	inviteMember: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!user) {
+			return fail(401, { message: 'User not found' });
 		}
 
 		if (!activeWorkspaceId) {
@@ -281,14 +302,16 @@ export const actions: Actions = {
 				headers: request.headers,
 			});
 
-			// Send invitation email
+			// Send invitation email using unified email service
 			try {
-				await sendInvitationEmail({
-					inviteeEmail: form.data.partnerEmail,
-					inviterName: user.name,
+				const invitationUrl = `${BETTER_AUTH_URL}/accept-invitation/${invitation.id}`;
+				await sendEmail({
+					type: 'invitation',
+					to: form.data.partnerEmail,
+					inviterName: user.name || 'A user',
 					organizationName: organization.name,
+					invitationUrl,
 					invitationId: invitation.id,
-					baseUrl: BETTER_AUTH_URL,
 				});
 			} catch (emailErr) {
 				console.error('Failed to send invitation email:', emailErr);
@@ -306,8 +329,12 @@ export const actions: Actions = {
 
 			const errorMessage = err instanceof Error ? err.message : String(err);
 
-			// Better Auth automatically prevents duplicate invitations
-			if (errorMessage.includes('already')) {
+			// Handle duplicate invitation (UNIQUE constraint on email per organization)
+			if (
+				errorMessage.includes('already') ||
+				errorMessage.includes('UNIQUE constraint failed') ||
+				errorMessage.includes('invitation.email')
+			) {
 				return fail(400, {
 					form,
 					message: 'This user is already a member or has a pending invitation',
@@ -327,8 +354,12 @@ export const actions: Actions = {
 	leaveWorkspace: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!user) {
+			return fail(401, { message: 'User not found'})
 		}
 
 		if (!activeWorkspaceId) {
@@ -382,8 +413,12 @@ export const actions: Actions = {
 	removeMember: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+
+		if (!user) {
+			return fail(401, { message: 'User not found'})
 		}
 
 		if (!activeWorkspaceId) {
@@ -446,8 +481,12 @@ export const actions: Actions = {
 	resendInvitation: async ({ request, locals, platform }) => {
 		const { session, user, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
+		}
+		
+		if (!user) {
+			return fail(401, { message: 'User not found'})
 		}
 
 		if (!activeWorkspaceId) {
@@ -496,14 +535,16 @@ export const actions: Actions = {
 				return fail(500, { message: 'Organization not found' });
 			}
 
-			// Resend invitation email
+			// Resend invitation email using unified email service
 			try {
-				await sendInvitationEmail({
-					inviteeEmail: invitation.email,
-					inviterName: user.name,
+				const invitationUrl = `${BETTER_AUTH_URL}/accept-invitation/${invitation.id}`;
+				await sendEmail({
+					type: 'invitation',
+					to: invitation.email,
+					inviterName: user.name || 'A user',
 					organizationName: organization.name,
+					invitationUrl,
 					invitationId: invitation.id,
-					baseUrl: BETTER_AUTH_URL,
 				});
 
 				return {
@@ -529,9 +570,9 @@ export const actions: Actions = {
 	 * Cancel a pending invitation
 	 */
 	cancelInvitation: async ({ request, locals, platform }) => {
-		const { session, user, activeWorkspaceId } = locals;
+		const { session, activeWorkspaceId } = locals;
 
-		if (!session || !user) {
+		if (!session) {
 			return fail(401, { message: 'Authentication required' });
 		}
 
