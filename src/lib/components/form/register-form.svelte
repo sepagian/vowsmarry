@@ -4,9 +4,9 @@
 	import { valibot } from "sveltekit-superforms/adapters";
 
 	import { Button } from "$lib/components/ui/button/index";
-	import * as Form from "$lib/components/ui/form/index";
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
-	import * as Password from "$lib/components/ui/password/index";
+	import { Input as PasswordInput, Root as PasswordRoot, Strength as PasswordStrength, ToggleVisibility } from "$lib/components/ui/password/index";
 
 	import { validateRegisterSchema } from "$lib/validation/auth";
 
@@ -28,17 +28,17 @@
 
 <div class="flex flex-col gap-8">
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Let’s begin your story ✨</h1>
+		<h1 class="text-2xl font-bold">Let's begin your story ✨</h1>
 		<p class="text-muted-foreground text-balance text-sm">
 			Create your account and start planning your wedding with ease and joy.
 		</p>
 	</div>
 	<form method="POST" class="flex flex-col gap-2" use:enhance>
 		<div class="grid sm:grid-cols-2 gap-2">
-			<Form.Field {form} name="firstName">
-				<Form.Control>
+			<FormField {form} name="firstName">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>First Name</Form.Label>
+						<FormLabel>First Name</FormLabel>
 						<Input
 							{...props}
 							type="text"
@@ -46,13 +46,13 @@
 							bind:value={$formData.firstName}
 						/>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500"/>
-			</Form.Field>
-			<Form.Field {form} name="lastName">
-				<Form.Control>
+				</FormControl>
+				<FormFieldErrors class="text-xs text-red-500"/>
+			</FormField>
+			<FormField {form} name="lastName">
+				<FormControl>
 					{#snippet children({ props })}
-						<Form.Label>Last Name</Form.Label>
+						<FormLabel>Last Name</FormLabel>
 						<Input
 							{...props}
 							type="text"
@@ -60,14 +60,14 @@
 							bind:value={$formData.lastName}
 						/>
 					{/snippet}
-				</Form.Control>
-				<Form.FieldErrors class="text-xs text-red-500"/>
-			</Form.Field>
+				</FormControl>
+				<FormFieldErrors class="text-xs text-red-500"/>
+			</FormField>
 		</div>
-		<Form.Field {form} name="email">
-			<Form.Control>
+		<FormField {form} name="email">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Email</Form.Label>
+					<FormLabel>Email</FormLabel>
 					<Input
 						{...props}
 						type="email"
@@ -75,44 +75,44 @@
 						bind:value={$formData.email}
 					/>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Form.Field {form} name="password">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<FormField {form} name="password">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.password}
 							placeholder="Enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-						<Password.Strength bind:strength class="border-1 h-2" />
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+						<PasswordStrength bind:strength class="border-1 h-2" />
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
-		<Form.Field {form} name="confirmPassword">
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<FormField {form} name="confirmPassword">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Confirm Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Confirm Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.confirmPassword}
 							placeholder="Re-enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
 		<Button type="submit" variant="outline" class="w-full cursor-pointer">
 			Create an account
 		</Button>
