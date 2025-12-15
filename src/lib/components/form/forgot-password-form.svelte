@@ -3,7 +3,7 @@
 	import { valibot } from "sveltekit-superforms/adapters";
 
 	import { Button } from "$lib/components/ui/button/index";
-	import * as Form from "$lib/components/ui/form/index";
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
 
 	import { forgotPasswordSchema } from "$lib/validation/auth";
@@ -28,14 +28,14 @@
 			Forgot your password? Don't worry, it happens
 		</h1>
 		<p class="text-muted-foreground text-balance text-sm">
-			Sit back, we’ll send you a link to reset it in just a moment.
+			Sit back, we'll send you a link to reset it in just a moment.
 		</p>
 	</div>
 	<form method="POST" class="flex flex-col gap-2" use:enhance>
-		<Form.Field {form} name="email">
-			<Form.Control>
+		<FormField {form} name="email">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Email</Form.Label>
+					<FormLabel>Email</FormLabel>
 					<Input
 						{...props}
 						type="email"
@@ -43,9 +43,9 @@
 						bind:value={$formData.email}
 					/>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500"/>
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
 		<Button type="submit" variant="outline" class="w-full cursor-pointer">
 			Reset password
 		</Button>
