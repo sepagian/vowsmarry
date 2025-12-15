@@ -7,7 +7,7 @@ import { workspaceSchema, inviteSchema } from '$lib/validation/workspace';
 import { getUser } from '$lib/server/auth-helpers';
 import { parseUserName } from '$lib/utils/user-utils';
 import { getAuth } from '$lib/server/auth';
-import { sendInvitationEmail } from '$lib/server/email/send-invitation';
+import { sendEmail } from '$lib/server/email';
 import { BETTER_AUTH_URL } from '$env/static/private';
 
 export const load: PageServerLoad = async ({ locals, depends }) => {
@@ -113,7 +113,7 @@ export const actions: Actions = {
 			const organization = await auth.api.createOrganization({
 				body: {
 					name: workspaceForm.data.workspaceName,
-					slug: slug,
+					slug,
 					groomName: weddingForm.data.groomName,
 					brideName: weddingForm.data.brideName,
 					weddingDate: weddingForm.data.weddingDate,
@@ -216,14 +216,16 @@ export const actions: Actions = {
 				headers: request.headers,
 			});
 
-			// Send invitation email
+			// Send invitation email using unified email service
 			try {
-				await sendInvitationEmail({
-					inviteeEmail: form.data.partnerEmail,
-					inviterName: user.name,
+				const invitationUrl = `${BETTER_AUTH_URL}/accept-invitation/${invitation.id}`;
+				await sendEmail({
+					type: 'invitation',
+					to: form.data.partnerEmail,
+					inviterName: user.name || 'A user',
 					organizationName: organization.name,
+					invitationUrl,
 					invitationId: invitation.id,
-					baseUrl: BETTER_AUTH_URL,
 				});
 			} catch (emailErr) {
 				console.error('Failed to send invitation email:', emailErr);
