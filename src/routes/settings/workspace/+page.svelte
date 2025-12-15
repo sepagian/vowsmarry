@@ -1,9 +1,9 @@
 <script lang="ts">
-	import * as Tabs from '$lib/components/ui/tabs/index';
-	import Workspace from '$lib/components/settings/workspace/workspace.svelte';
-	import Team from '$lib/components/settings/workspace/team.svelte';
 	import Integration from '$lib/components/settings/workspace/integration.svelte';
+	import Team from '$lib/components/settings/workspace/team.svelte';
+	import Workspace from '$lib/components/settings/workspace/workspace.svelte';
 	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index';
 
 	let triggers = [
 		{ value: 'workspace', title: 'Workspace', component: Workspace },
@@ -16,17 +16,17 @@
 
 <h1 class="font-bold text-2xl">Workspace Settings</h1>
 
-<Tabs.Root value={triggers[0].value}>
-	<Tabs.List class="w-full">
+<Tabs value={triggers[0].value}>
+	<TabsList class="w-full">
 		{#each triggers as trigger (trigger.title)}
-			<Tabs.Trigger value={trigger.value}>{trigger.title}</Tabs.Trigger>
+			<TabsTrigger value={trigger.value}>{trigger.title}</TabsTrigger>
 		{/each}
-	</Tabs.List>
+	</TabsList>
 	{#each triggers as trigger (trigger.title)}
-		<Tabs.Content value={trigger.value}>
+		<TabsContent value={trigger.value}>
 			{#if trigger.component}
 				<svelte:component this={trigger.component} />
 			{/if}
-		</Tabs.Content>
+		</TabsContent>
 	{/each}
-</Tabs.Root>
+</Tabs>
