@@ -8,6 +8,7 @@
         "@aws-sdk/s3-request-presigner": "^3.927.0",
         "@canutin/svelte-currency-input": "^0.13.0",
         "@friendofsvelte/progress": "^0.0.8",
+        "@plunk/node": "^3.0.3",
         "@schedule-x/calendar": "^3.4.0",
         "@schedule-x/current-time": "^3.4.0",
         "@schedule-x/drag-and-drop": "^3.4.0",
@@ -463,6 +464,8 @@
     "@octokit/types": ["@octokit/types@15.0.0", "", { "dependencies": { "@octokit/openapi-types": "^26.0.0" } }, "sha512-8o6yDfmoGJUIeR9OfYU0/TUJTnMPG2r68+1yEdUeG2Fdqpj8Qetg0ziKIgcBm0RW/j29H41WP37CYCEhp6GoHQ=="],
 
     "@phun-ky/typeof": ["@phun-ky/typeof@2.0.3", "", {}, "sha512-oeQJs1aa8Ghke8JIK9yuq/+KjMiaYeDZ38jx7MhkXncXlUKjqQ3wEm2X3qCKyjo+ZZofZj+WsEEiqkTtRuE2xQ=="],
+
+    "@plunk/node": ["@plunk/node@3.0.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-f3NT418/EdLjebQ4arAwR64cnz7d5H7i1CeKh8+B0cVBrwzHvF+Q+QkhutF+FAp49yuI/BYc71qQH+RFc2fxxQ=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
