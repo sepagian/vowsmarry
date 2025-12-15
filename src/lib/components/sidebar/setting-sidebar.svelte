@@ -1,4 +1,24 @@
-<script lang="ts" module>
+<script lang="ts">
+	import type { ComponentProps } from "svelte";
+
+	import { page } from "$app/state";
+
+	import {
+		Sidebar,
+		SidebarContent,
+		SidebarFooter,
+		SidebarHeader,
+	} from "$lib/components/ui/sidebar/index";
+
+	import NavMain from "./nav-main.svelte";
+	import NavWorkspace from "./nav-workspace.svelte";
+
+	let {
+		collapsible = "offcanvas",
+		...restProps
+	}: ComponentProps<typeof Sidebar> = $props();
+	const workspace = $derived(page.data.workspace || null);
+
 	const data = {
 		navMain: [
 			{
@@ -15,26 +35,12 @@
 	};
 </script>
 
-<script lang="ts">
-	import type { ComponentProps } from "svelte";
-	import { page } from "$app/state";
-	import * as Sidebar from "$lib/components/ui/sidebar/index";
-	import NavMain from "./nav-main.svelte";
-	import NavWorkspace from "./nav-workspace.svelte";
-
-	let {
-		collapsible = "offcanvas",
-		...restProps
-	}: ComponentProps<typeof Sidebar.Root> = $props();
-	const workspace = $derived(page.data.workspace || null);
-</script>
-
-<Sidebar.Root class="bg-background" {collapsible} {...restProps}>
-	<Sidebar.Header class="h-fit bg-background">
-		<NavWorkspace {workspace}/>
-	</Sidebar.Header>
-	<Sidebar.Content class="align-center bg-background">
-		<NavMain items={data.navMain}/>
-	</Sidebar.Content>
-	<Sidebar.Footer class="bg-background"></Sidebar.Footer>
-</Sidebar.Root>
+<Sidebar class="bg-accent" {collapsible} {...restProps}>
+	<SidebarHeader class="h-fit bg-accent">
+		<NavWorkspace {workspace} />
+	</SidebarHeader>
+	<SidebarContent class="align-center bg-accent">
+		<NavMain items={data.navMain} />
+	</SidebarContent>
+	<SidebarFooter class="bg-accent"></SidebarFooter>
+</Sidebar>
