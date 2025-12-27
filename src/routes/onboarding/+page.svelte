@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { WizardComponent } from 'svelte-wizard';
-	import StepOne from './step-one.svelte';
-	import StepTwo from './step-two.svelte';
-	import StepThree from './step-three.svelte';
-	import StepFour from './step-four.svelte';
-	import StepFive from './step-five.svelte';
+	import { WizardComponent } from "svelte-wizard";
+
+	import StepFive from "./step-five.svelte";
+	import StepFour from "./step-four.svelte";
+	import StepOne from "./step-one.svelte";
+	import StepThree from "./step-three.svelte";
+	import StepTwo from "./step-two.svelte";
 
 	let { data } = $props();
 
@@ -14,14 +15,15 @@
 		workspaceForm: data.workspaceForm,
 		inviteForm: data.inviteForm,
 		user: data.user,
+		organizationId: null,
 	});
 
 	let stepsList = [
-		{ step: StepOne, title: 'Welcome' },
-		{ step: StepTwo, title: 'Wedding Details' },
-		{ step: StepThree, title: 'Workspace Setup' },
-		{ step: StepFour, title: 'Invite Partner' },
-		{ step: StepFive, title: 'Complete' },
+		{ step: StepOne, title: "Welcome" },
+		{ step: StepTwo, title: "Wedding Details" },
+		{ step: StepThree, title: "Workspace Setup" },
+		{ step: StepFour, title: "Invite Partner" },
+		{ step: StepFive, title: "Complete" },
 	];
 	let options = $state({
 		showTitle: true,
@@ -32,9 +34,5 @@
 </script>
 
 <div class="max-w-2xl mx-auto">
-	<WizardComponent
-		{stepsList}
-		{options}
-		bind:wizardFormState
-	/>
+	<WizardComponent {stepsList} {options} bind:wizardFormState/>
 </div>
