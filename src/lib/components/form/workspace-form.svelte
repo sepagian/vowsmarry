@@ -38,7 +38,7 @@
 	id="workspace-form"
 	use:enhance
 	method="POST"
-	action="?/createWorkspace"
+	action="?/updateOrganizationWorkspace"
 	class="flex flex-col gap-4"
 >
 	<div class="flex flex-col sm:flex-row w-full gap-2">

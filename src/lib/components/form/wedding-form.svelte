@@ -3,7 +3,12 @@
 	import { superForm } from "sveltekit-superforms";
 	import { valibot } from "sveltekit-superforms/adapters";
 
-	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
+	import {
+		FormControl,
+		FormField,
+		FormFieldErrors,
+		FormLabel,
+	} from "$lib/components/ui/form/index";
 	import { Input } from "$lib/components/ui/input/index";
 
 	import { FormToasts } from "$lib/utils/toasts";
@@ -36,7 +41,7 @@
 	id="wedding-form"
 	use:enhance
 	method="POST"
-	action="?/createWeddingData"
+	action="?/createWeddingOrganization"
 	class="flex flex-col gap-4"
 >
 	<div class="flex flex-col sm:flex-row w-full gap-2">
