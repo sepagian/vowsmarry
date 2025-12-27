@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge/index';
-	import * as Card from '$lib/components/ui/card/index';
-	import type { OverviewCard } from '$lib/types';
+	import { Badge } from "$lib/components/ui/badge/index";
+	import * as Card from "$lib/components/ui/card/index";
+
+	import type { OverviewCard } from "$lib/types";
 
 	let {
 		overviewCards,
@@ -38,12 +39,16 @@
 								<Badge
 									class="flex items-center justify-center rounded-full px-0 font-mono tabular-nums bg-base"
 								>
-									<div class="{data.actionClass} {data.actionColor} h-4 w-4"></div>
+									<div
+										class="{data.actionClass} {data.actionColor} h-4 w-4"
+									></div>
 								</Badge>
 							{/if}
 						</Card.Action>
 					</div>
-					<Card.Title class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
+					<Card.Title
+						class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
+					>
 						{data.title}
 					</Card.Title>
 				</Card.Header>

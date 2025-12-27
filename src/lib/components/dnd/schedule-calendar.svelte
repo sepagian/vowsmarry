@@ -1,29 +1,38 @@
 <script lang="ts">
-	import { ScheduleXCalendar } from '@schedule-x/svelte';
 	import {
+		type CalendarEvent,
 		createCalendar,
 		createViewDay,
-		createViewWeek,
-		createViewMonthGrid,
-		createViewMonthAgenda,
 		createViewList,
-		type CalendarEvent,
-	} from '@schedule-x/calendar';
-	import { createCurrentTimePlugin } from '@schedule-x/current-time';
-	import { createResizePlugin } from '@schedule-x/resize';
-	import '@schedule-x/theme-shadcn/dist/index.css';
-	import 'temporal-polyfill/global';
-	import type { Schedule, Task, Expense, UnifiedCalendarEvent } from '$lib/types';
-	import { calendarState } from '$lib/stores/calendar.svelte';
-	import { tasksState } from '$lib/stores/tasks.svelte';
-	import { expensesState } from '$lib/stores/expenses.svelte';
-	import CalendarFilters from './calendar-filters.svelte';
-	import CalendarEventDetail from './calendar-event-detail.svelte';
-	import { onMount } from 'svelte';
-	import toastService from '$lib/utils/toasts';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { Card } from '$lib/components/ui/card';
-	import { calendars } from './calendar';
+		createViewMonthAgenda,
+		createViewMonthGrid,
+		createViewWeek,
+	} from "@schedule-x/calendar";
+	import { createCurrentTimePlugin } from "@schedule-x/current-time";
+	import { createResizePlugin } from "@schedule-x/resize";
+	import { ScheduleXCalendar } from "@schedule-x/svelte";
+	import "@schedule-x/theme-shadcn/dist/index.css";
+	import "temporal-polyfill/global";
+	import { onMount } from "svelte";
+
+	import { Card } from "$lib/components/ui/card";
+	import { Skeleton } from "$lib/components/ui/skeleton";
+
+	import { calendarState } from "$lib/stores/calendar.svelte";
+	import { expensesState } from "$lib/stores/expenses.svelte";
+	import { tasksState } from "$lib/stores/tasks.svelte";
+	import toastService from "$lib/utils/toasts";
+
+	import type {
+		Expense,
+		Schedule,
+		Task,
+		UnifiedCalendarEvent,
+	} from "$lib/types";
+
+	import { calendars } from "./calendar";
+	import CalendarEventDetail from "./calendar-event-detail.svelte";
+	import CalendarFilters from "./calendar-filters.svelte";
 
 	// Props from parent component
 	let {
@@ -51,10 +60,15 @@
 	let calendarApp = $state<ReturnType<typeof createCalendar>>();
 
 	// Transform unified events to @schedule-x CalendarEvent format
-	function transformToCalendarEvents(events: UnifiedCalendarEvent[]): CalendarEvent[] {
+	function transformToCalendarEvents(
+		events: UnifiedCalendarEvent[],
+	): CalendarEvent[] {
 		try {
 			if (!Array.isArray(events)) {
-				console.error('transformToCalendarEvents: Expected array, received:', typeof events);
+				console.error(
+					"transformToCalendarEvents: Expected array, received:",
+					typeof events,
+				);
 				return [];
 			}
 
@@ -76,32 +90,38 @@
 
 						return calendarEvent;
 					} catch (error) {
-						console.error('Error transforming individual event:', event.id, error);
+						console.error(
+							"Error transforming individual event:",
+							event.id,
+							error,
+						);
 						return null;
 					}
 				})
 				.filter((event): event is CalendarEvent => event !== null);
 		} catch (error) {
-			console.error('Critical error in transformToCalendarEvents:', error);
-			toastService.error('Failed to display calendar events');
+			console.error("Critical error in transformToCalendarEvents:", error);
+			toastService.error("Failed to display calendar events");
 			return [];
 		}
 	}
 
 	// Update calendar events when unified events change
 	$effect(() => {
-		if (!calendarApp) return; // Guard against SSR
-		
+		if (!calendarApp) {
+			return; // Guard against SSR
+		}
+
 		try {
 			const events = transformToCalendarEvents(calendarState.unifiedEvents);
 			calendarApp.events.set(events);
 			hasError = false;
 			errorMessage = null;
 		} catch (error) {
-			console.error('Error updating calendar events:', error);
+			console.error("Error updating calendar events:", error);
 			hasError = true;
-			errorMessage = 'Failed to update calendar events';
-			toastService.error('Failed to update calendar events');
+			errorMessage = "Failed to update calendar events";
+			toastService.error("Failed to update calendar events");
 		}
 	});
 
@@ -119,18 +139,23 @@
 					createViewList(),
 				],
 				weekOptions: {
-					timeAxisFormatOptions: { hour: '2-digit', minute: '2-digit' },
+					timeAxisFormatOptions: { hour: "2-digit", minute: "2-digit" },
 					eventOverlap: true,
 				},
-				locale: 'id-ID',
-				timezone: 'Asia/Makassar',
-				defaultView: 'viewList',
-				theme: 'shadcn',
-				plugins: [createCurrentTimePlugin({ fullWeekWidth: true }), createResizePlugin(30)],
+				locale: "id-ID",
+				timezone: "Asia/Makassar",
+				defaultView: "viewList",
+				theme: "shadcn",
+				plugins: [
+					createCurrentTimePlugin({ fullWeekWidth: true }),
+					createResizePlugin(30),
+				],
 				callbacks: {
 					onEventClick(calendarEvent) {
 						// Find the unified event by ID
-						const event = calendarState.unifiedEvents.find((e) => e.id === calendarEvent.id);
+						const event = calendarState.unifiedEvents.find(
+							(e) => e.id === calendarEvent.id,
+						);
 						if (event) {
 							selectedEvent = event;
 							modalOpen = true;
@@ -151,7 +176,7 @@
 			if (!expensesState.isWorkspace(workspaceId)) {
 				expensesState.clearWorkspace();
 			}
-			
+
 			calendarState.setSchedules(schedules || [], workspaceId);
 			tasksState.set(tasks || [], workspaceId);
 			expensesState.set(expenses || [], workspaceId);
@@ -160,11 +185,11 @@
 				isLoading = false;
 			}, 500);
 		} catch (error) {
-			console.error('Error initializing calendar:', error);
+			console.error("Error initializing calendar:", error);
 			hasError = true;
-			errorMessage = 'Failed to initialize calendar';
+			errorMessage = "Failed to initialize calendar";
 			isLoading = false;
-			toastService.error('Failed to initialize calendar');
+			toastService.error("Failed to initialize calendar");
 		}
 	});
 
@@ -178,7 +203,7 @@
 			}
 			calendarState.setSchedules(schedules || [], workspaceId);
 		} catch (error) {
-			console.error('Error updating schedules store:', error);
+			console.error("Error updating schedules store:", error);
 		}
 	});
 
@@ -190,7 +215,7 @@
 			}
 			tasksState.set(tasks || [], workspaceId);
 		} catch (error) {
-			console.error('Error updating tasks store:', error);
+			console.error("Error updating tasks store:", error);
 		}
 	});
 
@@ -202,7 +227,7 @@
 			}
 			expensesState.set(expenses || [], workspaceId);
 		} catch (error) {
-			console.error('Error updating expenses store:', error);
+			console.error("Error updating expenses store:", error);
 		}
 	});
 
@@ -252,12 +277,16 @@
 {#if hasError && !isLoading}
 	<div class="px-4 mt-4">
 		<Card class="p-6">
-			<div class="flex flex-col items-center justify-center text-center space-y-4">
+			<div
+				class="flex flex-col items-center justify-center text-center space-y-4"
+			>
 				<div class="i-lucide:alert-circle w-12 h-12 text-red-500"></div>
 				<div>
-					<h3 class="text-lg font-semibold text-red-700 dark:text-red-400">Calendar Error</h3>
+					<h3 class="text-lg font-semibold text-red-700 dark:text-red-400">
+						Calendar Error
+					</h3>
 					<p class="text-sm text-muted-foreground mt-2">
-						{errorMessage || 'An error occurred while loading the calendar'}
+						{errorMessage || "An error occurred while loading the calendar"}
 					</p>
 				</div>
 				<button
@@ -276,13 +305,17 @@
 {#if !isLoading && !hasError && !hasEvents}
 	<div class="px-4 mt-4">
 		<Card class="p-6 shadow-none">
-			<div class="flex flex-col items-center justify-center text-center space-y-4 py-8">
-				<div class="i-lucide:calendar-off w-16 h-16 text-muted-foreground"></div>
+			<div
+				class="flex flex-col items-center justify-center text-center space-y-4 py-8"
+			>
+				<div
+					class="i-lucide:calendar-off w-16 h-16 text-muted-foreground"
+				></div>
 				<div>
 					<h3 class="text-lg font-semibold">No Events Found</h3>
 					<p class="text-sm text-muted-foreground mt-2">
-						There are no events to display in the calendar. Try adjusting your filters or add some
-						schedules, tasks, or expenses.
+						There are no events to display in the calendar. Try adjusting your
+						filters or add some schedules, tasks, or expenses.
 					</p>
 				</div>
 				<div class="flex flex-col sm:flex-row gap-2 mt-4">

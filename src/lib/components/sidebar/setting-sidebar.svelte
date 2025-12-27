@@ -1,37 +1,46 @@
-<script
-	lang="ts"
-	module
->
+<script lang="ts">
+	import type { ComponentProps } from "svelte";
+
+	import { page } from "$app/state";
+
+	import {
+		Sidebar,
+		SidebarContent,
+		SidebarFooter,
+		SidebarHeader,
+	} from "$lib/components/ui/sidebar/index";
+
+	import NavMain from "./nav-main.svelte";
+	import NavWorkspace from "./nav-workspace.svelte";
+
+	let {
+		collapsible = "offcanvas",
+		...restProps
+	}: ComponentProps<typeof Sidebar> = $props();
+	const workspace = $derived(page.data.workspace || null);
+
 	const data = {
 		navMain: [
-			{ title: 'Account', url: '/settings/account', icon: 'i-tabler:user-filled' }, // DASHBOARD
-			{ title: 'Workspace', url: '/settings/workspace', icon: 'i-tabler:category-filled' }, // TASKS
+			{
+				title: "Account",
+				url: "/settings/account",
+				icon: "i-tabler:user-filled",
+			}, // DASHBOARD
+			{
+				title: "Workspace",
+				url: "/settings/workspace",
+				icon: "i-tabler:category-filled",
+			}, // TASKS
 		],
 	};
 </script>
 
-<script lang="ts">
-	import NavMain from './nav-main.svelte';
-	import NavWorkspace from './nav-workspace.svelte';
-	import { page } from '$app/stores';
-
-	import * as Sidebar from '$lib/components/ui/sidebar/index';
-	import type { ComponentProps } from 'svelte';
-
-	let { collapsible = 'offcanvas', ...restProps }: ComponentProps<typeof Sidebar.Root> = $props();
-	const workspace = $derived($page.data.workspace || null);
-</script>
-
-<Sidebar.Root
-	class="bg-background"
-	{collapsible}
-	{...restProps}
->
-	<Sidebar.Header class="h-fit bg-background">
+<Sidebar class="bg-accent" {collapsible} {...restProps}>
+	<SidebarHeader class="h-fit bg-accent">
 		<NavWorkspace {workspace} />
-	</Sidebar.Header>
-	<Sidebar.Content class="align-center bg-background">
+	</SidebarHeader>
+	<SidebarContent class="align-center bg-accent">
 		<NavMain items={data.navMain} />
-	</Sidebar.Content>
-	<Sidebar.Footer class="bg-background"></Sidebar.Footer>
-</Sidebar.Root>
+	</SidebarContent>
+	<SidebarFooter class="bg-accent"></SidebarFooter>
+</Sidebar>

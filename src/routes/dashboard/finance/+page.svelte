@@ -1,11 +1,12 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card/index';
-	import * as Tabs from '$lib/components/ui/tabs/index';
+	import { formatDistanceToNow } from 'date-fns';
+
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionSavings from '$lib/components/section/section-savings.svelte';
 	import ExpenseTable from '$lib/components/table/expense-table.svelte';
+	import { Card, CardContent } from '$lib/components/ui/card/index';
 	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
-	import { formatDistanceToNow } from 'date-fns';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index';
 
 	import { expensesState } from '$lib/stores/expenses.svelte';
 
@@ -28,7 +29,7 @@
 
 	let overviewCards = $derived([
 			{
-				title: parseFloat(data.financeStats.plannedBudget).toLocaleString('id-ID', {
+				title: Number.parseFloat(data.financeStats.plannedBudget).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -42,7 +43,7 @@
 					: 'No data yet',
 			},
 			{
-				title: parseFloat(data.financeStats.totalSavings).toLocaleString('id-ID', {
+				title: Number.parseFloat(data.financeStats.totalSavings).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -54,7 +55,7 @@
 				footer: `${data.financeStats.savingProgress}% saved`,
 			},
 			{
-				title: parseFloat(data.financeStats.budgetSpent).toLocaleString('id-ID', {
+				title: Number.parseFloat(data.financeStats.budgetSpent).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -69,7 +70,7 @@
 			},
 
 			{
-				title: parseFloat(data.financeStats.budgetRemaining).toLocaleString('id-ID', {
+				title: Number.parseFloat(data.financeStats.budgetRemaining).toLocaleString('id-ID', {
 					style: 'currency',
 					currency: 'IDR',
 					minimumFractionDigits: 0,
@@ -94,15 +95,15 @@
 		{overviewCards}
 		{overviewTitle}
 	/>
-	<Tabs.Root
+	<Tabs
 		value="expense"
 		class="px-4"
 	>
-		<Tabs.List class="w-full">
-			<Tabs.Trigger value="expense">Expenses</Tabs.Trigger>
-			<Tabs.Trigger value="savings">Savings</Tabs.Trigger>
-		</Tabs.List>
-		<Tabs.Content value="expense">
+		<TabsList class="w-full">
+			<TabsTrigger value="expense">Expenses</TabsTrigger>
+			<TabsTrigger value="savings">Savings</TabsTrigger>
+		</TabsList>
+		<TabsContent value="expense">
 			<div class="grid grid-cols-3 gap-4 flex flex-col">
 				<div class="flex flex-col col-span-3 lg:col-span-2 gap-2">
 					<ExpenseTable
@@ -111,15 +112,14 @@
 					/>
 				</div>
 				<div class="flex flex-col col-span-3 lg:col-span-1 row-span-3 gap-2 pb-4">
-					<Card.Root class="@container/card p-6 h-full gap-2 shadow-none">
-						<Card.Content class="p-0"></Card.Content>
-					</Card.Root>
+					<Card class="@container/card p-6 h-full gap-2 shadow-none">
+						<CardContent class="p-0"></CardContent>
+					</Card>
 				</div>
 			</div>
-		</Tabs.Content>
-		<Tabs.Content value="savings">
+		</TabsContent>
+		<TabsContent value="savings">
 			<SectionSavings />
-		</Tabs.Content>
-	</Tabs.Root>
+		</TabsContent>
+	</Tabs>
 </div>
-

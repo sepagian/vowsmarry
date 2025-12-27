@@ -1,18 +1,21 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index';
-	import * as Password from '$lib/components/ui/password/index';
-	import { Button } from '$lib/components/ui/button/index';
-	import { toast } from 'svelte-sonner';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { resetPasswordSchema } from '$lib/validation/auth';
+	import type { ZxcvbnResult } from "@zxcvbn-ts/core";
+	import { toast } from "svelte-sonner";
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+
+	import { Button } from "$lib/components/ui/button/index";
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
+	import { Input as PasswordInput, Root as PasswordRoot, Strength as PasswordStrength, ToggleVisibility } from "$lib/components/ui/password/index";
+
 	import {
 		authToasts,
 		handleAuthError,
 		handleFormValidationError,
-	} from '$lib/utils/toasts';
-	import { TOAST_CONFIG } from '$lib/constants/config';
-	import type { ZxcvbnResult } from '@zxcvbn-ts/core';
+	} from "$lib/utils/toasts";
+	import { resetPasswordSchema } from "$lib/validation/auth";
+
+	import { TOAST_CONFIG } from "$lib/constants/config";
 
 	let { data } = $props();
 	let strength = $state<ZxcvbnResult>();
@@ -26,7 +29,7 @@
 		onSubmit: () => {
 			// Show loading toast and track its ID
 			isSubmitting = true;
-			loadingToastId = toast.loading('Updating your password...');
+			loadingToastId = toast.loading("Updating your password...");
 		},
 		onResult: ({ result }) => {
 			// Always dismiss the loading toast first
@@ -36,20 +39,27 @@
 			}
 			isSubmitting = false;
 
-			if (result.type === 'success') {
+			if (result.type === "success") {
 				// Show success toast briefly before redirect
-				toast.success('Password updated successfully! You can now log in with your new password.', {
-					duration: TOAST_CONFIG.DEFAULT_DURATION,
-				});
-			} else if (result.type === 'failure') {
+				toast.success(
+					"Password updated successfully! You can now log in with your new password.",
+					{
+						duration: TOAST_CONFIG.DEFAULT_DURATION,
+					}
+				);
+			} else if (result.type === "failure") {
 				// Handle server validation errors with specific error messages
 				const error = result.data?.message || result.data?.error;
 
 				if (error) {
 					// Use specific error handling for password reset errors
-					if (error.includes('token') || error.includes('expired') || error.includes('invalid')) {
+					if (
+						error.includes("token") ||
+						error.includes("expired") ||
+						error.includes("invalid")
+					) {
 						authToasts.error.invalidResetToken();
-					} else if (error.includes('too many')) {
+					} else if (error.includes("too many")) {
 						authToasts.error.tooManyRequests();
 					} else {
 						// Handle other Supabase errors
@@ -78,72 +88,53 @@
 
 <div class="flex flex-col gap-8">
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Let’s set you up with a fresh start</h1>
+		<h1 class="text-2xl font-bold">Let's set you up with a fresh start</h1>
 		<p class="text-muted-foreground text-balance text-sm">
 			Enter your new password below — and keep it somewhere safe this time 😉
 		</p>
 	</div>
-	<form
-		method="POST"
-		class="flex flex-col gap-2"
-		use:enhance
-	>
+	<form method="POST" class="flex flex-col gap-2" use:enhance>
 		<!-- Hidden token field -->
-		<input
-			type="hidden"
-			name="token"
-			bind:value={$formData.token}
-		/>
+		<input type="hidden" name="token" bind:value={$formData.token}>
 
-		<Form.Field
-			{form}
-			name="password"
-		>
-			<Form.Control>
+		<FormField {form} name="password">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.password}
 							placeholder="Enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-						<Password.Strength
-							bind:strength
-							class="border-1 h-2"
-						/>
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+						<PasswordStrength bind:strength class="border-1 h-2" />
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
-		</Form.Field>
-		<Form.Field
-			{form}
-			name="confirmPassword"
-		>
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<FormField {form} name="confirmPassword">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Confirm Password</Form.Label>
-					<Password.Root>
-						<Password.Input
+					<FormLabel>Confirm Password</FormLabel>
+					<PasswordRoot>
+						<PasswordInput
 							{...props}
 							bind:value={$formData.confirmPassword}
 							placeholder="Re-enter your password"
 						>
-							<Password.ToggleVisibility />
-						</Password.Input>
-					</Password.Root>
+							<ToggleVisibility />
+						</PasswordInput>
+					</PasswordRoot>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500" />
-		</Form.Field>
-		<Button
-			type="submit"
-			variant="outline"
-			class="w-full cursor-pointer">Update password</Button
-		>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500"/>
+		</FormField>
+		<Button type="submit" variant="outline" class="w-full cursor-pointer">
+			Update password
+		</Button>
 	</form>
 
 	<div class="text-center">

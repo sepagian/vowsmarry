@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import * as Tabs from '$lib/components/ui/tabs/index';
-	import Profile from '$lib/components/settings/account/profile.svelte';
 	import Billing from '$lib/components/settings/account/billing.svelte';
 	import Privacy from '$lib/components/settings/account/privacy.svelte';
+	import Profile from '$lib/components/settings/account/profile.svelte';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs/index';
+
+	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
@@ -16,24 +17,24 @@
 
 <h1 class="font-bold text-2xl">Account Settings</h1>
 
-<Tabs.Root value={triggers[0].value}>
-	<Tabs.List class="w-full">
+<Tabs value={triggers[0].value}>
+	<TabsList class="w-full">
 		{#each triggers as trigger (trigger.title)}
-			<Tabs.Trigger value={trigger.value}>{trigger.title}</Tabs.Trigger>
+			<TabsTrigger value={trigger.value}>{trigger.title}</TabsTrigger>
 		{/each}
-	</Tabs.List>
-	<Tabs.Content value="profile_security">
+	</TabsList>
+	<TabsContent value="profile_security">
 		<Profile
 			user={data.user}
 			activeSessions={data.activeSessions}
 			profileForm={data.profileForm}
 			passwordForm={data.passwordForm}
 		/>
-	</Tabs.Content>
-	<Tabs.Content value="billing">
+	</TabsContent>
+	<TabsContent value="billing">
 		<Billing />
-	</Tabs.Content>
-	<Tabs.Content value="data_privacy">
+	</TabsContent>
+	<TabsContent value="data_privacy">
 		<Privacy />
-	</Tabs.Content>
-</Tabs.Root>
+	</TabsContent>
+</Tabs>

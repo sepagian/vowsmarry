@@ -1,4 +1,4 @@
-interface InvitationEmailParams {
+export type InvitationEmailParams = {
 	inviteeEmail: string;
 	inviterName: string;
 	organizationName: string;

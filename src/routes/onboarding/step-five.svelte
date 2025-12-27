@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { goto, invalidateAll } from '$app/navigation';
+
 	import { Button } from '$lib/components/ui/button';
-	import * as FieldSet from '$lib/components/ui/field-set';
+	import { Content as FieldSetContent, Footer as FieldSetFooter, Root as FieldSetRoot, Title as FieldSetTitle } from '$lib/components/ui/field-set';
+
 	import Success from './success.svelte';
-	import { invalidateAll, goto } from '$app/navigation';
 
 	let { handleBack, handleNext } = $props();
 
@@ -14,12 +16,12 @@
 </script>
 
 <div class="w-full h-xl pt-4">
-	<FieldSet.Root class="justify-between rounded-xl overflow-hidden">
-		<FieldSet.Title class="p-6 font-bold flex flex-col gap-1"></FieldSet.Title>
-		<FieldSet.Content class="p-6 text-balance text-center text-foreground">
+	<FieldSetRoot class="justify-between rounded-xl overflow-hidden">
+		<FieldSetTitle class="p-6 font-bold flex flex-col gap-1"></FieldSetTitle>
+		<FieldSetContent class="p-6 text-balance text-center text-foreground">
 			<Success />
-		</FieldSet.Content>
-		<FieldSet.Footer class="flex px-4 py-6 justify-between">
+		</FieldSetContent>
+		<FieldSetFooter class="flex px-4 py-6 justify-between">
 			<Button
 				onclick={handleBack}
 				size="sm"
@@ -30,6 +32,6 @@
 				size="sm"
 				class="bg-orange-200 text-orange-800 hover:bg-orange-300">Go to Dashboard</Button
 			>
-		</FieldSet.Footer>
-	</FieldSet.Root>
+		</FieldSetFooter>
+	</FieldSetRoot>
 </div>

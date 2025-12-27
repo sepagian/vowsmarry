@@ -1,18 +1,20 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index';
-	import * as InputGroup from '$lib/components/ui/input-group/index';
-	import { Input } from '$lib/components/ui/input/index';
-	import { superForm } from 'sveltekit-superforms';
-	import { valibot } from 'sveltekit-superforms/adapters';
-	import { FormToasts } from '$lib/utils/toasts';
-	import { workspaceSchema } from '$lib/validation/workspace';
+	import { superForm } from "sveltekit-superforms";
+	import { valibot } from "sveltekit-superforms/adapters";
+
+	import { FormControl, FormField, FormFieldErrors, FormLabel } from "$lib/components/ui/form/index";
+	import { Input } from "$lib/components/ui/input/index";
+	import { InputGroup, InputGroupAddon, InputGroupInput } from "$lib/components/ui/input-group/index";
+
+	import { FormToasts } from "$lib/utils/toasts";
+	import { workspaceSchema } from "$lib/validation/workspace";
 
 	let { data, onSuccess = $bindable() } = $props();
 
 	const form = superForm(data.workspaceForm, {
 		validators: valibot(workspaceSchema),
-		dataType: 'json',
-		onUpdate: async ({ form: f }) => {
+		dataType: "json",
+		onUpdate: ({ form: f }) => {
 			if (f.valid) {
 				if (onSuccess) {
 					onSuccess();
@@ -36,48 +38,33 @@
 	id="workspace-form"
 	use:enhance
 	method="POST"
-	action="?/createWorkspace"
+	action="?/updateOrganizationWorkspace"
 	class="flex flex-col gap-4"
 >
 	<div class="flex flex-col sm:flex-row w-full gap-2">
-		<Form.Field
-			{form}
-			name="workspaceName"
-			class="w-full"
-		>
-			<Form.Control>
+		<FormField {form} name="workspaceName" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Wedding Title</Form.Label>
-					<Input
-						{...props}
-						type="text"
-						bind:value={$formData.workspaceName}
-					/>
+					<FormLabel>Wedding Title</FormLabel>
+					<Input {...props} type="text" bind:value={$formData.workspaceName} />
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left" />
-		</Form.Field>
-		<Form.Field
-			{form}
-			name="slug"
-			class="w-full"
-		>
-			<Form.Control>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
+		<FormField {form} name="slug" class="w-full">
+			<FormControl>
 				{#snippet children({ props })}
-					<Form.Label>Wedding Invitation Slug</Form.Label>
-					<InputGroup.Root>
-						<InputGroup.Input
-							{...props}
-							bind:value={$formData.slug}
-						/>
-						<InputGroup.Addon align="inline-end">.vowsmarry.id</InputGroup.Addon>
-					</InputGroup.Root>
+					<FormLabel>Wedding Invitation Slug</FormLabel>
+					<InputGroup>
+						<InputGroupInput {...props} bind:value={$formData.slug} />
+						<InputGroupAddon align="inline-end">.vowsmarry.id</InputGroupAddon>
+					</InputGroup>
 					<p class="text-xs text-left mt-1 text-muted-foreground">
 						Your unique wedding invitation URL
 					</p>
 				{/snippet}
-			</Form.Control>
-			<Form.FieldErrors class="text-xs text-red-500 text-left" />
-		</Form.Field>
+			</FormControl>
+			<FormFieldErrors class="text-xs text-red-500 text-left"/>
+		</FormField>
 	</div>
 </form>

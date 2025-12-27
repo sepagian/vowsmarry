@@ -1,14 +1,16 @@
 <script lang="ts">
-	import * as Form from '$lib/components/ui/form/index';
-	import * as FieldSet from '$lib/components/ui/field-set';
-	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { toast } from 'svelte-sonner';
 	import { superForm } from 'sveltekit-superforms';
 	import { valibot } from 'sveltekit-superforms/adapters';
+
+	import { Button } from '$lib/components/ui/button';
+	import { Content as FieldSetContent, Footer as FieldSetFooter, Root as FieldSetRoot, Title as FieldSetTitle } from '$lib/components/ui/field-set';
+	import { Control as FormControl, Field as FormField, FieldErrors as FormFieldErrors, Label as FormLabel } from '$lib/components/ui/form/index';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+
 	import { FormToasts } from '$lib/utils/toasts';
 	import { inviteSchema } from '$lib/validation/workspace';
-	import { toast } from 'svelte-sonner';
 
 	let { handleBack, handleNext, handleSkipToEnd, wizardFormState, data } = $props();
 
@@ -36,14 +38,14 @@
 </script>
 
 <div class="w-full h-xl pt-4">
-	<FieldSet.Root class=" justify-between rounded-xl overflow-hidden">
-		<FieldSet.Title class="p-6 font-bold flex flex-col gap-1">
+	<FieldSetRoot class=" justify-between rounded-xl overflow-hidden">
+		<FieldSetTitle class="p-6 font-bold flex flex-col gap-1">
 			<h1 class="font-semibold text-lg">Plan together with your partner</h1>
 			<span class="text-sm text-balance text-muted-foreground">
 				Send an invitation so your partner can join, decide, and prepare everything with you.
 			</span>
-		</FieldSet.Title>
-		<FieldSet.Content class="p-6 text-balance text-center text-foreground">
+		</FieldSetTitle>
+		<FieldSetContent class="p-6 text-balance text-center text-foreground">
 			<form
 				id="invite-form"
 				use:enhance
@@ -51,14 +53,14 @@
 				action="?/invitePartner"
 				class="flex flex-col gap-2"
 			>
-				<Form.Field
+				<FormField
 					{form}
 					name="partnerEmail"
 					class="w-full"
 				>
-					<Form.Control>
+					<FormControl>
 						{#snippet children({ props })}
-							<Form.Label>Email</Form.Label>
+							<FormLabel>Email</FormLabel>
 							<Input
 								{...props}
 								type="email"
@@ -66,12 +68,12 @@
 								bind:value={$formData.partnerEmail}
 							/>
 						{/snippet}
-					</Form.Control>
-					<Form.FieldErrors class="text-xs text-red-500 text-left" />
-				</Form.Field>
+					</FormControl>
+					<FormFieldErrors class="text-xs text-red-500 text-left" />
+				</FormField>
 			</form>
-		</FieldSet.Content>
-		<FieldSet.Footer class="flex px-4 py-6 justify-between">
+		</FieldSetContent>
+		<FieldSetFooter class="flex px-4 py-6 justify-between">
 			<Button
 				onclick={handleBack}
 				size="sm"
@@ -90,6 +92,6 @@
 					class="bg-orange-200 text-orange-800 hover:bg-orange-300">Send Invite</Button
 				>
 			</div>
-		</FieldSet.Footer>
-	</FieldSet.Root>
+		</FieldSetFooter>
+	</FieldSetRoot>
 </div>

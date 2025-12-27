@@ -1,10 +1,10 @@
-import { writable, derived, get } from 'svelte/store';
-import type { User, Session } from 'better-auth/types';
+import type { Session, User } from 'better-auth/types';
+import { derived, get, writable } from 'svelte/store';
 
 /**
  * Authentication store interface
  */
-export interface AuthStore {
+export type AuthStore = {
 	user: User | null;
 	session: Session | null;
 	loading: boolean;
