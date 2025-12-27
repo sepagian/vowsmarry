@@ -1,40 +1,19 @@
 <script lang="ts">
-	import 'uno.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
-	import { invalidate } from '$app/navigation';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import { Progress } from '@friendofsvelte/progress';
-	import { authStore } from '$lib/stores/auth';
-	import { TOAST_CONFIG } from '$lib/constants/config';
+	import "uno.css";
+	import { Progress } from "@friendofsvelte/progress";
+	import { onMount } from "svelte";
+
+	import { page } from "$app/state";
+
+	import { Toaster } from "$lib/components/ui/sonner";
+
+	import { authStore } from "$lib/stores/auth";
+
+	import favicon from "$lib/assets/favicon.svg";
+	import { TOAST_CONFIG } from "$lib/constants/config";
 
 	let { data, children } = $props();
-	let { user, session } = $derived(data);
-
-	const title = $derived(
-		(() => {
-			const pathname = page.url.pathname;
-
-			if (pathname.startsWith('/dashboard')) {
-				const pathParts = pathname.split('/dashboard/')[1]?.split('/');
-				const section = pathParts?.[0];
-				// const subsection = pathParts?.[1];
-
-				const titleMap: Record<string, string> = {
-					task: 'Tasks - vowsmarry',
-					document: 'Document - vowsmarry',
-					budget: 'Finance - vowsmarry',
-					vendor: 'Vendor - vowsmarry',
-					rundown: 'Rundown - vowsmarry',
-				};
-
-				return section && titleMap[section] ? titleMap[section] : 'Dashboard - vowsmarry';
-			}
-
-			return 'vowsmarry';
-		})(),
-	);
+	let { user, session, pageTitle } = $derived(data);
 
 	onMount(() => {
 		// Initialize auth store with server-provided data
@@ -50,17 +29,11 @@
 </script>
 
 <svelte:head>
-	<link
-		rel="icon"
-		href={favicon}
-	/>
-	<title>{title}</title>
+	<link rel="icon" href={favicon} />
+	<title>{pageTitle}</title>
 </svelte:head>
 
-<Progress
-	size="md"
-	color="blue"
-/>
+<Progress size="md" color="blue" />
 {@render children()}
 <Toaster
 	richColors

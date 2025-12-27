@@ -26,6 +26,8 @@
 	import { createExpenseColumns } from './expense-table-columns';
 
 	let { data, allowAdd } = $props();
+	
+	let expenseDialogOpen = $state(false);
 
 	async function updatePaymentStatus(
 		expenseId: string,
@@ -193,14 +195,14 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 			{#if allowAdd}
-				<Dialog.Root>
+				<Dialog.Root bind:open={expenseDialogOpen}>
 					<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 						<div class="i-lucide:plus p-2"></div>
 						<span class="hidden lg:inline">Add Expense</span>
 					</Dialog.Trigger>
-					<DialogExpense {data} />
+					<DialogExpense {data} bind:open={expenseDialogOpen} />
 				</Dialog.Root>
-			{:else}{/if}
+			{/if}
 		</ButtonGroup.Root>
 	</div>
 	<div class="rounded-md border">
@@ -237,8 +239,9 @@
 					<Table.Row>
 						<Table.Cell
 							colspan={columns.length}
-							class="h-24 text-center">No results.</Table.Cell
-						>
+							class="h-24 text-center text-muted-foreground">
+							No expenses in this workspace yet. Add your first expense to track your budget!
+						</Table.Cell>
 					</Table.Row>
 				{/each}
 			</Table.Body>

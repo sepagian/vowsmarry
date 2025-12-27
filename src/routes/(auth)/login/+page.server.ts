@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals: { user }, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform }) => {
+	default: async ({ request, platform, plannerDb }) => {
 		if (!platform?.env?.vowsmarry) {
 			return fail(500, {
 				error: 'Database configuration error',
@@ -57,12 +57,69 @@ export const actions: Actions = {
 			console.log('Sign in result:', result);
 
 			// Check if sign in was successful
-			if (!result) {
+			if (!result || !result.user) {
 				return fail(400, {
 					error: 'Authentication failed. Please try again.',
 					errorType: 'auth_error',
 					email,
 				});
+			}
+
+			// After successful login, check if user has any workspaces
+			// If they do, automatically set the most recently created one as active
+			// This prevents the user from being redirected to onboarding after every login
+			try {
+				// Query the database directly to get user's organizations
+				const userOrganizations = await plannerDb
+					.selectFrom('member')
+					.innerJoin('organization', 'organization.id', 'member.organizationId')
+					.select([
+						'organization.id',
+						'organization.name',
+						'organization.slug',
+						'organization.createdAt',
+					])
+					.where('member.userId', '=', result.user.id)
+					.orderBy('organization.createdAt', 'desc')
+					.execute();
+
+				if (userOrganizations && userOrganizations.length > 0) {
+					// Get the most recent organization
+					const mostRecentOrg = userOrganizations[0];
+
+					// Update the session in the database AND invalidate the cookie cache
+					// by updating both the activeOrganizationId and the updatedAt timestamp
+					await plannerDb
+						.updateTable('session')
+						.set({ 
+							activeOrganizationId: mostRecentOrg.id,
+							updatedAt: Date.now()
+						})
+						.where('token', '=', result.token)
+						.execute();
+
+					console.log(`Active workspace set to: ${mostRecentOrg.name} (most recent)`);
+					
+					// Now call setActiveOrganization with the new session to update the cookie
+					// Create a new Headers object with the session cookie
+					const cookieHeader = `vowsmarry_auth.session_token=${result.token}`;
+					const newHeaders = new Headers(request.headers);
+					newHeaders.set('cookie', cookieHeader);
+					
+					await auth.api.setActiveOrganization({
+						body: {
+							organizationId: mostRecentOrg.id,
+						},
+						headers: newHeaders,
+					});
+					
+					console.log('Cookie cache updated with active workspace');
+				} else {
+					console.log('No workspaces found for user');
+				}
+			} catch (workspaceError) {
+				// Don't fail login if workspace setting fails
+				console.error('Failed to set active workspace:', workspaceError);
 			}
 
 			console.log('About to redirect to dashboard');

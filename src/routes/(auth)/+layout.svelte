@@ -43,7 +43,7 @@
 			<AppearanceSwitcher />
 		</div>
 		<div class="flex flex-1 items-center justify-center">
-			<div class="w-full max-w-sm">
+			<div class="w-full max-w-md">
 				{@render children()}
 			</div>
 		</div>

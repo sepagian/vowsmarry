@@ -1,121 +1,135 @@
 <script lang="ts">
-	import * as Avatar from '$lib/components/ui/avatar/index';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
-	import * as Sidebar from '$lib/components/ui/sidebar/index';
-	import { useSidebar } from '$lib/components/ui/sidebar/index';
-	import { enhance } from '$app/forms';
-	import { active } from '$lib/actions/active.svelte';
-	import { currentUser, userEmail } from '$lib/stores/auth';
+  import { mode, toggleMode } from "mode-watcher";
+  import type { ComponentProps } from "svelte";
 
-	const sidebar = useSidebar();
+  import { enhance } from "$app/forms";
+  import { get } from "svelte/store";
 
-	// Better Auth stores the full name in the 'name' field
-	const fullName = $derived($currentUser?.name || '');
-	const nameParts = $derived(fullName.split(' '));
-	const firstName = $derived(nameParts[0] || '');
-	const lastName = $derived(nameParts.slice(1).join(' ') || '');
-	const displayName = $derived(
-		fullName || $currentUser?.email?.split('@')[0] || 'User',
-	);
-	const displayEmail = $derived($userEmail || '');
-	const initials = $derived(
-		firstName && lastName
-			? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-			: displayName
-					.split(' ')
-					.map((n: string) => n.charAt(0))
-					.join('')
-					.toUpperCase()
-					.slice(0, 2) || 'U',
-	);
+  import {
+    Root as AvatarRoot,
+    Fallback as AvatarFallback,
+  } from "$lib/components/ui/avatar/index";
+  import {
+    Root as DropdownMenuRoot,
+    Trigger as DropdownMenuTrigger,
+    Content as DropdownMenuContent,
+    Group as DropdownMenuGroup,
+    Item as DropdownMenuItem,
+  } from "$lib/components/ui/dropdown-menu/index";
+  import {
+    Menu as SidebarMenu,
+    MenuItem as SidebarMenuItem,
+    MenuButton as SidebarMenuButton,
+    Group as SidebarGroup,
+  } from "$lib/components/ui/sidebar/index";
+  import { useSidebar } from "$lib/components/ui/sidebar/index";
 
-	const userNavItems = [
-		{ title: 'Account', url: '/account', icon: 'i-lucide:user' },
-		{ title: 'Settings', url: '/settings', icon: 'i-lucide:settings' },
-	];
+  import { currentUser } from "$lib/stores/auth";
+
+  import type { WithoutChildren } from "$lib/utils.js";
+
+  const sidebar = useSidebar();
+  let {
+    items,
+    ...restProps
+  }: {
+    items: { title: string; url: string; icon: string }[];
+  } & WithoutChildren<ComponentProps<typeof SidebarGroup>> = $props();
+
+  let user = $state(get(currentUser));
+
+  $effect(() => {
+    return currentUser.subscribe((value) => (user = value));
+  });
+
+  // Better Auth stores the full name in the 'name' field
+  const fullName = $derived(user?.name || "");
+  const nameParts = $derived(fullName.split(" "));
+  const firstName = $derived(nameParts[0] || "");
+  const lastName = $derived(nameParts.slice(1).join(" ") || "");
+  const displayName = $derived(fullName || "User");
+  const displayEmail = $derived(user?.email || "");
+  const initials = $derived(
+    firstName && lastName
+      ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+      : displayName
+          .split(" ")
+          .map((n: string) => n.charAt(0))
+          .join("")
+          .toUpperCase()
+          .slice(0, 2) || "U",
+  );
 </script>
 
-<Sidebar.Menu>
-	<Sidebar.MenuItem>
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Sidebar.MenuButton
-						size="lg"
-						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-						{...props}
-					>
-						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
-						</Avatar.Root>
-						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{displayName}</span>
-							<span class="truncate text-xs text-gray-500">{displayEmail}</span>
-						</div>
-						<div class="i-lucide:chevron-down ml-auto h-5 w-5"></div>
-					</Sidebar.MenuButton>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content
-				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
-				side={sidebar.isMobile ? 'bottom' : 'right'}
-				align="end"
-				sideOffset={4}
-			>
-				<DropdownMenu.Label class="p-0 font-normal">
-					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Fallback class="rounded-lg">{initials}</Avatar.Fallback>
-						</Avatar.Root>
-						<div class="grid flex-1 text-left text-sm leading-tight">
-							<span class="truncate font-medium">{displayName}</span>
-							<span class="truncate text-xs text-gray-500">{displayEmail}</span>
-						</div>
-					</div>
-				</DropdownMenu.Label>
-				<DropdownMenu.Separator />
-				<DropdownMenu.Group>
-					{#each userNavItems as item (item.title)}
-						<DropdownMenu.Item class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-							{#if item.url}
-								<a
-									href={item.url}
-									use:active
-									class="flex flex-1 rounded-r-xl gap-2 items-center"
-								>
-									{#if item.icon}
-										<div class="{item.icon} h-4 w-4"></div>
-									{/if}
-									<span class="text-sm">{item.title}</span>
-								</a>
-							{/if}
-						</DropdownMenu.Item>
-					{/each}
-				</DropdownMenu.Group>
-				<DropdownMenu.Separator />
-				<form
-					method="POST"
-					action="/logout"
-					use:enhance={() => {
-						// Show loading toast while logout is processing
-						return async ({ update }) => {
-							await update();
-						};
-					}}
-				>
-					<DropdownMenu.Item
-						class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-						onclick={(e) => {
-							e.preventDefault();
-							const form = e.currentTarget.closest('form');
-							if (form) form.submit();
-						}}
-					>
-						<div class="i-lucide:log-out h-5 w-5"></div>
-						Log out
-					</DropdownMenu.Item>
-				</form>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
-	</Sidebar.MenuItem>
-</Sidebar.Menu>
+<SidebarMenu {...restProps}>
+  <SidebarMenuItem>
+    <DropdownMenuRoot>
+      <DropdownMenuTrigger>
+        {#snippet child({ props })}
+          <SidebarMenuButton
+            size="lg"
+            class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            {...props}
+          >
+            <AvatarRoot class="size-8 rounded-lg">
+              <AvatarFallback class="rounded-lg">{initials}</AvatarFallback>
+            </AvatarRoot>
+            <div class="grid flex-1 text-left text-sm leading-tight">
+              <span
+                class="truncate font-medium {sidebar.isMobile ? 'hidden' : ''}"
+                >{displayName}</span
+              >
+              <span
+                class="truncate text-xs text-gray-500 {sidebar.isMobile
+                  ? 'hidden'
+                  : ''}">{displayEmail}</span
+              >
+            </div>
+            <div class="i-lucide:chevron-down ml-auto h-4 w-4"></div>
+          </SidebarMenuButton>
+        {/snippet}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        class="w-(--bits-dropdown-menu-anchor-width) min-w-52 rounded-lg"
+        side={sidebar.isMobile ? "bottom" : "bottom"}
+        align="end"
+        sideOffset={4}
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center justify-between"
+            onclick={toggleMode}
+          >
+            Switch theme
+            {#if mode.current === "dark"}
+              <div class="i-tabler:sun-filled h-4 w-4 mr-1"></div>
+            {:else}
+              <div class="i-tabler:moon-filled h-4 w-4 mr-1"></div>
+            {/if}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <form
+          method="POST"
+          action="/logout"
+          use:enhance={() => {
+            return async ({ update }) => {
+              await update();
+            };
+          }}
+        >
+          <DropdownMenuItem
+            class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center justify-between"
+            onclick={(e) => {
+              e.preventDefault();
+              const form = e.currentTarget.closest("form");
+              if (form) form.submit();
+            }}
+          >
+            Log out
+            <div class="i-tabler:logout h-4 w-4 mr-1"></div>
+          </DropdownMenuItem>
+        </form>
+      </DropdownMenuContent>
+    </DropdownMenuRoot>
+  </SidebarMenuItem>
+</SidebarMenu>

@@ -293,23 +293,17 @@ export const weddingSchema = v.object({
 		v.nonEmpty('Bride name is required'),
 		v.minLength(2, 'Bride name must be at least 2 characters'),
 	),
-	weddingDate: v.pipe(v.string(), v.isoDate()),
-	weddingVenue: v.pipe(
-		v.string(),
-		v.nonEmpty('Wedding venue is required'),
-		v.minLength(2, 'Wedding venue must be at least 2 characters'),
-	),
+	weddingDate: v.pipe(v.string(), v.nonEmpty('Wedding date is required')),
+	weddingVenue: v.optional(v.string()),
 	weddingBudget: v.number(),
 });
 
 export type WeddingData = v.InferInput<typeof weddingSchema>;
 
 export const userSchema = v.object({
-	userName: v.string(),
+	userName: v.pipe(v.string(), v.nonEmpty('Name is required')),
 	userEmail: v.pipe(v.string(), v.email()),
-	userPhone: v.string(),
-	userRole: v.picklist(userRole.map((r) => r.value, 'Please select a role')),
-	userAvatarUrl: v.pipe(v.string(), v.url()),
+	userAvatarUrl: v.optional(v.pipe(v.string(), v.url())),
 });
 
 export type UserData = v.InferInput<typeof userSchema>;
@@ -327,8 +321,8 @@ export const taskSchema = v.object({
 	taskCategory: v.picklist(categoryEnum.map((c) => c.value, 'Please select a category')),
 	taskStatus: v.picklist(taskStatusEnum.map((s) => s.value, 'Please select a status')),
 	taskPriority: v.picklist(taskPriorityEnum.map((p) => p.value, 'Please select a priority')),
-	taskDueDate: v.pipe(v.string(), v.isoDate()),
-	completedAt: v.optional(v.pipe(v.string(), v.isoDate())),
+	taskDueDate: v.pipe(v.string(), v.nonEmpty('Due date is required')),
+	completedAt: v.optional(v.string()),
 });
 
 export type TaskData = v.InferInput<typeof taskSchema>;
@@ -346,7 +340,7 @@ export const documentSchema = v.object({
 	documentCategory: v.picklist(
 		documentCategoryEnum.map((c) => c.value, 'Please select a category'),
 	),
-	documentDate: v.pipe(v.string(), v.isoDate()),
+	documentDate: v.pipe(v.string(), v.nonEmpty('Document date is required')),
 	file: v.optional(v.array(v.any())), // File array from form data
 	fileUrl: v.optional(v.pipe(v.string(), v.url())),
 	fileName: v.optional(v.string()),
@@ -371,14 +365,14 @@ export const expenseSchema = v.object({
 	expenseCategory: v.picklist(categoryEnum.map((c) => c.value, 'Please select a category')),
 	expenseAmount: v.pipe(v.number(), v.integer()),
 	expensePaymentStatus: v.picklist(expenseStatusEnum.map((s) => s.value, 'Please select a status')),
-	expenseDueDate: v.pipe(v.string(), v.isoDate()),
+	expenseDueDate: v.pipe(v.string(), v.nonEmpty('Due date is required')),
 });
 
 export type ExpenseData = v.InferInput<typeof expenseSchema>;
 
 export const savingSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	savingId: v.string(),
 	savingDescription: v.pipe(
 		v.string(),
@@ -386,7 +380,7 @@ export const savingSchema = v.object({
 		v.minLength(2, 'Saving description must be at least 2 characters'),
 	),
 	savingAmount: v.pipe(v.number(), v.integer()),
-	savingDate: v.date(),
+	savingDate: v.pipe(v.string(), v.nonEmpty('Saving date is required')),
 	createdAt: v.date(),
 	updatedAt: v.date(),
 });
@@ -427,9 +421,9 @@ export const scheduleSchema = v.object({
 	scheduleCategory: v.picklist(
 		scheduleCategoryEnum.map((c) => c.value, 'Please select a category'),
 	),
-	scheduleDate: v.pipe(v.string(), v.isoDate()),
-	scheduleStartTime: v.pipe(v.string(), v.isoTime()),
-	scheduleEndTime: v.pipe(v.string(), v.isoTime()),
+	scheduleDate: v.pipe(v.string(), v.nonEmpty('Schedule date is required')),
+	scheduleStartTime: v.pipe(v.string(), v.nonEmpty('Start time is required')),
+	scheduleEndTime: v.pipe(v.string(), v.nonEmpty('End time is required')),
 	scheduleLocation: v.string(),
 	scheduleVenue: v.string(),
 	scheduleAttendees: v.string(),
@@ -445,7 +439,7 @@ export type ScheduleData = v.InferInput<typeof scheduleSchema>;
 
 export const dowrySchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	dowryDescription: v.pipe(
 		safeString(),
 		v.nonEmpty('Dowry description is required'),
@@ -455,7 +449,7 @@ export const dowrySchema = v.object({
 	dowryPrice: v.pipe(v.number(), v.integer()),
 	dowryQuantity: v.pipe(v.number(), v.integer()),
 	dowryStatus: v.picklist(dowryStatusEnum.map((s) => s.value, 'Please select a status')),
-	dowryDateReceived: v.pipe(v.string(), v.isoDate()),
+	dowryDateReceived: v.pipe(v.string(), v.nonEmpty('Date received is required')),
 	dowryRecipient: v.picklist(dowryRecipientEnum.map((r) => r.value, 'Please select a recipient')),
 	createdAt: v.date(),
 	updatedAt: v.date(),
@@ -469,7 +463,7 @@ export type DowryData = v.InferInput<typeof dowrySchema>;
 
 export const souvenirSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	souvenirName: v.pipe(
 		safeString(),
 		v.nonEmpty('Souvenir name is required'),
@@ -478,7 +472,7 @@ export const souvenirSchema = v.object({
 	souvenirQuantity: v.pipe(v.number(), v.integer()),
 	souvenirPrice: v.pipe(v.number(), v.integer()),
 	souvenirStatus: v.picklist(souvenirStatusEnum.map((s) => s.value, 'Please select a status')),
-	souvenirOrderDate: v.pipe(v.string(), v.isoDate()),
+	souvenirOrderDate: v.pipe(v.string(), v.nonEmpty('Order date is required')),
 	createdAt: v.date(),
 	updatedAt: v.date(),
 });
@@ -491,7 +485,7 @@ export type SouvenirData = v.InferInput<typeof souvenirSchema>;
 
 export const dresscodeSchema = v.object({
 	id: v.string(),
-	weddingId: v.string(),
+	organizationId: v.string(),
 	scheduleId: v.string(),
 	dresscodeDescription: v.pipe(safeString(), v.nonEmpty('Dresscode description is required')),
 	dresscodeRole: v.picklist(dresscodeRoleEnum.map((r) => r.value, 'Please select a role')),

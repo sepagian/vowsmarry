@@ -5,7 +5,7 @@
 
 <Button
 	onclick={toggleMode}
-	variant="outline"
+	variant="ghost"
 	size="icon"
 >
 	<div

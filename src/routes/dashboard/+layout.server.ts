@@ -1,18 +1,16 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, plannerDb }) => {
-	const { user } = locals;
+export const load: LayoutServerLoad = async ({ locals }) => {
+	const { user, activeWorkspace } = locals;
 
 	if (!user) {
 		redirect(302, '/login');
 	}
 
-	const userWedding = await plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', user.id)
-		.executeTakeFirst();
+	if (!activeWorkspace) {
+		redirect(302, '/onboarding');
+	}
 
 	return {
 		user: {
@@ -21,7 +19,17 @@ export const load: LayoutServerLoad = async ({ locals, plannerDb }) => {
 			firstName: user.name || null,
 			lastName: null,
 		},
-		wedding: userWedding || null,
-		hasWeddingData: !!userWedding,
+		// Active workspace (organization) data
+		workspace: {
+			id: activeWorkspace.id,
+			name: activeWorkspace.name,
+			slug: activeWorkspace.slug,
+			groomName: activeWorkspace.groomName || null,
+			brideName: activeWorkspace.brideName || null,
+			weddingDate: activeWorkspace.weddingDate || null,
+			weddingVenue: activeWorkspace.weddingVenue || null,
+			weddingBudget: activeWorkspace.weddingBudget ? parseFloat(activeWorkspace.weddingBudget) : null,
+		},
+		hasWeddingData: true,
 	};
 };

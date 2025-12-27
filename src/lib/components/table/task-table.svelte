@@ -1,29 +1,33 @@
 <script lang="ts">
 	import {
 		type ColumnFiltersState,
-		type PaginationState,
-		type RowSelectionState,
-		type SortingState,
-		type VisibilityState,
 		getCoreRowModel,
 		getFilteredRowModel,
 		getPaginationRowModel,
 		getSortedRowModel,
+		type PaginationState,
+		type RowSelectionState,
+		type SortingState,
+		type VisibilityState,
 	} from '@tanstack/table-core';
-	import * as Table from '$lib/components/ui/table/index';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
-	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as ButtonGroup from '$lib/components/ui/button-group/index';
+
 	import { Button, buttonVariants } from '$lib/components/ui/button/index';
+	import { ButtonGroup } from '$lib/components/ui/button-group/index';
+	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index';
+	import { Dialog, DialogTrigger } from '$lib/components/ui/dialog/index';
+	import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '$lib/components/ui/dropdown-menu/index';
 	import { Input } from '$lib/components/ui/input/index';
-	import { FlexRender, createSvelteTable } from '$lib/components/ui/data-table/index';
-	import DialogTask from '../dialog/dialog-task.svelte';
+	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '$lib/components/ui/table/index';
+
 	import { tasksState } from '$lib/stores/tasks.svelte';
-	import type { Task } from '$lib/types';
-	import { CrudToasts } from '$lib/utils/toasts';
 	import { createFormDataWithId } from '$lib/utils/form-helpers';
 	import { InvalidationService } from '$lib/utils/invalidation-helpers';
+	import { CrudToasts } from '$lib/utils/toasts';
+
+	import type { Task } from '$lib/types';
+
 	import { createTaskColumns } from './task-table-columns';
+	import DialogTask from '../dialog/dialog-task.svelte';
 
 	let { data } = $props();
 	let open = $state(false);
@@ -207,9 +211,9 @@
 			}}
 			class="max-w-sm border-1 border-neutral-200"
 		/>
-		<ButtonGroup.Root>
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
+		<ButtonGroup>
+			<DropdownMenu>
+				<DropdownMenuTrigger>
 					{#snippet child({ props })}
 						<Button
 							{...props}
@@ -221,69 +225,70 @@
 							<div class="i-lucide:chevron-down ml-2"></div>
 						</Button>
 					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
 					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
-						<DropdownMenu.CheckboxItem
+						<DropdownMenuCheckboxItem
 							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
 						>
 							{column.id}
-						</DropdownMenu.CheckboxItem>
+						</DropdownMenuCheckboxItem>
 					{/each}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
-			<Dialog.Root bind:open>
-				<Dialog.Trigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
+				</DropdownMenuContent>
+			</DropdownMenu>
+			<Dialog bind:open>
+				<DialogTrigger class={buttonVariants({ variant: 'outline', size: 'default' })}>
 					<div class="i-lucide:plus p-2"></div>
 					<span class="hidden lg:inline">Add Task</span>
-				</Dialog.Trigger>
+				</DialogTrigger>
 				<DialogTask
 					{data}
 					bind:open
 				/>
-			</Dialog.Root>
-		</ButtonGroup.Root>
+			</Dialog>
+		</ButtonGroup>
 	</div>
 	<div class="rounded-md border">
-		<Table.Root>
-			<Table.Header>
+		<Table>
+			<TableHeader>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-					<Table.Row>
+					<TableRow>
 						{#each headerGroup.headers as header (header.id)}
-							<Table.Head class="[&:has([role=checkbox])]:pl-3">
+							<TableHead class="[&:has([role=checkbox])]:pl-3">
 								{#if !header.isPlaceholder}
 									<FlexRender
 										content={header.column.columnDef.header}
 										context={header.getContext()}
 									/>
 								{/if}
-							</Table.Head>
+							</TableHead>
 						{/each}
-					</Table.Row>
+					</TableRow>
 				{/each}
-			</Table.Header>
-			<Table.Body>
+			</TableHeader>
+			<TableBody>
 				{#each table.getRowModel().rows as row (row.original.id)}
-					<Table.Row data-state={row.getIsSelected() && 'selected'}>
+					<TableRow data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell class="[&:has([role=checkbox])]:pl-3">
+							<TableCell class="[&:has([role=checkbox])]:pl-3">
 								<FlexRender
 									content={cell.column.columnDef.cell}
 									context={cell.getContext()}
 								/>
-							</Table.Cell>
+							</TableCell>
 						{/each}
-					</Table.Row>
+					</TableRow>
 				{:else}
-					<Table.Row>
-						<Table.Cell
+					<TableRow>
+						<TableCell
 							colspan={columns.length}
-							class="h-24 text-center">No results.</Table.Cell
-						>
-					</Table.Row>
+							class="h-24 text-center text-muted-foreground">
+							No tasks in this workspace yet. Create your first task to get started!
+						</TableCell>
+					</TableRow>
 				{/each}
-			</Table.Body>
-		</Table.Root>
+			</TableBody>
+		</Table>
 	</div>
 	<div class="flex items-center justify-end space-x-2 pt-4">
 		<div class="text-muted-foreground flex-1 text-sm">

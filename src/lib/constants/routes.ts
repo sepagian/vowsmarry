@@ -9,6 +9,7 @@ export const ROUTES = {
 	PROTECTED: {
 		DASHBOARD: '/dashboard',
 		ACCOUNT: '/account',
+		ONBOARDING: '/onboarding',
 	},
 	API: {
 		AUTH: '/api/auth',
@@ -21,5 +22,5 @@ export const ROUTES = {
 } as const;
 
 export const AUTH_PAGES = [ROUTES.PUBLIC.LOGIN, ROUTES.PUBLIC.REGISTER] as const;
-export const PROTECTED_PREFIXES = [ROUTES.PROTECTED.DASHBOARD] as const;
+export const PROTECTED_PREFIXES = [ROUTES.PROTECTED.DASHBOARD, ROUTES.PROTECTED.ONBOARDING, ROUTES.PROTECTED.ACCOUNT] as const;
 export const PUBLIC_PREFIXES = [ROUTES.STATIC.APP_ASSETS, ROUTES.API.AUTH] as const;

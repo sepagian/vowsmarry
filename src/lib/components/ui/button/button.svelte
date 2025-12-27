@@ -1,11 +1,4 @@
-<!--
-	Installed from @ieedan/shadcn-svelte-extras
--->
-
-<script
-	lang="ts"
-	module
->
+<script lang="ts" module>
 	import type { WithChildren, WithoutChildren } from 'bits-ui';
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
 	import { type VariantProps, tv } from 'tailwind-variants';
@@ -21,19 +14,19 @@
 					'bg-background hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 border shadow-2xs',
 				secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-2xs',
 				ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
-				link: 'text-primary underline-offset-4 hover:underline',
+				link: 'text-primary underline-offset-4 hover:underline'
 			},
 			size: {
 				default: 'h-9 px-4 py-2 has-[>svg]:px-3',
 				sm: 'h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5',
 				lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-				icon: 'size-9',
-			},
+				icon: 'size-9'
+			}
 		},
 		defaultVariants: {
 			variant: 'default',
-			size: 'default',
-		},
+			size: 'default'
+		}
 	});
 
 	export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
@@ -47,7 +40,7 @@
 		onClickPromise?: (
 			e: MouseEvent & {
 				currentTarget: EventTarget & HTMLButtonElement;
-			},
+			}
 		) => Promise<void>;
 	}>;
 
@@ -69,7 +62,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils/utils.js';
+	import { cn } from '$lib/utils.js';
 	import LoaderCircleIcon from '@lucide/svelte/icons/loader-circle';
 
 	let {
@@ -104,7 +97,7 @@
 	bind:this={ref}
 	onclick={async (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		e: any,
+		e: any
 	) => {
 		onclick?.(e);
 
@@ -120,10 +113,8 @@
 	}}
 >
 	{#if type !== undefined && loading}
-		<div class="absolute flex size-full place-items-center justify-center bg-inherit">
-			<div class="flex animate-spin place-items-center justify-center">
-				<LoaderCircleIcon class="size-4" />
-			</div>
+		<div class="flex animate-spin place-items-center justify-center">
+			<LoaderCircleIcon class="size-4" />
 		</div>
 		<span class="sr-only">Loading</span>
 	{/if}

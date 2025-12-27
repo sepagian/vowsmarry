@@ -1,127 +1,220 @@
-import { betterAuth, type BetterAuthOptions } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { sveltekitCookies } from 'better-auth/svelte-kit';
-import { getRequestEvent } from '$app/server';
-import { drizzle } from 'drizzle-orm/d1';
-import * as schema from './db/schema/auth-schema';
-import { dev } from '$app/environment';
-import { BETTER_AUTH_SECRET, BETTER_AUTH_URL } from '$env/static/private';
-import { SESSION_CONFIG, VALIDATION_CONFIG } from '$lib/constants/config';
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
+import { sveltekitCookies } from "better-auth/svelte-kit";
+import { drizzle } from "drizzle-orm/d1";
 
+import { dev } from "$app/environment";
+import { getRequestEvent } from "$app/server";
+
+import { BETTER_AUTH_SECRET, BETTER_AUTH_URL } from "$env/static/private";
+
+import { sendEmail } from "$lib/server/email";
+
+import { SESSION_CONFIG, VALIDATION_CONFIG } from "$lib/constants/config";
+
+import {
+  account,
+  accountRelations,
+  invitation,
+  invitationRelations,
+  member,
+  memberRelations,
+  organizationRelations,
+  organization as organizationTable,
+  session,
+  sessionRelations,
+  userRelations,
+  user as userTable,
+  verification,
+} from "./db/schema/auth-schema";
+
+// Validate environment variables at module load time
 if (!BETTER_AUTH_SECRET) {
-	throw new Error('BETTER_AUTH_SECRET environment variable is required');
+  throw new Error("BETTER_AUTH_SECRET environment variable is required");
 }
 
 if (!BETTER_AUTH_URL) {
-	throw new Error('BETTER_AUTH_URL environment variable is required');
+  throw new Error("BETTER_AUTH_URL environment variable is required");
 }
 
-// URL Validation
 try {
-	new URL(BETTER_AUTH_URL);
+  new URL(BETTER_AUTH_URL);
 } catch {
-	throw new Error(`BETTER_AUTH_URL must be a valid URL, got: ${BETTER_AUTH_URL}`);
+  throw new Error(
+    `BETTER_AUTH_URL must be a valid URL, got: ${BETTER_AUTH_URL}`,
+  );
 }
 
 if (BETTER_AUTH_SECRET.length < 32) {
-	throw new Error('BETTER_AUTH_SECRET must be at least 32 characters long for security');
+  throw new Error(
+    "BETTER_AUTH_SECRET must be at least 32 characters long for security",
+  );
 }
 
 /**
- * Creates Better Auth configuration with Drizzle adapter for Cloudflare D1
- * 
- * This function creates a Better Auth instance with:
- * - Drizzle ORM adapter with D1 driver for Cloudflare D1 compatibility
- * - Email and password authentication
- * - Secure cookie options with httpOnly, secure (in production), and sameSite
- * - Session management with 7-day expiration
- * 
- * @param d1 - D1Database binding from Cloudflare Workers/Pages platform
- * @returns Better Auth instance configured for the request
- */
-function createAuth(d1: D1Database) {
-	// Create Drizzle instance with D1 driver
-	const db = drizzle(d1, { schema });
-
-	const config: BetterAuthOptions = {
-		database: drizzleAdapter(db, {
-			provider: 'sqlite',
-		}),
-
-		// Email and password authentication configuration
-		emailAndPassword: {
-			enabled: true,
-			requireEmailVerification: false, // Set to true when email service is configured
-			minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
-			maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
-		},
-
-		// Session configuration
-		session: {
-			expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
-			updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
-			cookieCache: {
-				enabled: true,
-				maxAge: SESSION_CONFIG.CACHE_TTL_SECONDS,
-			},
-		},
-
-		// Security and cookie configuration
-		secret: BETTER_AUTH_SECRET,
-		baseURL: BETTER_AUTH_URL,
-
-		advanced: {
-			cookiePrefix: 'vowsmarry_auth',
-
-			// Secure cookie options
-			// - httpOnly: true (prevents JavaScript access to cookies)
-			// - secure: true in production (requires HTTPS)
-			// - sameSite: 'lax' (CSRF protection while allowing normal navigation)
-			useSecureCookies: !dev, // Enable secure flag in production only
-
-			crossSubDomainCookies: {
-				enabled: false,
-			},
-
-			// Additional security: sameSite is set to 'lax' by default in Better Auth
-			// This provides CSRF protection while allowing cookies on normal navigation
-		},
-
-		// Trusted origins for CORS
-		trustedOrigins: dev ? ['http://localhost:5173', 'http://localhost:4173'] : [], // Add production domains when deploying
-
-		// Plugins - sveltekitCookies must be last to properly handle cookies in server actions
-		plugins: [sveltekitCookies(getRequestEvent)],
-	};
-
-	return betterAuth(config);
-}
-
-// Cache for auth instances per D1 database
-const authCache = new WeakMap<D1Database, ReturnType<typeof betterAuth>>();
-
-/**
- * Get or create Better Auth instance for the given D1 database
- * 
- * This function caches auth instances per D1 database to avoid recreating
- * the auth configuration on every request.
- * 
- * @param d1 - D1Database binding from Cloudflare Workers/Pages platform
- * @returns Better Auth instance
+ * Creates a Better Auth instance for Cloudflare D1
+ *
+ * Standard Better Auth pattern adapted for Cloudflare Workers/Pages:
+ * - In traditional setups, you create one auth instance at module level
+ * - With Cloudflare D1, the database binding is per-request, so we use a factory function
+ * - This function should be called in hooks.server.ts with the D1 binding from event.platform.env
+ *
+ * Configuration:
+ * - Drizzle ORM adapter with SQLite provider for D1 compatibility
+ * - Email/password authentication with configurable validation
+ * - Session management with cookie caching for performance
+ * - Organization plugin for multi-tenant wedding planning
+ * - SvelteKit cookies plugin for proper cookie handling in server actions
+ *
+ * @param d1 - D1Database binding from event.platform.env in SvelteKit
+ * @returns Configured Better Auth instance
+ *
+ * @example
+ * ```ts
+ * // In hooks.server.ts
+ * const auth = getAuth(event.platform.env.vowsmarry);
+ * const session = await auth.api.getSession({ headers: event.request.headers });
+ * ```
  */
 export function getAuth(d1: D1Database) {
-	let auth = authCache.get(d1);
-	
-	if (!auth) {
-		auth = createAuth(d1);
-		authCache.set(d1, auth);
-	}
-	
-	return auth;
+  const schema = {
+    user: userTable,
+    session,
+    account,
+    verification,
+    userRelations,
+    sessionRelations,
+    accountRelations,
+    organization: organizationTable,
+    member,
+    invitation,
+    organizationRelations,
+    memberRelations,
+    invitationRelations,
+  };
+  const db = drizzle(d1, { schema });
+
+  return betterAuth({
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+    }),
+
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: false,
+      minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
+      maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
+      sendResetPassword: async ({
+        user,
+        url,
+        token,
+      }: {
+        user: { email: string; name: string | null };
+        url: string;
+        token: string;
+      }) => {
+        await sendEmail({
+          type: "password-reset",
+          to: user.email,
+          user: {
+            name: user.name || undefined,
+            email: user.email,
+          },
+          resetUrl: url,
+          token,
+        });
+      },
+    },
+
+    emailVerification: {
+      sendVerificationEmail: async ({
+        user,
+        url,
+        token,
+      }: {
+        user: { email: string; name: string | null };
+        url: string;
+        token: string;
+      }) => {
+        await sendEmail({
+          type: "verification",
+          to: user.email,
+          user: {
+            name: user.name || undefined,
+            email: user.email,
+          },
+          verificationUrl: url,
+          token,
+        });
+      },
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+    },
+
+    session: {
+      expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
+      updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
+      cookieCache: {
+        enabled: false,
+      },
+    },
+
+    secret: BETTER_AUTH_SECRET,
+    baseURL: BETTER_AUTH_URL,
+
+    advanced: {
+      cookiePrefix: "vowsmarry_auth",
+      crossSubDomainCookies: {
+        enabled: false,
+      },
+    },
+
+    trustedOrigins: dev
+      ? ["http://localhost:5173", "http://localhost:4173"]
+      : [BETTER_AUTH_URL],
+
+    plugins: [
+      organization({
+        schema: {
+          organization: {
+            additionalFields: {
+              groomName: {
+                type: "string",
+                input: true,
+                required: false,
+              },
+              brideName: {
+                type: "string",
+                input: true,
+                required: false,
+              },
+              weddingDate: {
+                type: "string",
+                input: true,
+                required: false,
+              },
+              weddingVenue: {
+                type: "string",
+                input: true,
+                required: false,
+              },
+              weddingBudget: {
+                type: "string",
+                input: true,
+                required: false,
+              },
+            },
+          },
+        },
+      }),
+      sveltekitCookies(getRequestEvent),
+    ],
+  });
 }
 
-// For backwards compatibility, export a default auth instance
-// This will be replaced with getAuth() in hooks.server.ts
-export const auth = {
-	api: {} as unknown,
-} as ReturnType<typeof betterAuth>;
+/**
+ * Type helper for Better Auth instance
+ * Use this type when you need to type the auth instance in your code
+ */
+export type Auth = ReturnType<typeof getAuth>;

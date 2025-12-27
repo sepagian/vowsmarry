@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionDocs from '$lib/components/section/section-docs.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 	import { documentsState } from '$lib/stores/documents.svelte';
 	import type { DocumentCategory } from '$lib/types';
 
@@ -48,14 +49,24 @@
 	});
 
 	// Initialize store with server data
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.documents) {
-			documentsState.set(data.documents);
+			const workspaceId = data.workspace?.id || null;
+			
+			// Clear store if workspace changed to prevent stale data
+			if (!documentsState.isWorkspace(workspaceId)) {
+				documentsState.clearWorkspace();
+			}
+			
+			documentsState.set(data.documents, workspaceId);
 		}
 	});
 
 	let docsCards = $derived(documentsState.documents);
 </script>
+
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
 	<SectionCards

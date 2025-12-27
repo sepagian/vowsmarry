@@ -24,6 +24,12 @@ export class BaseStore<T extends { id?: string }> {
 	items = $state<T[]>([]);
 
 	/**
+	 * Current workspace ID that this store's data belongs to
+	 * Used to ensure data consistency when workspace changes
+	 */
+	private currentWorkspaceId = $state<string | null>(null);
+
+	/**
 	 * Get basic statistics
 	 */
 	get stats() {
@@ -33,12 +39,52 @@ export class BaseStore<T extends { id?: string }> {
 	}
 
 	/**
-	 * Replace all items
+	 * Get the current workspace ID
+	 */
+	get workspaceId(): string | null {
+		return this.currentWorkspaceId;
+	}
+
+	/**
+	 * Replace all items and set workspace context
 	 * 
 	 * @param items - New array of items to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
 	 */
-	set(items: T[]): void {
+	set(items: T[], workspaceId?: string | null): void {
 		this.items = items;
+		if (workspaceId !== undefined) {
+			this.currentWorkspaceId = workspaceId;
+		}
+	}
+
+	/**
+	 * Set the workspace context without changing items
+	 * Useful for tracking which workspace the current data belongs to
+	 * 
+	 * @param workspaceId - Workspace ID to set
+	 */
+	setWorkspace(workspaceId: string | null): void {
+		this.currentWorkspaceId = workspaceId;
+	}
+
+	/**
+	 * Check if the store's data belongs to the given workspace
+	 * 
+	 * @param workspaceId - Workspace ID to check
+	 * @returns true if data belongs to the workspace, false otherwise
+	 */
+	isWorkspace(workspaceId: string | null): boolean {
+		return this.currentWorkspaceId === workspaceId;
+	}
+
+	/**
+	 * Clear all items and workspace context
+	 * Should be called when switching workspaces to prevent stale data
+	 */
+	clearWorkspace(): void {
+		this.items = [];
+		this.currentWorkspaceId = null;
 	}
 
 	/**

@@ -1,8 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { error } from '@sveltejs/kit';
 import type { User } from 'better-auth/types';
-import type { Kysely } from 'kysely';
-import type { Database } from '$lib/server/db/schema/types';
 import type { AuthContext, Wedding } from './auth-types';
 import { createAppError, ErrorCodes } from './error-utils';
 import { isValidUser } from './auth-utils';
@@ -14,36 +12,6 @@ import { isValidUser } from './auth-utils';
  * in SvelteKit server-side code. These helpers simplify common authentication patterns
  * and ensure consistent error handling across the application.
  */
-
-/**
- * Retrieves the wedding record for a given user ID
- *
- * This function queries the weddings table to find the wedding record associated
- * with a specific user. Each user can have one wedding record that contains their
- * wedding planning data.
- *
- * @param userId - Better Auth user ID (from user.id)
- * @param plannerDb - Kysely database instance (from event.plannerDb)
- * @returns Wedding record or undefined if not found
- *
- * @example
- * ```typescript
- * const wedding = await getWedding(user.id, plannerDb);
- * if (wedding) {
- *   console.log(`Wedding date: ${wedding.weddingDate}`);
- * }
- * ```
- */
-export async function getWedding(
-	userId: string,
-	plannerDb: Kysely<Database>,
-): Promise<Wedding | undefined> {
-	return plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', userId)
-		.executeTakeFirst();
-}
 
 /**
  * Retrieves the authenticated user from Better Auth locals
@@ -109,7 +77,7 @@ export async function getUser(user: User | null): Promise<User> {
  *     await plannerDb
  *       .insertInto('tasks')
  *       .values({
- *         weddingId: wedding.id,
+ *         organizationId,
  *         title,
  *         userId: user.id,
  *       })
@@ -150,22 +118,21 @@ export function withAuth<T>(
 		// Validate user is authenticated (throws 401 if not)
 		const user = await getUser(locals.user);
 
-		// Retrieve user's wedding data
-		const wedding = await getWedding(user.id, plannerDb);
-
-		// Ensure user has wedding data (throws 403 if not)
-		if (!wedding) {
+		// Ensure user has an active organization/workspace
+		const organizationId = locals.activeWorkspaceId;
+		if (!organizationId) {
 			throw error(
 				404,
 				createAppError(
 					404,
-					'Wedding profile not found. Please complete your profile setup.',
+					'No active workspace found. Please select or create a workspace.',
 					ErrorCodes.WEDDING_NOT_FOUND,
 				),
 			);
 		}
 
 		// Call the wrapped handler with guaranteed AuthContext
-		return handler({ user, wedding, plannerDb }, { request });
+		// Note: wedding is deprecated, use organizationId instead
+		return handler({ user, wedding: { id: organizationId } as Wedding, organizationId, plannerDb }, { request });
 	};
 }

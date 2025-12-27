@@ -1,9 +1,6 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import SectionBudget from '$lib/components/section/section-budget.svelte';
-	import WeddingAlert from '$lib/components/wedding-alert.svelte';
-	import DialogWedding from '$lib/components/dialog/dialog-wedding.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index';
 	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { expensesState } from '$lib/stores/expenses.svelte';
 	import { formatLastUpdate, formatCurrency, calculateDaysUntil } from '$lib/utils/format-utils';
@@ -11,14 +8,22 @@
 	const overviewTitle = 'Wedding Overview';
 
 	let { data } = $props();
-	let open = $state(false);
 
-	const weddingDate = data.wedding?.weddingDate ? new Date(data.wedding.weddingDate) : null;
+	const weddingDate = data.workspace?.weddingDate ? new Date(data.workspace.weddingDate) : null;
 	const daysUntilWedding = $derived(calculateDaysUntil(weddingDate));
 
+	// Update store whenever data changes (including after invalidation)
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.expenses) {
-			expensesState.set(data.expenses);
+			const workspaceId = data.workspace?.id || null;
+
+			// Clear store if workspace changed to prevent stale data
+			if (!expensesState.isWorkspace(workspaceId)) {
+				expensesState.clearWorkspace();
+			}
+
+			expensesState.set(data.expenses, workspaceId);
 		}
 	});
 
@@ -53,38 +58,36 @@
 <div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
 	<div class="flex justify-between gap-2 px-4 align-center">
 		<div class="flex flex-col gap-2">
-			<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
-			<p class="text-muted-foreground">
-				{#if data.wedding}
-					Plan your wedding with {data.wedding.brideName || 'your partner'}
-					{#if daysUntilWedding !== null}
-						- {daysUntilWedding} days to go!
-					{/if}
+			{#if data.workspace}
+				{@const groomName = data.workspace.groomName}
+				{@const brideName = data.workspace.brideName}
+				{#if groomName && brideName}
+					<h1 class="text-2xl font-semibold">{groomName} & {brideName}'s Wedding</h1>
 				{:else}
-					Let's start planning your perfect wedding!
+					<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
 				{/if}
-			</p>
-		</div>
-		<Dialog.Root bind:open>
-			{#if data.wedding}
-				<Dialog.Trigger
-					class="{buttonVariants({
-						variant: 'default',
-						size: 'default',
-					})} self-center "
-				>
-					<div class="i-lucide:pencil"></div>
-					<span class="hidden lg:inline">Edit wedding details</span>
-				</Dialog.Trigger>
+				<p class="text-muted-foreground">
+					{#if daysUntilWedding !== null}
+						{#if daysUntilWedding === 0}
+							Today is the big day! 🎉
+						{:else if daysUntilWedding === 1}
+							Tomorrow is the big day! 🎉
+						{:else if daysUntilWedding > 0}
+							{daysUntilWedding} days until your wedding
+						{:else}
+							Celebrating your marriage
+						{/if}
+					{:else}
+						Planning your perfect wedding together
+					{/if}
+				</p>
+			{:else}
+				<h1 class="text-2xl font-semibold">Welcome back, {data.user.firstName}!</h1>
+				<p class="text-muted-foreground">Let's start planning your perfect wedding!</p>
 			{/if}
-			<DialogWedding
-				{data}
-				bind:open
-			/>
-		</Dialog.Root>
+		</div>
 	</div>
 
-	<WeddingAlert {data} />
 	<SectionCards
 		{overviewCards}
 		{overviewTitle}

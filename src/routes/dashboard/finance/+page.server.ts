@@ -11,73 +11,46 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('calendar:data');
 	const expenseForm = await superValidate(valibot(expenseSchema));
 
-	const { user } = locals;
+	const { user, activeWorkspaceId, activeWorkspace } = locals;
 
 	if (!user) {
 		redirect(302, '/login');
 	}
 
-	const wedding = await plannerDb
-		.selectFrom('weddings')
-		.selectAll()
-		.where('userId', '=', user.id)
-		.executeTakeFirst();
-
-	if (!wedding) {
-		return {
-			expenseForm,
-			financeStats: {
-				plannedBudget: '0',
-				budgetSpent: '0',
-				totalSavings: '0',
-				budgetRemaining: '0',
-				savingProgress: 0,
-			},
-			update: {
-				planned: null,
-				spent: null,
-			},
-			expenses: [],
-		};
+	if (!activeWorkspaceId) {
+		redirect(302, '/onboarding');
 	}
 
-	const [plannedBudget, budgetSpent, totalSavings] = await Promise.all([
-		plannerDb
-			.selectFrom('weddings')
-			.select((eb) => eb.fn.sum<number>('weddingBudget').as('total'))
-			.where('id', '=', wedding.id)
-			.executeTakeFirst()
-			.then((result) => result?.total ?? 0),
+	const plannedBudget = Number(activeWorkspace?.weddingBudget ?? 0);
 
+	const [budgetSpent, totalSavings] = await Promise.all([
 		plannerDb
 			.selectFrom('expense_items')
 			.select((eb) => eb.fn.sum<number>('expenseAmount').as('total'))
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.executeTakeFirst()
 			.then((result) => result?.total ?? 0),
 
 		plannerDb
 			.selectFrom('savings_items')
 			.select((eb) => eb.fn.sum<number>('savingAmount').as('total'))
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.executeTakeFirst()
 			.then((result) => result?.total ?? 0),
 	]);
 
 	const [planned, spent] = await Promise.all([
 		plannerDb
-			.selectFrom('weddings')
-			.select('updatedAt')
-			.where('id', '=', wedding.id)
-			.orderBy('updatedAt', 'desc')
-			.limit(1)
+			.selectFrom('organization')
+			.select('createdAt')
+			.where('id', '=', activeWorkspaceId)
 			.executeTakeFirst()
-			.then((result) => result?.updatedAt || null),
+			.then((result) => result?.createdAt || null),
 
 		plannerDb
 			.selectFrom('expense_items')
 			.select('updatedAt')
-			.where('weddingId', '=', wedding.id)
+			.where('organizationId', '=', activeWorkspaceId)
 			.orderBy('updatedAt', 'desc')
 			.limit(1)
 			.executeTakeFirst()
@@ -86,12 +59,12 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 
 	const budgetRemaining = (plannedBudget - budgetSpent).toString();
 
-	const savingProgress = Math.floor((totalSavings / plannedBudget) * 100);
+	const savingProgress = plannedBudget > 0 ? Math.floor((totalSavings / plannedBudget) * 100) : 0;
 
 	const expenses = await plannerDb
 		.selectFrom('expense_items')
 		.selectAll()
-		.where('weddingId', '=', wedding.id)
+		.where('organizationId', '=', activeWorkspaceId)
 		.orderBy('createdAt', 'desc')
 		.execute();
 
@@ -113,7 +86,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 };
 
 export const actions: Actions = {
-	createExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	createExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -130,7 +103,7 @@ export const actions: Actions = {
 				.insertInto('expense_items')
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					expenseDescription,
 					expenseCategory,
 					expenseAmount: expenseAmount,
@@ -152,7 +125,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updatePaymentStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updatePaymentStatus: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const expenseId = data.get('id') as string;
 		const newPaymentStatus = data.get('paymentStatus') as ExpenseStatus;
@@ -169,7 +142,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 			if (!updatedPaymentStatus) {
@@ -185,7 +158,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -216,7 +189,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -234,7 +207,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	deleteExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const data = await request.formData();
 		const expenseId = data.get('id') as string;
 
@@ -246,7 +219,7 @@ export const actions: Actions = {
 			const deletedExpense = await plannerDb
 				.deleteFrom('expense_items')
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 

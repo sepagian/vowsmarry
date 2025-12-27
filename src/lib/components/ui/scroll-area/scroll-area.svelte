@@ -26,21 +26,15 @@
 >
 	<ScrollAreaPrimitive.Viewport
 		data-slot="scroll-area-viewport"
-		class="ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] focus-visible:outline-1 focus-visible:ring-4"
+		class="ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] focus-visible:ring-4 focus-visible:outline-1"
 	>
 		{@render children?.()}
 	</ScrollAreaPrimitive.Viewport>
 	{#if orientation === 'vertical' || orientation === 'both'}
-		<Scrollbar
-			orientation="vertical"
-			class={scrollbarYClasses}
-		/>
+		<Scrollbar orientation="vertical" class={scrollbarYClasses} />
 	{/if}
 	{#if orientation === 'horizontal' || orientation === 'both'}
-		<Scrollbar
-			orientation="horizontal"
-			class={scrollbarXClasses}
-		/>
+		<Scrollbar orientation="horizontal" class={scrollbarXClasses} />
 	{/if}
 	<ScrollAreaPrimitive.Corner />
 </ScrollAreaPrimitive.Root>

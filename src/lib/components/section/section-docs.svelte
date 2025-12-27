@@ -4,7 +4,6 @@
 	import * as Card from '$lib/components/ui/card/index';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index';
 	import * as Dialog from '$lib/components/ui/dialog/index';
-	import * as AlertDialog from '$lib/components/ui/alert-dialog/index';
 	import type { DocumentCategory, Document } from '$lib/types';
 	import { docTypeOptions } from '$lib/constants/constants';
 	import DialogDocument from '../dialog/dialog-document.svelte';
@@ -14,13 +13,12 @@
 	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 	import { createFormDataWithId } from '$lib/utils/form-helpers';
 	import { BYTES } from '$lib/constants/config';
+	import { confirmDelete, ConfirmDeleteDialog} from '$lib/components/ui/confirm-delete-dialog';
 
 	let { docsCards, data }: { docsCards: Document[]; data: any } = $props();
 
 	let createDialogOpen = $state(false);
 	let editDialogOpen = $state(false);
-	let deleteDialogOpen = $state(false);
-	let isDeleting = $state(false);
 	let selectedDocument = $state<Document | null>(null);
 
 	const dropdownItem: {
@@ -97,8 +95,6 @@
 	}
 
 	async function handleDelete(documentId: string, documentName: string) {
-		isDeleting = true;
-
 		// Optimistic update - remove from store immediately
 		const originalDocument = documentsState.findById(documentId);
 		documentsState.remove(documentId);
@@ -116,7 +112,6 @@
 			if (result.type === 'success') {
 				CrudToasts.success('delete', 'document', { itemName: documentName });
 				await InvalidationService.invalidateDocument();
-				deleteDialogOpen = false;
 			} else {
 				throw new Error(result.error || 'Failed to delete document');
 			}
@@ -130,14 +125,8 @@
 				error instanceof Error ? error.message : 'Failed to delete document',
 				'document',
 			);
-		} finally {
-			isDeleting = false;
+			throw error;
 		}
-	}
-
-	function openDeleteDialog(doc: Document) {
-		selectedDocument = doc;
-		deleteDialogOpen = true;
 	}
 
 	function handleDropdownAction(action: string, doc: Document) {
@@ -160,7 +149,13 @@
 				break;
 			case 'Delete':
 				// Open delete confirmation dialog
-				openDeleteDialog(doc);
+				confirmDelete({
+					title: 'Delete Document',
+					description: `Are you sure you want to delete "${doc.documentName}"? This action cannot be undone and will permanently remove the file from storage.`,
+					onConfirm: async () => {
+						await handleDelete(doc.id as string, doc.documentName);
+					}
+				});
 				break;
 		}
 	}
@@ -193,31 +188,6 @@
 			/>
 		</Dialog.Root>
 	{/if}
-
-	<!-- Delete Confirmation Dialog -->
-	<AlertDialog.Root bind:open={deleteDialogOpen}>
-		<AlertDialog.Content>
-			<AlertDialog.Header>
-				<AlertDialog.Title>Delete Document</AlertDialog.Title>
-				<AlertDialog.Description>
-					Are you sure you want to delete "{selectedDocument?.documentName}"? This action cannot be
-					undone and will permanently remove the file from storage.
-				</AlertDialog.Description>
-			</AlertDialog.Header>
-			<AlertDialog.Footer>
-				<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-				<AlertDialog.Action
-					onclick={() =>
-						selectedDocument &&
-						handleDelete(selectedDocument.id as string, selectedDocument.documentName)}
-					disabled={isDeleting}
-					class="bg-red-600 hover:bg-red-700"
-				>
-					{isDeleting ? 'Deleting...' : 'Delete'}
-				</AlertDialog.Action>
-			</AlertDialog.Footer>
-		</AlertDialog.Content>
-	</AlertDialog.Root>
 
 	<div class="flex gap-4 flex-col sm:grid md:grid lg:grid-cols-3 xl:grid-cols-4">
 		{#each docsCards as doc (doc.id)}
@@ -287,6 +257,14 @@
 					</div>
 				</Card.Footer>
 			</Card.Root>
+		{:else}
+			<div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+				<div class="i-lucide:file-text h-12 w-12 text-muted-foreground mb-4"></div>
+				<h3 class="text-lg font-semibold mb-2">No documents in this workspace</h3>
+				<p class="text-sm text-muted-foreground mb-4">
+					Upload your first document to keep all your wedding files organized in one place.
+				</p>
+			</div>
 		{/each}
 	</div>
 </div>

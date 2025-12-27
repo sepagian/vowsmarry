@@ -77,10 +77,13 @@ const database: Handle = async ({ event, resolve }) => {
  * 2. Read and validate session cookies
  * 3. Query the database for session and user data
  * 4. Populate event.locals with session and user objects
+ * 5. Load active workspace if set in session
  *
  * After this hook executes:
  * - event.locals.session contains the session object (or null if not authenticated)
  * - event.locals.user contains the user object (or null if not authenticated)
+ * - event.locals.activeWorkspaceId contains the active workspace ID (or null)
+ * - event.locals.activeWorkspace contains the full workspace details (or null)
  *
  * Session Validation:
  * Better Auth automatically validates sessions by:
@@ -89,6 +92,11 @@ const database: Handle = async ({ event, resolve }) => {
  * - Ensuring the session is associated with a valid user
  *
  * If validation fails, Better Auth clears the session cookie and sets locals to null.
+ *
+ * Active Workspace Loading:
+ * If the session has an activeOrganizationId, this hook loads the full workspace
+ * details from the database. This allows routes to access workspace information
+ * without additional database queries.
  *
  * Development Logging:
  * In development mode, logs authentication events to help with debugging.
@@ -117,19 +125,77 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 		if (session) {
 			event.locals.session = session.session;
 			event.locals.user = session.user;
+			
+			// Load active workspace if set in session
+			if (session.session.activeOrganizationId) {
+				event.locals.activeWorkspaceId = session.session.activeOrganizationId;
+				
+				// Load full workspace details for use in routes
+				try {
+					const workspace = await auth.api.getFullOrganization({
+						query: { organizationId: session.session.activeOrganizationId },
+						headers: event.request.headers,
+					});
+					
+					if (workspace) {
+						// Cast to our Organization type (Better Auth returns additional fields like members and invitations)
+						event.locals.activeWorkspace = {
+							id: workspace.id,
+							name: workspace.name,
+							slug: workspace.slug,
+							logo: workspace.logo ?? null,
+							metadata: workspace.metadata ?? null,
+							createdAt: workspace.createdAt,
+							// Wedding-specific fields
+							groomName: workspace.groomName ?? null,
+							brideName: workspace.brideName ?? null,
+							weddingDate: workspace.weddingDate ?? null,
+							weddingVenue: workspace.weddingVenue ?? null,
+							weddingBudget: workspace.weddingBudget ?? null,
+						};
+						
+						if (dev) {
+							console.log(`[Auth] Active workspace loaded: ${workspace.name} (${workspace.id})`);
+						}
+					} else {
+						event.locals.activeWorkspace = null;
+						if (dev) {
+							console.log('[Auth] Active workspace ID set but workspace not found');
+						}
+					}
+				} catch (workspaceError) {
+					// Workspace loading failed, but user is still authenticated
+					console.error('[Auth] Failed to load active workspace:', workspaceError);
+					event.locals.activeWorkspace = null;
+				}
+			} else {
+				// No active workspace set
+				event.locals.activeWorkspaceId = null;
+				event.locals.activeWorkspace = null;
+			}
+		} else {
+			// Not authenticated, clear workspace data
+			event.locals.activeWorkspaceId = null;
+			event.locals.activeWorkspace = null;
 		}
 	} catch (err) {
 		// Session fetch failed, user is not authenticated
 		if (dev) {
 			console.log('[Auth] Session fetch failed:', err);
 		}
+		// Ensure workspace data is cleared
+		event.locals.activeWorkspaceId = null;
+		event.locals.activeWorkspace = null;
 	}
 
 	const response = await svelteKitHandler({ event, resolve, auth, building });
 
 	// Log auth events in development
 	if (dev && event.locals.user) {
-		console.log(`[Auth] User ${event.locals.user.email} authenticated`);
+		const workspaceInfo = event.locals.activeWorkspace 
+			? ` with workspace "${event.locals.activeWorkspace.name}"`
+			: ' (no active workspace)';
+		console.log(`[Auth] User ${event.locals.user.email} authenticated${workspaceInfo}`);
 	}
 
 	return response;
@@ -138,9 +204,9 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 /**
  * Auth Guard Hook
  *
- * Enforces route protection rules based on authentication status.
+ * Enforces route protection rules based on authentication status and workspace access.
  * This hook runs after Better Auth has populated event.locals, so we can
- * reliably check if the user is authenticated.
+ * reliably check if the user is authenticated and has an active workspace.
  *
  * Route Protection Rules:
  *
@@ -150,15 +216,22 @@ const betterAuth: Handle = async ({ event, resolve }) => {
  *    - /robots.txt, /favicon.ico - Static files
  *
  * 2. Protected Routes (Require Authentication):
- *    - /dashboard/* - Main application dashboard
+ *    - /dashboard/* - Main application dashboard (requires workspace)
+ *    - /onboarding - Workspace setup (requires auth, no workspace needed)
+ *    - /account - User account settings (requires auth, no workspace needed)
  *    - Redirects to /login if not authenticated
  *
- * 3. Auth Pages (Redirect if Authenticated):
+ * 3. Workspace-Required Routes (Require Authentication + Active Workspace):
+ *    - /dashboard/* - All dashboard routes require an active workspace
+ *    - Redirects to /onboarding if authenticated but no workspace
+ *
+ * 4. Auth Pages (Redirect if Authenticated):
  *    - /login, /register - Authentication forms
- *    - Redirects to /dashboard if already authenticated
+ *    - Redirects to /dashboard if authenticated with workspace
+ *    - Redirects to /onboarding if authenticated without workspace
  *    - Prevents authenticated users from seeing login/register pages
  *
- * 4. Public Routes (Always Allow):
+ * 5. Public Routes (Always Allow):
  *    - /, /about, etc. - Public pages
  *    - Accessible without authentication
  *
@@ -170,6 +243,10 @@ const betterAuth: Handle = async ({ event, resolve }) => {
  * - The session is not expired
  * - The user associated with the session exists
  *
+ * Workspace Check:
+ * A user has an active workspace if activeWorkspaceId exists in event.locals.
+ * This is set by the betterAuth hook when loading the session.
+ *
  * Redirect Behavior:
  * - Uses 303 status code (See Other) for POST-redirect-GET pattern
  * - Preserves request method semantics
@@ -178,19 +255,35 @@ const betterAuth: Handle = async ({ event, resolve }) => {
 const authGuard: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
 
+	// Allow public assets (CSS, JS, images, etc.)
 	if (RouteMatcher.isPublicAsset(pathname)) {
 		return resolve(event);
 	}
 
-	const { session, user } = event.locals;
+	const { session, user, activeWorkspaceId } = event.locals;
 	const isAuthenticated = !!(session && user);
+	const hasWorkspace = !!activeWorkspaceId;
 
+	// Redirect unauthenticated users trying to access protected routes
 	if (!isAuthenticated && RouteMatcher.isProtectedRoute(pathname)) {
 		redirect(303, ROUTES.PUBLIC.LOGIN);
 	}
 
+	// Redirect authenticated users away from auth pages
 	if (isAuthenticated && RouteMatcher.isAuthPage(pathname)) {
-		redirect(303, ROUTES.PROTECTED.DASHBOARD);
+		// If user has a workspace, send them to dashboard
+		// If no workspace, send them to onboarding
+		const destination = hasWorkspace ? ROUTES.PROTECTED.DASHBOARD : ROUTES.PROTECTED.ONBOARDING;
+		redirect(303, destination);
+	}
+
+	// Check workspace requirement for dashboard routes
+	if (isAuthenticated && RouteMatcher.requiresWorkspace(pathname)) {
+		// User is authenticated but has no active workspace
+		// Redirect to onboarding to create/select a workspace
+		if (!hasWorkspace) {
+			redirect(303, ROUTES.PROTECTED.ONBOARDING);
+		}
 	}
 
 	return resolve(event);

@@ -104,6 +104,16 @@ class DocumentsState extends BaseStore<Document> {
 			(a, b) => new Date(b.documentDate).getTime() - new Date(a.documentDate).getTime(),
 		);
 	}
+
+	/**
+	 * Override set method to handle workspace context
+	 * 
+	 * @param items - Documents to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
+	 */
+	override set(items: Document[], workspaceId?: string | null): void {
+		super.set(items, workspaceId);
+	}
 }
 
 /**

@@ -9,31 +9,18 @@ import { withAuth } from '$lib/server/auth-helpers';
 export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('document:list');
 
-	const { user } = locals;
+	const { user, activeWorkspaceId } = locals;
 
 	if (!user) redirect(302, '/login');
 
-	const [documentForm, wedding] = await Promise.all([
-		superValidate(valibot(documentSchema)),
+	if (!activeWorkspaceId) redirect(302, '/onboarding');
 
-		plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst(),
-	]);
-
-	if (!wedding) {
-		return {
-			documentForm,
-			documents: [],
-		};
-	}
+	const documentForm = await superValidate(valibot(documentSchema));
 
 	const documentList = await plannerDb
 		.selectFrom('documents')
 		.selectAll()
-		.where('weddingId', '=', wedding.id)
+		.where('organizationId', '=', activeWorkspaceId)
 		.orderBy('documentDate', 'asc')
 		.execute();
 
@@ -41,7 +28,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 };
 
 export const actions: Actions = {
-	createDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	createDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const form = await superValidate(request, valibot(documentSchema));
 		if (!form.valid) return fail(400, { form });
@@ -81,7 +68,7 @@ export const actions: Actions = {
 			const { uploadFile } = await import('$lib/server/storage');
 			uploadResult = await uploadFile(file, {
 				pathPrefix: 'documents',
-				scopeId: wedding.id,
+				scopeId: organizationId,
 			});
 		} catch (error) {
 			console.error('File upload failed:', error);
@@ -102,7 +89,7 @@ export const actions: Actions = {
 				.insertInto('documents')
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					documentName: form.data.documentName,
 					documentCategory: form.data.documentCategory,
 					documentDate: String(form.data.documentDate),
@@ -147,7 +134,7 @@ export const actions: Actions = {
 			return fail(500, { error: 'An unexpected error occurred' });
 		}
 	}),
-	updateDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const form = await superValidate(request, valibot(documentSchema));
 		if (!form.valid) return fail(400, { form });
@@ -165,15 +152,11 @@ export const actions: Actions = {
 			.selectFrom('documents')
 			.selectAll()
 			.where('id', '=', documentId)
+			.where('organizationId', '=', organizationId)
 			.executeTakeFirst();
 
 		if (!existingDocument) {
 			return fail(404, { error: 'Document not found' });
-		}
-
-		// Return 403 error if authorization fails
-		if (existingDocument.weddingId !== wedding.id) {
-			return fail(403, { error: 'You do not have permission to update this document' });
 		}
 
 		// Implement conditional file replacement
@@ -206,7 +189,7 @@ export const actions: Actions = {
 				const { replaceFile } = await import('$lib/server/storage');
 				const uploadResult = await replaceFile(existingDocument.fileUrl, file, {
 					pathPrefix: 'documents',
-					scopeId: wedding.id,
+					scopeId: organizationId,
 				});
 
 				// Update database record with new file metadata
@@ -268,7 +251,7 @@ export const actions: Actions = {
 			return fail(500, { error: 'An unexpected error occurred' });
 		}
 	}),
-	deleteDocument: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			// Extract document ID from form data
 		const formData = await request.formData();
@@ -283,15 +266,11 @@ export const actions: Actions = {
 			.selectFrom('documents')
 			.selectAll()
 			.where('id', '=', documentId)
+			.where('organizationId', '=', organizationId)
 			.executeTakeFirst();
 
 		if (!existingDocument) {
 			return fail(404, { error: 'Document not found' });
-		}
-
-		// Verify the document belongs to the user's wedding
-		if (existingDocument.weddingId !== wedding.id) {
-			return fail(403, { error: 'You do not have permission to delete this document' });
 		}
 
 		// Delete file from R2 storage

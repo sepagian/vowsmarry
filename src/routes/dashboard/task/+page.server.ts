@@ -12,32 +12,17 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	depends('task:list');
 	depends('calendar:data');
 
-	const { user } = locals;
+	const { user, activeWorkspaceId } = locals;
 
 	if (!user) redirect(302, '/login');
+	if (!activeWorkspaceId) redirect(302, '/onboarding');
 
-	const [taskForm, wedding] = await Promise.all([
-		superValidate(valibot(taskSchema)),
-		plannerDb
-			.selectFrom('weddings')
-			.selectAll()
-			.where('userId', '=', user.id)
-			.executeTakeFirst(),
-	]);
-
-	if (!wedding) {
-		return {
-			taskForm,
-			taskStats: { total: 0, pending: 0, onProgress: 0, completed: 0 },
-			update: { total: null, pending: null, onProgress: null, completed: null },
-			tasks: [],
-		};
-	}
+	const taskForm = await superValidate(valibot(taskSchema));
 
 	const tasksList = await plannerDb
 		.selectFrom('tasks')
 		.selectAll()
-		.where('weddingId', '=', wedding.id)
+		.where('organizationId', '=', activeWorkspaceId)
 		.orderBy('taskDueDate', 'asc')
 		.execute();
 
@@ -71,7 +56,7 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 };
 
 export const actions: Actions = {
-	createTask: withAuth(async ({ user, wedding, plannerDb }, { request }) => {
+	createTask: withAuth(async ({ user, organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(taskSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -80,7 +65,7 @@ export const actions: Actions = {
 				.insertInto('tasks')
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					taskDescription: form.data.taskDescription,
 					taskCategory: form.data.taskCategory,
 					taskPriority: form.data.taskPriority,
@@ -101,7 +86,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateTaskStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateTaskStatus: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const parser = new FormDataParser(await request.formData());
 			const taskId = parser.getString('id');
@@ -115,7 +100,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', taskId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -127,7 +112,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateTask: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const clonedRequest = request.clone();
 		const parser = new FormDataParser(await clonedRequest.formData());
 		const taskId = parser.getString('id');
@@ -145,7 +130,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', taskId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -157,7 +142,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	deleteTask: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteTask: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const parser = new FormDataParser(await request.formData());
 			const taskId = parser.getString('id');
@@ -165,7 +150,7 @@ export const actions: Actions = {
 			const deletedTask = await plannerDb
 				.deleteFrom('tasks')
 				.where('id', '=', taskId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 

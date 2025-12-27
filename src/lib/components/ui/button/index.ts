@@ -1,7 +1,3 @@
-/*
-	Installed from @ieedan/shadcn-svelte-extras
-*/
-
 import Root, {
 	type ButtonProps,
 	type ButtonSize,
@@ -9,7 +5,7 @@ import Root, {
 	type AnchorElementProps,
 	type ButtonElementProps,
 	type ButtonPropsWithoutHTML,
-	buttonVariants,
+	buttonVariants
 } from './button.svelte';
 
 export {
@@ -23,5 +19,5 @@ export {
 	type ButtonVariant,
 	type AnchorElementProps,
 	type ButtonElementProps,
-	type ButtonPropsWithoutHTML,
+	type ButtonPropsWithoutHTML
 };

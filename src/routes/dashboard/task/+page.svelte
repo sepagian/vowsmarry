@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SectionCards from '$lib/components/section/section-cards.svelte';
 	import TaskTable from '$lib/components/table/task-table.svelte';
+	import { ConfirmDeleteDialog } from '$lib/components/ui/confirm-delete-dialog';
 
 	import { tasksState } from '$lib/stores/tasks.svelte';
 	import { formatDistanceToNow } from 'date-fns';
@@ -9,9 +10,17 @@
 	let { data } = $props();
 
 	// Update store whenever data changes (including after invalidation)
+	// Pass workspace ID to ensure data consistency when workspace changes
 	$effect(() => {
 		if (data.tasks) {
-			tasksState.set(data.tasks);
+			const workspaceId = data.workspace?.id || null;
+			
+			// Clear store if workspace changed to prevent stale data
+			if (!tasksState.isWorkspace(workspaceId)) {
+				tasksState.clearWorkspace();
+			}
+			
+			tasksState.set(data.tasks, workspaceId);
 		}
 	});
 
@@ -54,6 +63,8 @@
 			},
 		]);
 </script>
+
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto">
 	<SectionCards

@@ -61,7 +61,9 @@ export type BetterAuthErrorCode =
 	| 'PASSWORD_RESET_FAILED'
 	| 'INVALID_TOKEN'
 	| 'NETWORK_ERROR'
-	| 'SERVER_ERROR';
+	| 'SERVER_ERROR'
+	| 'UNAUTHORIZED'
+	| 'SESSION_EXPIRED';
 
 // ============================================================================
 // ENTITY CONFIGURATIONS
@@ -76,6 +78,16 @@ export const entityConfigs: Record<string, EntityConfig> = {
 			update: 'Wedding data updated successfully',
 			delete: 'Wedding data deleted successfully',
 			fetch: 'Wedding data loaded successfully',
+		},
+	},
+	workspace: {
+		name: 'workspace',
+		displayName: 'Workspace',
+		operations: {
+			create: 'Workspace created successfully',
+			update: 'Workspace updated successfully',
+			delete: 'Workspace deleted successfully',
+			fetch: 'Workspace loaded successfully',
 		},
 	},
 	task: {
@@ -128,6 +140,76 @@ export const entityConfigs: Record<string, EntityConfig> = {
 			fetch: 'Rundown loaded successfully',
 		},
 	},
+	schedule: {
+		name: 'schedule',
+		displayName: 'Schedule',
+		operations: {
+			create: 'Schedule created successfully',
+			update: 'Schedule updated successfully',
+			delete: 'Schedule deleted successfully',
+			fetch: 'Schedules loaded successfully',
+		},
+	},
+	saving: {
+		name: 'saving',
+		displayName: 'Saving',
+		operations: {
+			create: 'Saving added successfully',
+			update: 'Saving updated successfully',
+			delete: 'Saving deleted successfully',
+			fetch: 'Savings loaded successfully',
+		},
+	},
+	dowry: {
+		name: 'dowry',
+		displayName: 'Dowry',
+		operations: {
+			create: 'Dowry item added successfully',
+			update: 'Dowry item updated successfully',
+			delete: 'Dowry item deleted successfully',
+			fetch: 'Dowry items loaded successfully',
+		},
+	},
+	souvenir: {
+		name: 'souvenir',
+		displayName: 'Souvenir',
+		operations: {
+			create: 'Souvenir added successfully',
+			update: 'Souvenir updated successfully',
+			delete: 'Souvenir deleted successfully',
+			fetch: 'Souvenirs loaded successfully',
+		},
+	},
+	dresscode: {
+		name: 'dresscode',
+		displayName: 'Dresscode',
+		operations: {
+			create: 'Dresscode added successfully',
+			update: 'Dresscode updated successfully',
+			delete: 'Dresscode deleted successfully',
+			fetch: 'Dresscodes loaded successfully',
+		},
+	},
+	invitation: {
+		name: 'invitation',
+		displayName: 'Invitation',
+		operations: {
+			create: 'Invitation sent successfully',
+			update: 'Invitation updated successfully',
+			delete: 'Invitation cancelled successfully',
+			fetch: 'Invitations loaded successfully',
+		},
+	},
+	member: {
+		name: 'member',
+		displayName: 'Member',
+		operations: {
+			create: 'Member added successfully',
+			update: 'Member updated successfully',
+			delete: 'Member removed successfully',
+			fetch: 'Members loaded successfully',
+		},
+	},
 };
 
 // ============================================================================
@@ -137,34 +219,60 @@ export const entityConfigs: Record<string, EntityConfig> = {
 export const AUTH_MESSAGES = {
 	success: {
 		login: "Welcome back! You've been logged in successfully.",
-		register: 'Account created successfully! Please check your email to verify your account.',
+		register: 'Account created successfully! Welcome to VowsMarry.',
 		logout: "You've been logged out successfully. See you soon!",
 		passwordResetRequest: 'Password reset email sent! Check your inbox for further instructions.',
 		passwordResetSuccess: 'Password updated successfully! You can now log in with your new password.',
+		passwordChangeSuccess: 'Password changed successfully!',
 		emailVerification: 'Email verified successfully! You can now access all features.',
 		profileUpdate: 'Profile updated successfully!',
+		invitationSent: 'Invitation sent successfully!',
+		invitationAccepted: 'Invitation accepted! Welcome to the workspace.',
+		invitationRejected: 'Invitation declined.',
+		memberRemoved: 'Member removed successfully.',
+		workspaceLeft: 'You have left the workspace.',
 	},
 	error: {
+		// Authentication errors
 		invalidCredentials: 'Invalid email or password. Please check your credentials and try again.',
 		emailNotConfirmed: 'Please verify your email address before signing in. Check your inbox for the verification link.',
 		tooManyRequests: 'Too many attempts. Please wait a moment before trying again.',
 		userNotFound: 'No account found with this email address.',
 		emailAlreadyExists: 'An account with this email already exists. Try logging in instead.',
-		weakPassword: 'Password is too weak. Please choose a stronger password.',
+		weakPassword: 'Password is too weak. Please choose a stronger password with at least 8 characters.',
 		invalidEmail: 'Please enter a valid email address.',
+		
+		// Password management errors
 		passwordResetFailed: 'Failed to send password reset email. Please try again.',
 		invalidResetToken: 'Invalid or expired reset link. Please request a new password reset.',
 		passwordUpdateFailed: 'Failed to update password. Please try again.',
+		passwordMismatch: 'Passwords do not match. Please try again.',
+		incorrectPassword: 'Current password is incorrect. Please try again.',
+		
+		// Session errors
 		networkError: 'Network error. Please check your connection and try again.',
 		serverError: 'Something went wrong on our end. Please try again later.',
 		validationError: 'Please fix the errors in the form before submitting.',
 		unexpectedError: 'An unexpected error occurred. Please try again.',
 		sessionExpired: 'Your session has expired. Please log in again.',
 		unauthorized: 'You need to be logged in to access this feature.',
+		
+		// Organization/Workspace errors
+		organizationNotFound: 'Workspace not found.',
+		invitationFailed: 'Failed to send invitation. Please try again.',
+		invitationNotFound: 'Invitation not found or has expired.',
+		alreadyMember: 'This user is already a member of the workspace.',
+		cannotRemoveSelf: 'You cannot remove yourself. Use "Leave Workspace" instead.',
+		cannotRemoveLastOwner: 'Cannot remove the last owner. Transfer ownership first.',
+		
+		// Generic errors
+		databaseError: 'Database error occurred. Please try again.',
+		configurationError: 'Configuration error. Please contact support.',
 	},
 	warning: {
 		sessionExpiring: 'Your session will expire soon. Please save your work.',
 		emailNotVerified: 'Please verify your email to access all features.',
+		pendingInvitation: 'You have a pending invitation to join a workspace.',
 	},
 } as const;
 
@@ -769,10 +877,17 @@ export const auth = {
 		logout: () => toast.success(AUTH_MESSAGES.success.logout),
 		passwordResetRequest: () => toast.info(AUTH_MESSAGES.success.passwordResetRequest),
 		passwordResetSuccess: () => toast.success(AUTH_MESSAGES.success.passwordResetSuccess),
+		passwordChangeSuccess: () => toast.success(AUTH_MESSAGES.success.passwordChangeSuccess),
 		emailVerification: () => toast.success(AUTH_MESSAGES.success.emailVerification),
 		profileUpdate: () => toast.success(AUTH_MESSAGES.success.profileUpdate),
+		invitationSent: () => toast.success(AUTH_MESSAGES.success.invitationSent),
+		invitationAccepted: () => toast.success(AUTH_MESSAGES.success.invitationAccepted),
+		invitationRejected: () => toast.info(AUTH_MESSAGES.success.invitationRejected),
+		memberRemoved: () => toast.success(AUTH_MESSAGES.success.memberRemoved),
+		workspaceLeft: () => toast.success(AUTH_MESSAGES.success.workspaceLeft),
 	},
 	error: {
+		// Authentication errors
 		invalidCredentials: () => toast.error(AUTH_MESSAGES.error.invalidCredentials),
 		emailNotConfirmed: () => toast.error(AUTH_MESSAGES.error.emailNotConfirmed),
 		tooManyRequests: () => toast.error(AUTH_MESSAGES.error.tooManyRequests),
@@ -780,23 +895,43 @@ export const auth = {
 		emailAlreadyExists: () => toast.error(AUTH_MESSAGES.error.emailAlreadyExists),
 		weakPassword: () => toast.error(AUTH_MESSAGES.error.weakPassword),
 		invalidEmail: () => toast.error(AUTH_MESSAGES.error.invalidEmail),
+		
+		// Password management errors
 		passwordResetFailed: () => toast.error(AUTH_MESSAGES.error.passwordResetFailed),
 		invalidResetToken: () => toast.error(AUTH_MESSAGES.error.invalidResetToken),
 		passwordUpdateFailed: () => toast.error(AUTH_MESSAGES.error.passwordUpdateFailed),
+		passwordMismatch: () => toast.error(AUTH_MESSAGES.error.passwordMismatch),
+		incorrectPassword: () => toast.error(AUTH_MESSAGES.error.incorrectPassword),
+		
+		// Session errors
 		networkError: () => toast.error(AUTH_MESSAGES.error.networkError),
 		serverError: () => toast.error(AUTH_MESSAGES.error.serverError),
 		validationError: () => toast.error(AUTH_MESSAGES.error.validationError),
 		unexpectedError: () => toast.error(AUTH_MESSAGES.error.unexpectedError),
 		sessionExpired: () => toast.warning(AUTH_MESSAGES.error.sessionExpired),
 		unauthorized: () => toast.error(AUTH_MESSAGES.error.unauthorized),
+		
+		// Organization/Workspace errors
+		organizationNotFound: () => toast.error(AUTH_MESSAGES.error.organizationNotFound),
+		invitationFailed: () => toast.error(AUTH_MESSAGES.error.invitationFailed),
+		invitationNotFound: () => toast.error(AUTH_MESSAGES.error.invitationNotFound),
+		alreadyMember: () => toast.error(AUTH_MESSAGES.error.alreadyMember),
+		cannotRemoveSelf: () => toast.error(AUTH_MESSAGES.error.cannotRemoveSelf),
+		cannotRemoveLastOwner: () => toast.error(AUTH_MESSAGES.error.cannotRemoveLastOwner),
+		
+		// Generic errors
+		databaseError: () => toast.error(AUTH_MESSAGES.error.databaseError),
+		configurationError: () => toast.error(AUTH_MESSAGES.error.configurationError),
 	},
 	warning: {
 		sessionExpiring: () => toast.warning(AUTH_MESSAGES.warning.sessionExpiring),
 		emailNotVerified: () => toast.warning(AUTH_MESSAGES.warning.emailNotVerified),
+		pendingInvitation: () => toast.info(AUTH_MESSAGES.warning.pendingInvitation),
 	},
 };
 
 const ERROR_CODE_TO_TOAST_MAP: Record<string, () => void> = {
+	// Authentication errors
 	INVALID_CREDENTIALS: auth.error.invalidCredentials,
 	EMAIL_NOT_VERIFIED: auth.error.emailNotConfirmed,
 	RATE_LIMIT_EXCEEDED: auth.error.tooManyRequests,
@@ -804,10 +939,32 @@ const ERROR_CODE_TO_TOAST_MAP: Record<string, () => void> = {
 	EMAIL_ALREADY_EXISTS: auth.error.emailAlreadyExists,
 	WEAK_PASSWORD: auth.error.weakPassword,
 	INVALID_EMAIL: auth.error.invalidEmail,
+	
+	// Password errors
 	PASSWORD_RESET_FAILED: auth.error.passwordResetFailed,
 	INVALID_TOKEN: auth.error.invalidResetToken,
+	PASSWORD_UPDATE_FAILED: auth.error.passwordUpdateFailed,
+	PASSWORD_MISMATCH: auth.error.passwordMismatch,
+	INCORRECT_PASSWORD: auth.error.incorrectPassword,
+	
+	// Session errors
 	NETWORK_ERROR: auth.error.networkError,
 	SERVER_ERROR: auth.error.serverError,
+	SESSION_EXPIRED: auth.error.sessionExpired,
+	UNAUTHORIZED: auth.error.unauthorized,
+	
+	// Organization errors
+	ORGANIZATION_NOT_FOUND: auth.error.organizationNotFound,
+	INVITATION_FAILED: auth.error.invitationFailed,
+	INVITATION_NOT_FOUND: auth.error.invitationNotFound,
+	ALREADY_MEMBER: auth.error.alreadyMember,
+	CANNOT_REMOVE_SELF: auth.error.cannotRemoveSelf,
+	CANNOT_REMOVE_LAST_OWNER: auth.error.cannotRemoveLastOwner,
+	
+	// Generic errors
+	DATABASE_ERROR: auth.error.databaseError,
+	CONFIGURATION_ERROR: auth.error.configurationError,
+	VALIDATION_ERROR: auth.error.validationError,
 };
 
 export function handleAuthError(error: { 
@@ -815,14 +972,69 @@ export function handleAuthError(error: {
 	status?: number; 
 	code?: BetterAuthErrorCode | string;
 }): void {
-	if (!error.code) {
-		auth.error.unexpectedError();
-		return;
+	// Try to use error code first
+	if (error.code) {
+		const toastHandler = ERROR_CODE_TO_TOAST_MAP[error.code];
+		if (toastHandler) {
+			toastHandler();
+			return;
+		}
 	}
 
-	const toastHandler = ERROR_CODE_TO_TOAST_MAP[error.code];
-	if (toastHandler) {
-		toastHandler();
+	// Fall back to message pattern matching for Better Auth errors
+	const message = error.message.toLowerCase();
+	
+	// Authentication errors
+	if (message.includes('invalid') && (message.includes('credentials') || message.includes('password'))) {
+		auth.error.invalidCredentials();
+	} else if (message.includes('not verified') || message.includes('email not confirmed')) {
+		auth.error.emailNotConfirmed();
+	} else if (message.includes('too many') || message.includes('rate limit')) {
+		auth.error.tooManyRequests();
+	} else if (message.includes('user not found') || message.includes('no account')) {
+		auth.error.userNotFound();
+	} else if (message.includes('already exists') || message.includes('already registered')) {
+		auth.error.emailAlreadyExists();
+	} else if (message.includes('weak password') || message.includes('password strength')) {
+		auth.error.weakPassword();
+	} else if (message.includes('invalid email')) {
+		auth.error.invalidEmail();
+	}
+	// Password errors
+	else if (message.includes('password') && message.includes('mismatch')) {
+		auth.error.passwordMismatch();
+	} else if (message.includes('incorrect password') || message.includes('wrong password')) {
+		auth.error.incorrectPassword();
+	} else if (message.includes('invalid token') || message.includes('expired token')) {
+		auth.error.invalidResetToken();
+	}
+	// Session errors
+	else if (message.includes('session expired') || message.includes('session invalid')) {
+		auth.error.sessionExpired();
+	} else if (message.includes('unauthorized') || message.includes('not authorized')) {
+		auth.error.unauthorized();
+	} else if (message.includes('network') || message.includes('connection')) {
+		auth.error.networkError();
+	}
+	// Organization errors
+	else if (message.includes('organization not found') || message.includes('workspace not found')) {
+		auth.error.organizationNotFound();
+	} else if (message.includes('already a member') || message.includes('already member')) {
+		auth.error.alreadyMember();
+	} else if (message.includes('invitation not found') || message.includes('invitation expired')) {
+		auth.error.invitationNotFound();
+	} else if (message.includes('cannot remove') && message.includes('owner')) {
+		auth.error.cannotRemoveLastOwner();
+	}
+	// Database errors
+	else if (message.includes('database')) {
+		auth.error.databaseError();
+	} else if (message.includes('configuration')) {
+		auth.error.configurationError();
+	}
+	// Generic fallback
+	else if (error.status && error.status >= 500) {
+		auth.error.serverError();
 	} else {
 		auth.error.unexpectedError();
 	}

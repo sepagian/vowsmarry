@@ -2,13 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { valibot } from 'sveltekit-superforms/adapters';
-import {
-	expenseSchema,
-	weddingSchema,
-	type WeddingData,
-	type ExpenseData,
-} from '$lib/validation/planner';
-import { getUser, getWedding, withAuth } from '$lib/server/auth-helpers';
+import { expenseSchema, weddingSchema, type ExpenseData } from '$lib/validation/planner';
+import { getUser, withAuth } from '$lib/server/auth-helpers';
 import { getTableCount, getLastUpdate } from '$lib/server/db/query-helpers';
 import { handleActionError } from '$lib/server/error-handler';
 import { parseUserName } from '$lib/utils/user-utils';
@@ -22,14 +17,9 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 
 	const user = await getUser(locals.user);
 	const { firstName, lastName } = parseUserName(user.name);
+	const { activeWorkspaceId, activeWorkspace } = locals;
 
-	const wedding = await plannerDb
-		.selectFrom(TABLES.WEDDINGS)
-		.selectAll()
-		.where('userId', '=', user.id)
-		.executeTakeFirst();
-
-	if (!wedding) {
+	if (!activeWorkspaceId || !activeWorkspace) {
 		return {
 			user: {
 				id: user.id,
@@ -57,33 +47,42 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 
 	const [taskCount, expensePaidAmount, documentCount, vendorCount, expenseList] = await Promise.all(
 		[
-			getTableCount(plannerDb, TABLES.TASKS, wedding.id),
+			getTableCount(plannerDb, TABLES.TASKS, activeWorkspaceId),
 
 			plannerDb
 				.selectFrom(TABLES.EXPENSES)
 				.select((eb) => eb.fn.sum<string>('expenseAmount').as('total'))
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', activeWorkspaceId)
 				.executeTakeFirst()
 				.then((result) => (result?.total ? Number(result.total) : 0)),
 
-			getTableCount(plannerDb, TABLES.DOCUMENTS, wedding.id),
-			getTableCount(plannerDb, TABLES.VENDORS, wedding.id),
+			getTableCount(plannerDb, TABLES.DOCUMENTS, activeWorkspaceId),
+			getTableCount(plannerDb, TABLES.VENDORS, activeWorkspaceId),
 
 			plannerDb
 				.selectFrom(TABLES.EXPENSES)
 				.selectAll()
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', activeWorkspaceId)
 				.orderBy('expenseDueDate', 'desc')
 				.execute(),
 		],
 	);
 
 	const [taskUpdate, expenseUpdate, documentUpdate, vendorUpdate] = await Promise.all([
-		getLastUpdate(plannerDb, TABLES.TASKS, wedding.id),
-		getLastUpdate(plannerDb, TABLES.EXPENSES, wedding.id),
-		getLastUpdate(plannerDb, TABLES.DOCUMENTS, wedding.id),
-		getLastUpdate(plannerDb, TABLES.VENDORS, wedding.id),
+		getLastUpdate(plannerDb, TABLES.TASKS, activeWorkspaceId),
+		getLastUpdate(plannerDb, TABLES.EXPENSES, activeWorkspaceId),
+		getLastUpdate(plannerDb, TABLES.DOCUMENTS, activeWorkspaceId),
+		getLastUpdate(plannerDb, TABLES.VENDORS, activeWorkspaceId),
 	]);
+
+	// Get partner name from member table (other member in the organization)
+	const members = await plannerDb
+		.selectFrom('member')
+		.innerJoin('user', 'user.id', 'member.userId')
+		.select(['user.id', 'user.name'])
+		.where('member.organizationId', '=', activeWorkspaceId)
+		.where('user.id', '!=', user.id)
+		.execute();
 
 	return {
 		user: {
@@ -92,7 +91,16 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 			firstName,
 			lastName,
 		},
-		wedding,
+		workspace: {
+			id: activeWorkspace.id,
+			groomName: activeWorkspace.groomName || null,
+			brideName: activeWorkspace.brideName || null,
+			weddingDate: activeWorkspace.weddingDate || null,
+			weddingVenue: activeWorkspace.weddingVenue || null,
+			weddingBudget: activeWorkspace.weddingBudget
+				? parseFloat(activeWorkspace.weddingBudget)
+				: null,
+		},
 		expenseForm,
 		weddingForm,
 		stats: {
@@ -112,77 +120,10 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 };
 
 export const actions: Actions = {
-	createWeddingData: async ({ request, locals, plannerDb }) => {
-		const user = await getUser(locals.user);
+	// Wedding data is now managed through Better Auth organization API
+	// Use the settings/workspace page to update organization details
 
-		const form = await superValidate(request, valibot(weddingSchema));
-		if (!form.valid) return fail(400, { form });
-
-		try {
-			const existingWedding = await getWedding(user.id, plannerDb);
-
-			if (existingWedding) {
-				return fail(400, {
-					form,
-					error: 'Wedding data already exists. Please update instead.',
-				});
-			}
-
-			const { groomName, brideName, weddingVenue, weddingDate, weddingBudget } =
-				form.data as WeddingData;
-
-			const now = Date.now();
-			const newWedding = await plannerDb
-				.insertInto(TABLES.WEDDINGS)
-				.values({
-					id: crypto.randomUUID(),
-					userId: user.id,
-					groomName,
-					brideName,
-					weddingVenue,
-					weddingDate: String(weddingDate),
-					weddingBudget,
-					createdAt: now,
-					updatedAt: now,
-				})
-				.returningAll()
-				.executeTakeFirstOrThrow();
-
-			return { form, success: true, wedding: newWedding };
-		} catch (error) {
-			return handleActionError(error, 'create wedding data', { form });
-		}
-	},
-
-	updateWeddingData: withAuth(async ({ wedding, plannerDb }, { request }) => {
-		const form = await superValidate(request, valibot(weddingSchema));
-		if (!form.valid) return fail(400, { form });
-
-		const { groomName, brideName, weddingDate, weddingVenue, weddingBudget } =
-			form.data as WeddingData;
-
-		try {
-			const updatedWedding = await plannerDb
-				.updateTable(TABLES.WEDDINGS)
-				.set({
-					groomName,
-					brideName,
-					weddingDate: String(weddingDate),
-					weddingVenue,
-					weddingBudget,
-					updatedAt: Date.now(),
-				})
-				.where('id', '=', wedding.id)
-				.returningAll()
-				.executeTakeFirstOrThrow();
-
-			return { form, success: true, wedding: updatedWedding };
-		} catch (error) {
-			return handleActionError(error, 'update wedding data', { form });
-		}
-	}),
-
-	createExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	createExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const form = await superValidate(request, valibot(expenseSchema));
 		if (!form.valid) return fail(400, { form });
 
@@ -200,7 +141,7 @@ export const actions: Actions = {
 				.insertInto(TABLES.EXPENSES)
 				.values({
 					id: crypto.randomUUID(),
-					weddingId: wedding.id,
+					organizationId,
 					expenseDescription,
 					expenseCategory,
 					expenseAmount,
@@ -218,7 +159,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updateExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updateExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		const clonedRequest = request.clone();
 		const parser = new FormDataParser(await clonedRequest.formData());
 		const expenseId = parser.getString('id');
@@ -238,7 +179,6 @@ export const actions: Actions = {
 			const updatedExpense = await plannerDb
 				.updateTable(TABLES.EXPENSES)
 				.set({
-					weddingId: wedding.id,
 					expenseDescription,
 					expenseCategory,
 					expenseAmount,
@@ -247,7 +187,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -261,7 +201,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	deleteExpenseItem: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	deleteExpenseItem: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const parser = new FormDataParser(await request.formData());
 			const expenseId = parser.getString('id');
@@ -269,7 +209,7 @@ export const actions: Actions = {
 			const deletedExpense = await plannerDb
 				.deleteFrom(TABLES.EXPENSES)
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 
@@ -283,7 +223,7 @@ export const actions: Actions = {
 		}
 	}),
 
-	updatePaymentStatus: withAuth(async ({ wedding, plannerDb }, { request }) => {
+	updatePaymentStatus: withAuth(async ({ organizationId, plannerDb }, { request }) => {
 		try {
 			const parser = new FormDataParser(await request.formData());
 			const expenseId = parser.getString('id');
@@ -296,7 +236,7 @@ export const actions: Actions = {
 					updatedAt: Date.now(),
 				})
 				.where('id', '=', expenseId)
-				.where('weddingId', '=', wedding.id)
+				.where('organizationId', '=', organizationId)
 				.returningAll()
 				.executeTakeFirst();
 

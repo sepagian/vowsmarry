@@ -58,8 +58,8 @@ export const passwordValidation = () => v.pipe(
  */
 export const stringValidation = () => v.pipe(
 	v.string(),
-	v.nonEmpty('Please enter your first name'),
-	v.minLength(2, 'First name must be at least 2 characters'),
+	v.nonEmpty('Please fill this field'),
+	v.minLength(2, 'Must be at least 2 characters'),
 );
 
 

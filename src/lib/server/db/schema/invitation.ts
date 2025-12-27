@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
-import { weddings } from './planner';
+import { organization } from './auth-schema';
 import {
 	invitationStatusValues,
 	guestCategoryValues,
@@ -8,7 +8,6 @@ import {
 	giftTypeValues,
 	galleryTypeValues,
 } from './enums';
-import { users } from './planner';
 
 // INVITATIONS MODULE
 
@@ -18,9 +17,9 @@ export const invitations = sqliteTable(
 		id: text('id')
 			.primaryKey()
 			.$defaultFn(() => crypto.randomUUID()),
-		weddingId: text('wedding_id')
+		organizationId: text('organization_id')
 			.notNull()
-			.references(() => weddings.id, { onDelete: 'cascade' }),
+			.references(() => organization.id, { onDelete: 'cascade' }),
 		slug: text('slug').notNull().unique(),
 		template: text('template').notNull(),
 		status: text('status', { enum: invitationStatusValues }).default('draft'),
@@ -41,7 +40,7 @@ export const invitations = sqliteTable(
 	},
 	(table) => ({
 		slugIdx: index('invitations_slug_idx').on(table.slug),
-		weddingIdIdx: index('invitations_wedding_id_idx').on(table.weddingId),
+		organizationIdIdx: index('invitations_organization_id_idx').on(table.organizationId),
 		statusIdx: index('invitations_status_idx').on(table.status),
 	}),
 );
@@ -213,9 +212,9 @@ export const gifts = sqliteTable(
 // RELATIONS
 //
 export const invitationsRelations = relations(invitations, ({ one, many }) => ({
-	wedding: one(weddings, {
-		fields: [invitations.weddingId],
-		references: [weddings.id],
+	organization: one(organization, {
+		fields: [invitations.organizationId],
+		references: [organization.id],
 	}),
 	guests: many(guests),
 	gallery: many(gallery),
@@ -249,10 +248,6 @@ export const galleryRelations = relations(gallery, ({ one }) => ({
 	invitation: one(invitations, {
 		fields: [gallery.invitationId],
 		references: [invitations.id],
-	}),
-	uploadedBy: one(users, {
-		fields: [gallery.uploadedBy],
-		references: [users.id],
 	}),
 }));
 

@@ -74,6 +74,16 @@ class VendorsState extends BaseStore<Vendor> {
 	filterByStatus(status: VendorStatus): Vendor[] {
 		return this.vendors.filter((v) => v.vendorStatus === status);
 	}
+
+	/**
+	 * Override set method to handle workspace context
+	 * 
+	 * @param items - Vendors to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
+	 */
+	override set(items: Vendor[], workspaceId?: string | null): void {
+		super.set(items, workspaceId);
+	}
 }
 
 /**

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as Dialog from '../ui/dialog/index';
 	import * as Card from '../ui/card/index';
-	import * as AlertDialog from '../ui/alert-dialog/index';
 	import { Input } from '../ui/input/index';
 	import { Button, buttonVariants } from '../ui/button/index';
 	import DialogVendor from '../dialog/dialog-vendor.svelte';
@@ -11,56 +10,37 @@
 	import type { Vendor } from '$lib/types';
 	import { InvalidationService } from '$lib/utils/invalidation-helpers';
 	import { createFormDataWithId } from '$lib/utils/form-helpers';
+	import { confirmDelete } from '$lib/components/ui/confirm-delete-dialog';
 
 	let { data } = $props<{ data: any }>();
 
 	let searchTerm = $state('');
 	let open = $state(false);
 	let editDialogOpen = $state(false);
-	let deleteDialogOpen = $state(false);
-	let isDeleting = $state(false);
 	let selectedVendor = $state<Vendor | null>(null);
 
-	async function handleDelete(e: Event, vendorId: string, vendorName: string) {
-		e.preventDefault();
-		isDeleting = true;
+	async function handleDelete(vendorId: string, vendorName: string) {
+		const formData = createFormDataWithId(vendorId);
 
-		try {
-			const formData = createFormDataWithId(vendorId);
+		const response = await fetch('?/deleteVendor', {
+			method: 'POST',
+			body: formData,
+		});
 
-			const response = await fetch('?/deleteVendor', {
-				method: 'POST',
-				body: formData,
-			});
+		const result = (await response.json()) as { type: string; error?: string };
 
-			const result = (await response.json()) as { type: string; error?: string };
-
-			if (result.type === 'success') {
-				CrudToasts.success('delete', 'vendor', { itemName: vendorName });
-				await InvalidationService.invalidateVendor();
-				deleteDialogOpen = false;
-			} else {
-				throw new Error(result.error || 'Failed to delete vendor');
-			}
-		} catch (error) {
-			CrudToasts.error(
-				'delete',
-				error instanceof Error ? error.message : 'Failed to delete vendor',
-				'vendor',
-			);
-		} finally {
-			isDeleting = false;
+		if (result.type === 'success') {
+			CrudToasts.success('delete', 'vendor', { itemName: vendorName });
+			await InvalidationService.invalidateVendor();
+		} else {
+			CrudToasts.error('delete', result.error || 'Failed to delete vendor', 'vendor');
+			throw new Error(result.error || 'Failed to delete vendor');
 		}
 	}
 
 	function openEditDialog(vendor: Vendor) {
 		selectedVendor = vendor;
 		editDialogOpen = true;
-	}
-
-	function openDeleteDialog(vendor: Vendor) {
-		selectedVendor = vendor;
-		deleteDialogOpen = true;
 	}
 
 	let vendorItems = $derived(vendorsState.vendors);
@@ -124,7 +104,15 @@
 								size="sm"
 								class="h-8 w-8 p-0"
 								title="Delete vendor"
-								onclick={() => openDeleteDialog(data)}
+								onclick={() => {
+									confirmDelete({
+										title: 'Delete Vendor',
+										description: `Are you sure you want to delete "${data.vendorName}"? This action cannot be undone.`,
+										onConfirm: async () => {
+											await handleDelete(data.id as string, data.vendorName);
+										}
+									});
+								}}
 							>
 								<div class="i-lucide:trash-2 h-4 w-4 text-red-500"></div>
 							</Button>
@@ -132,6 +120,14 @@
 					</div>
 				</Card.Footer>
 			</Card.Root>
+		{:else}
+			<div class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+				<div class="i-lucide:users h-12 w-12 text-muted-foreground mb-4"></div>
+				<h3 class="text-lg font-semibold mb-2">No vendors in this workspace</h3>
+				<p class="text-sm text-muted-foreground mb-4">
+					Add your first vendor to start managing your wedding service providers.
+				</p>
+			</div>
 		{/each}
 	</div>
 </div>
@@ -143,27 +139,3 @@
 		bind:open={editDialogOpen}
 	/>
 {/if}
-
-<!-- Delete Confirmation Dialog -->
-<AlertDialog.Root bind:open={deleteDialogOpen}>
-	<AlertDialog.Content>
-		<AlertDialog.Header>
-			<AlertDialog.Title>Delete Vendor</AlertDialog.Title>
-			<AlertDialog.Description>
-				Are you sure you want to delete "{selectedVendor?.vendorName}"? This action cannot be
-				undone.
-			</AlertDialog.Description>
-		</AlertDialog.Header>
-		<AlertDialog.Footer>
-			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action
-				onclick={(e) =>
-					selectedVendor && handleDelete(e, selectedVendor.id as string, selectedVendor.vendorName)}
-				disabled={isDeleting}
-				class="bg-red-600 hover:bg-red-700"
-			>
-				{isDeleting ? 'Deleting...' : 'Delete'}
-			</AlertDialog.Action>
-		</AlertDialog.Footer>
-	</AlertDialog.Content>
-</AlertDialog.Root>

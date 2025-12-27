@@ -48,6 +48,12 @@ class CalendarState {
 	});
 	
 	/**
+	 * Current workspace ID that this store's data belongs to
+	 * Used to ensure data consistency when workspace changes
+	 */
+	private currentWorkspaceId = $state<string | null>(null);
+	
+	/**
 	 * Get unified calendar events with applied filters
 	 */
 	get unifiedEvents(): UnifiedCalendarEvent[] {
@@ -172,10 +178,52 @@ class CalendarState {
 	}
 	
 	/**
-	 * Set schedules
+	 * Get the current workspace ID
 	 */
-	setSchedules(schedules: Schedule[]): void {
+	get workspaceId(): string | null {
+		return this.currentWorkspaceId;
+	}
+
+	/**
+	 * Set schedules and optionally workspace context
+	 * 
+	 * @param schedules - Schedules to set
+	 * @param workspaceId - Optional workspace ID to associate with this data
+	 */
+	setSchedules(schedules: Schedule[], workspaceId?: string | null): void {
 		this.schedules = schedules;
+		if (workspaceId !== undefined) {
+			this.currentWorkspaceId = workspaceId;
+		}
+	}
+
+	/**
+	 * Set the workspace context without changing schedules
+	 * 
+	 * @param workspaceId - Workspace ID to set
+	 */
+	setWorkspace(workspaceId: string | null): void {
+		this.currentWorkspaceId = workspaceId;
+	}
+
+	/**
+	 * Check if the store's data belongs to the given workspace
+	 * 
+	 * @param workspaceId - Workspace ID to check
+	 * @returns true if data belongs to the workspace, false otherwise
+	 */
+	isWorkspace(workspaceId: string | null): boolean {
+		return this.currentWorkspaceId === workspaceId;
+	}
+
+	/**
+	 * Clear all schedules and workspace context
+	 * Should be called when switching workspaces to prevent stale data
+	 */
+	clearWorkspace(): void {
+		this.schedules = [];
+		this.currentWorkspaceId = null;
+		this.resetFilters();
 	}
 	
 	/**
