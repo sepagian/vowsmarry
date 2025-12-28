@@ -201,33 +201,17 @@
 			if (!calendarState.isWorkspace(workspaceId)) {
 				calendarState.clearWorkspace();
 			}
-			calendarState.setSchedules(schedules || [], workspaceId);
-		} catch (error) {
-			console.error("Error updating schedules store:", error);
-		}
-	});
-
-	$effect(() => {
-		try {
-			// Clear store if workspace changed to prevent stale data
 			if (!tasksState.isWorkspace(workspaceId)) {
 				tasksState.clearWorkspace();
 			}
-			tasksState.set(tasks || [], workspaceId);
-		} catch (error) {
-			console.error("Error updating tasks store:", error);
-		}
-	});
-
-	$effect(() => {
-		try {
-			// Clear store if workspace changed to prevent stale data
 			if (!expensesState.isWorkspace(workspaceId)) {
 				expensesState.clearWorkspace();
 			}
+			calendarState.setSchedules(schedules || [], workspaceId);
+			tasksState.set(tasks || [], workspaceId);
 			expensesState.set(expenses || [], workspaceId);
 		} catch (error) {
-			console.error("Error updating expenses store:", error);
+			console.error("Error updating schedules store:", error);
 		}
 	});
 

@@ -16,16 +16,19 @@
  * and auth must be processed before the guard (which checks auth status).
  */
 
-import { type Handle, redirect } from '@sveltejs/kit';
-import { error } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
-import { getDb } from '$lib/server/db';
-import { getAuth } from '$lib/server/auth';
-import { svelteKitHandler } from 'better-auth/svelte-kit';
-import { building, dev } from '$app/environment';
-import { createAppError, ErrorCodes } from '$lib/server/error-utils';
-import { RouteMatcher } from '$lib/server/route-matcher';
-import { ROUTES } from '$lib/constants/routes';
+import { type Handle, redirect } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
+import { sequence } from "@sveltejs/kit/hooks";
+import { getDb } from "$lib/server/db";
+import { getAuth } from "$lib/server/auth";
+import { svelteKitHandler } from "better-auth/svelte-kit";
+import { building, dev } from "$app/environment";
+import { createAppError, ErrorCodes } from "$lib/server/error-utils";
+import { RouteMatcher } from "$lib/server/route-matcher";
+import { ROUTES } from "$lib/constants/routes";
+import { createSecureLogger } from "$lib/server/logging";
+
+const logger = createSecureLogger("Hooks");
 
 /**
  * Database Hook
@@ -45,27 +48,31 @@ import { ROUTES } from '$lib/constants/routes';
  * - During runtime: Throws 500 error if database binding is not available
  */
 const database: Handle = async ({ event, resolve }) => {
-	if (!event.platform?.env?.vowsmarry) {
-		if (building) {
-			// During build, create mock instances to prevent undefined errors
-			// @ts-expect-error - Mock for build time only
-			event.plannerDb = null;
-			// @ts-expect-error - Mock for build time only
-			event.invitationDb = null;
-			return resolve(event);
-		}
-		console.error('Database binding not available');
-		throw error(
-			500,
-			createAppError(500, 'Database configuration error', ErrorCodes.DATABASE_ERROR),
-		);
-	}
+  if (!event.platform?.env?.vowsmarry) {
+    if (building) {
+      // During build, create mock instances to prevent undefined errors
+      // @ts-expect-error - Mock for build time only
+      event.plannerDb = null;
+      // @ts-expect-error - Mock for build time only
+      event.invitationDb = null;
+      return resolve(event);
+    }
+    logger.error("Database binding not available");
+    throw error(
+      500,
+      createAppError(
+        500,
+        "Database configuration error",
+        ErrorCodes.DATABASE_ERROR,
+      ),
+    );
+  }
 
-	const db = getDb(event.platform.env.vowsmarry);
-	event.plannerDb = db;
-	event.invitationDb = db;
+  const db = getDb(event.platform.env.vowsmarry);
+  event.plannerDb = db;
+  event.invitationDb = db;
 
-	return resolve(event);
+  return resolve(event);
 };
 
 /**
@@ -102,103 +109,163 @@ const database: Handle = async ({ event, resolve }) => {
  * In development mode, logs authentication events to help with debugging.
  */
 const betterAuth: Handle = async ({ event, resolve }) => {
-	// Get auth instance with D1 database from platform
-	if (!event.platform?.env?.vowsmarry) {
-		if (building) {
-			return resolve(event);
-		}
-		console.error('D1 database binding not available for auth');
-		throw error(
-			500,
-			createAppError(500, 'Authentication configuration error', ErrorCodes.DATABASE_ERROR),
-		);
-	}
+  // Get auth instance with D1 database from platform
+  if (!event.platform?.env?.vowsmarry) {
+    if (building) {
+      return resolve(event);
+    }
+    logger.error("D1 database binding not available for auth");
+    throw error(
+      500,
+      createAppError(
+        500,
+        "Authentication configuration error",
+        ErrorCodes.DATABASE_ERROR,
+      ),
+    );
+  }
 
-	const auth = getAuth(event.platform.env.vowsmarry);
-	
-	// Fetch current session from Better Auth and populate event.locals
-	try {
-		const session = await auth.api.getSession({
-			headers: event.request.headers,
-		});
+  const auth = getAuth(event.platform.env.vowsmarry);
 
-		if (session) {
-			event.locals.session = session.session;
-			event.locals.user = session.user;
-			
-			// Load active workspace if set in session
-			if (session.session.activeOrganizationId) {
-				event.locals.activeWorkspaceId = session.session.activeOrganizationId;
-				
-				// Load full workspace details for use in routes
-				try {
-					const workspace = await auth.api.getFullOrganization({
-						query: { organizationId: session.session.activeOrganizationId },
-						headers: event.request.headers,
-					});
-					
-					if (workspace) {
-						// Cast to our Organization type (Better Auth returns additional fields like members and invitations)
-						event.locals.activeWorkspace = {
-							id: workspace.id,
-							name: workspace.name,
-							slug: workspace.slug,
-							logo: workspace.logo ?? null,
-							metadata: workspace.metadata ?? null,
-							createdAt: workspace.createdAt,
-							// Wedding-specific fields
-							groomName: workspace.groomName ?? null,
-							brideName: workspace.brideName ?? null,
-							weddingDate: workspace.weddingDate ?? null,
-							weddingVenue: workspace.weddingVenue ?? null,
-							weddingBudget: workspace.weddingBudget ?? null,
-						};
-						
-						if (dev) {
-							console.log(`[Auth] Active workspace loaded: ${workspace.name} (${workspace.id})`);
-						}
-					} else {
-						event.locals.activeWorkspace = null;
-						if (dev) {
-							console.log('[Auth] Active workspace ID set but workspace not found');
-						}
-					}
-				} catch (workspaceError) {
-					// Workspace loading failed, but user is still authenticated
-					console.error('[Auth] Failed to load active workspace:', workspaceError);
-					event.locals.activeWorkspace = null;
-				}
-			} else {
-				// No active workspace set
-				event.locals.activeWorkspaceId = null;
-				event.locals.activeWorkspace = null;
-			}
-		} else {
-			// Not authenticated, clear workspace data
-			event.locals.activeWorkspaceId = null;
-			event.locals.activeWorkspace = null;
-		}
-	} catch (err) {
-		// Session fetch failed, user is not authenticated
-		if (dev) {
-			console.log('[Auth] Session fetch failed:', err);
-		}
-		// Ensure workspace data is cleared
-		event.locals.activeWorkspaceId = null;
-		event.locals.activeWorkspace = null;
-	}
+  // Fetch current session from Better Auth and populate event.locals
+  try {
+    const session = await auth.api.getSession({
+      headers: event.request.headers,
+    });
 
-	const response = await svelteKitHandler({ event, resolve, auth, building });
+    if (session) {
+      event.locals.session = session.session;
+      event.locals.user = session.user;
 
-	// Log auth events in development
-	if (dev && event.locals.user) {
-		const workspaceInfo = event.locals.activeWorkspace 
-			? ` with workspace "${event.locals.activeWorkspace.name}"`
-			: ' (no active workspace)';
-		console.log(`[Auth] User ${event.locals.user.email} authenticated${workspaceInfo}`);
-	}
+      // Load active workspace if set in session
+      if (session.session.activeOrganizationId) {
+        const activeOrgId = session.session.activeOrganizationId;
 
-	return response;
+        // Critical security check: Verify user is actually a member of the workspace
+        // This prevents unauthorized access if session data is tampered with
+        try {
+          const isMember = await event.plannerDb
+            ?.selectFrom("member")
+            .select("id")
+            .where("member.userId", "=", session.user.id)
+            .where("member.organizationId", "=", activeOrgId)
+            .executeTakeFirst();
+
+          if (!isMember) {
+            // User is not a member of this workspace, clear it from the session
+            logger.logSecurityEvent(
+              `User attempted unauthorized workspace access`,
+              "medium",
+              { workspaceId: activeOrgId },
+            );
+            event.locals.activeWorkspaceId = null;
+            event.locals.activeWorkspace = null;
+            // Clear the invalid activeOrganizationId from the session
+            if (event.plannerDb) {
+              await event.plannerDb
+                .updateTable("session")
+                .set({ activeOrganizationId: null })
+                .where("token", "=", session.session.token)
+                .execute()
+                .catch((err) => {
+                  logger.error(
+                    "Failed to clear invalid workspace from session:",
+                    err,
+                  );
+                });
+            }
+          } else {
+            event.locals.activeWorkspaceId = activeOrgId;
+
+            // Load full workspace details for use in routes
+            try {
+              const workspace = await auth.api.getFullOrganization({
+                query: { organizationId: activeOrgId },
+                headers: event.request.headers,
+              });
+
+              if (workspace) {
+                // Cast to our Organization type (Better Auth returns additional fields like members and invitations)
+                event.locals.activeWorkspace = {
+                  id: workspace.id,
+                  name: workspace.name,
+                  slug: workspace.slug,
+                  logo: workspace.logo ?? null,
+                  metadata: workspace.metadata ?? null,
+                  createdAt: workspace.createdAt,
+                  // Wedding-specific fields
+                  groomName: workspace.groomName ?? null,
+                  brideName: workspace.brideName ?? null,
+                  weddingDate: workspace.weddingDate ?? null,
+                  weddingVenue: workspace.weddingVenue ?? null,
+                  weddingBudget: workspace.weddingBudget ?? null,
+                };
+              } else {
+                event.locals.activeWorkspace = null;
+                await auth.api.setActiveOrganization({
+                  body: { organizationId: null },
+                  headers: event.request.headers,
+                });
+                if (dev) {
+                  logger.debug(
+                    "Active workspace loaded",
+                    logger.extractWorkspaceInfo(workspace),
+                  );
+                }
+              }
+            } catch (workspaceError) {
+              // Workspace loading failed, but user is still authenticated
+              logger.error("Failed to load active workspace:", workspaceError);
+              event.locals.activeWorkspace = null;
+              await auth.api.setActiveOrganization({
+                body: { organizationId: null },
+                headers: event.request.headers,
+              });
+            }
+          }
+        } catch (membershipError) {
+          logger.error(
+            "Failed to verify workspace membership:",
+            membershipError,
+          );
+          // On error, clear the workspace to be safe
+          event.locals.activeWorkspaceId = null;
+          event.locals.activeWorkspace = null;
+        }
+      } else {
+        // No active workspace set
+        event.locals.activeWorkspaceId = null;
+        event.locals.activeWorkspace = null;
+      }
+    } else {
+      // Not authenticated, clear workspace data
+      event.locals.activeWorkspaceId = null;
+      event.locals.activeWorkspace = null;
+    }
+  } catch (err) {
+    // Session fetch failed, user is not authenticated
+    if (dev) {
+      logger.debug("Session fetch failed:", err);
+    }
+    // Ensure workspace data is cleared
+    event.locals.activeWorkspaceId = null;
+    event.locals.activeWorkspace = null;
+  }
+
+  const response = await svelteKitHandler({ event, resolve, auth, building });
+
+  // Log auth events in development
+  if (dev && event.locals.user) {
+    const workspaceInfo = event.locals.activeWorkspace
+      ? logger.extractWorkspaceInfo(event.locals.activeWorkspace)
+      : {};
+    logger.debug("User authenticated", {
+      ...logger.extractUserInfo(event.locals.user),
+      ...workspaceInfo,
+    });
+  }
+
+  return response;
 };
 
 /**
@@ -253,40 +320,42 @@ const betterAuth: Handle = async ({ event, resolve }) => {
  * - Prevents browser from re-submitting forms on back button
  */
 const authGuard: Handle = async ({ event, resolve }) => {
-	const { pathname } = event.url;
+  const { pathname } = event.url;
 
-	// Allow public assets (CSS, JS, images, etc.)
-	if (RouteMatcher.isPublicAsset(pathname)) {
-		return resolve(event);
-	}
+  // Allow public assets (CSS, JS, images, etc.)
+  if (RouteMatcher.isPublicAsset(pathname)) {
+    return resolve(event);
+  }
 
-	const { session, user, activeWorkspaceId } = event.locals;
-	const isAuthenticated = !!(session && user);
-	const hasWorkspace = !!activeWorkspaceId;
+  const { session, user, activeWorkspaceId } = event.locals;
+  const isAuthenticated = !!(session && user);
+  const hasWorkspace = !!activeWorkspaceId;
 
-	// Redirect unauthenticated users trying to access protected routes
-	if (!isAuthenticated && RouteMatcher.isProtectedRoute(pathname)) {
-		redirect(303, ROUTES.PUBLIC.LOGIN);
-	}
+  // Redirect unauthenticated users trying to access protected routes
+  if (!isAuthenticated && RouteMatcher.isProtectedRoute(pathname)) {
+    redirect(303, ROUTES.PUBLIC.LOGIN);
+  }
 
-	// Redirect authenticated users away from auth pages
-	if (isAuthenticated && RouteMatcher.isAuthPage(pathname)) {
-		// If user has a workspace, send them to dashboard
-		// If no workspace, send them to onboarding
-		const destination = hasWorkspace ? ROUTES.PROTECTED.DASHBOARD : ROUTES.PROTECTED.ONBOARDING;
-		redirect(303, destination);
-	}
+  // Redirect authenticated users away from auth pages
+  if (isAuthenticated && RouteMatcher.isAuthPage(pathname)) {
+    // If user has a workspace, send them to dashboard
+    // If no workspace, send them to onboarding
+    const destination = hasWorkspace
+      ? ROUTES.PROTECTED.DASHBOARD
+      : ROUTES.PROTECTED.ONBOARDING;
+    redirect(303, destination);
+  }
 
-	// Check workspace requirement for dashboard routes
-	if (isAuthenticated && RouteMatcher.requiresWorkspace(pathname)) {
-		// User is authenticated but has no active workspace
-		// Redirect to onboarding to create/select a workspace
-		if (!hasWorkspace) {
-			redirect(303, ROUTES.PROTECTED.ONBOARDING);
-		}
-	}
+  // Check workspace requirement for dashboard routes
+  if (isAuthenticated && RouteMatcher.requiresWorkspace(pathname)) {
+    // User is authenticated but has no active workspace
+    // Redirect to onboarding to create/select a workspace
+    if (!hasWorkspace && pathname !== ROUTES.PROTECTED.ONBOARDING) {
+      redirect(303, ROUTES.PROTECTED.ONBOARDING);
+    }
+  }
 
-	return resolve(event);
+  return resolve(event);
 };
 
 /**

@@ -7,11 +7,50 @@ import { BETTER_AUTH_URL } from "$env/static/private";
 import { getAuth } from "$lib/server/auth";
 import { getUser } from "$lib/server/auth-helpers";
 import { sendEmail } from "$lib/server/email";
+import { constructInvitationURL } from "$lib/server/url-utils";
 import { parseUserName } from "$lib/utils/user-utils";
 import { weddingSchema } from "$lib/validation/planner";
 import { inviteSchema, workspaceSchema } from "$lib/validation/workspace";
+import {
+  RATE_LIMIT_CONFIGS,
+  createRateLimiter,
+  type RateLimiter,
+} from "$lib/server/rate-limiter";
+import {
+  AuditAction,
+  AuditResourceType,
+  AuditLogger,
+  createAuditLogger,
+  type AuditLogger as AuditLoggerType,
+} from "$lib/server/audit-logger";
 
 import type { Actions, PageServerLoad } from "./$types";
+
+// Rate limiter instance initialized once per server
+let rateLimiter: RateLimiter | null = null;
+
+// Audit logger instance initialized once per server
+let auditLogger: AuditLoggerType | null = null;
+
+/**
+ * Initialize rate limiter on first use
+ */
+function getRateLimiter(db: any): RateLimiter {
+  if (!rateLimiter) {
+    rateLimiter = createRateLimiter(db);
+  }
+  return rateLimiter;
+}
+
+/**
+ * Initialize audit logger on first use
+ */
+function getAuditLogger(db: any): AuditLoggerType {
+  if (!auditLogger) {
+    auditLogger = createAuditLogger(db);
+  }
+  return auditLogger;
+}
 
 export const load: PageServerLoad = async ({ locals, depends }) => {
   depends("dashboard:data");
@@ -59,6 +98,10 @@ function generateSlug(
     .replace(/[^a-z0-9-]/g, "-") // Replace non-alphanumeric with hyphens
     .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
     .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+
+  if (!slug) {
+    throw new Error("Generated slug is empty. Please provide valid names");
+  }
 
   return slug;
 }
@@ -187,7 +230,7 @@ export const actions: Actions = {
   /**
    * Invite partner to the wedding workspace with admin role
    */
-  invitePartner: async ({ request, platform, locals }) => {
+  invitePartner: async ({ request, platform, locals, plannerDb }) => {
     const { user } = locals;
 
     if (!user) {
@@ -209,20 +252,46 @@ export const actions: Actions = {
       });
     }
 
+    if (!plannerDb) {
+      return fail(500, {
+        form,
+        message: "Database not available",
+      });
+    }
+
+    // Get the active organization ID from locals
+    const activeWorkspaceId = locals.activeWorkspaceId;
+
+    if (!activeWorkspaceId) {
+      return fail(400, {
+        form,
+        message:
+          "No active workspace found. Please complete the workspace setup first.",
+      });
+    }
+
+    // Check rate limit for inviting members
+    const limiter = getRateLimiter(plannerDb);
+    const rateLimitResult = await limiter.checkLimit(
+      user.id,
+      activeWorkspaceId,
+      RATE_LIMIT_CONFIGS.INVITE_EMAIL,
+    );
+
+    if (!rateLimitResult.allowed) {
+      const retryAfterSeconds = Math.ceil(
+        (rateLimitResult.retryAfterMs || 0) / 1000,
+      );
+      return fail(429, {
+        form,
+        message: `Too many invitations sent. Please try again in ${retryAfterSeconds} seconds.`,
+        retryAfter: retryAfterSeconds,
+      });
+    }
+
     const auth = getAuth(platform.env.vowsmarry);
 
     try {
-      // Get the active organization ID from locals
-      const activeWorkspaceId = locals.activeWorkspaceId;
-
-      if (!activeWorkspaceId) {
-        return fail(400, {
-          form,
-          message:
-            "No active workspace found. Please complete the workspace setup first.",
-        });
-      }
-
       // Get organization details for email
       const organization = await auth.api.getFullOrganization({
         headers: request.headers,
@@ -250,7 +319,10 @@ export const actions: Actions = {
 
       // Send invitation email using unified email service
       try {
-        const invitationUrl = `${BETTER_AUTH_URL}/accept-invitation/${invitation.id}`;
+        const invitationUrl = constructInvitationURL(
+          BETTER_AUTH_URL,
+          invitation.id,
+        );
         await sendEmail({
           type: "invitation",
           to: form.data.partnerEmail,
@@ -264,9 +336,52 @@ export const actions: Actions = {
         // Don't fail the whole operation if email fails
       }
 
+      // Log successful invitation
+      if (plannerDb && activeWorkspaceId) {
+        const auditLog = getAuditLogger(plannerDb);
+        auditLog.logAsync({
+          organizationId: activeWorkspaceId,
+          userId: user.id,
+          actionType: AuditAction.MEMBER_INVITED,
+          resourceType: AuditResourceType.INVITATION,
+          resourceId: invitation.id,
+          description: `Partner invited during onboarding: ${form.data.partnerEmail}`,
+          changes: {
+            invitedEmail: form.data.partnerEmail,
+            invitationId: invitation.id,
+            role: "admin",
+            timestamp: new Date().toISOString(),
+          },
+          ipAddress: AuditLogger.extractIpAddress(request.headers) ?? undefined,
+          userAgent: AuditLogger.extractUserAgent(request.headers) ?? undefined,
+          status: "success",
+        });
+      }
+
       return { form, success: true };
     } catch (error) {
       console.error("Error inviting partner:", error);
+
+      // Log failed invitation attempt
+      if (plannerDb && activeWorkspaceId) {
+        const auditLog = getAuditLogger(plannerDb);
+        auditLog.logAsync({
+          organizationId: activeWorkspaceId,
+          userId: user.id,
+          actionType: AuditAction.MEMBER_INVITED,
+          resourceType: AuditResourceType.INVITATION,
+          description: `Failed to invite partner during onboarding: ${form.data.partnerEmail}`,
+          changes: {
+            attemptedEmail: form.data.partnerEmail,
+            timestamp: new Date().toISOString(),
+          },
+          ipAddress: AuditLogger.extractIpAddress(request.headers) ?? undefined,
+          userAgent: AuditLogger.extractUserAgent(request.headers) ?? undefined,
+          status: "failure",
+          errorMessage: error instanceof Error ? error.message : String(error),
+        });
+      }
+
       return fail(500, {
         form,
         message: "Failed to send invitation. Please try again.",
