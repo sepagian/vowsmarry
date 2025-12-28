@@ -31,6 +31,7 @@ export type EmailParams =
   | {
       type: "verification";
       to: string;
+      baseUrl: string;
       user: User;
       verificationUrl: string;
       token: string;
@@ -38,6 +39,7 @@ export type EmailParams =
   | {
       type: "password-reset";
       to: string;
+      baseUrl: string;
       user: User;
       resetUrl: string;
       token: string;
@@ -45,6 +47,7 @@ export type EmailParams =
   | {
       type: "email-update";
       to: string;
+      baseUrl: string;
       user: User;
       newEmail: string;
       confirmUrl: string;
@@ -53,6 +56,7 @@ export type EmailParams =
   | {
       type: "invitation";
       to: string;
+      baseUrl: string;
       inviterName: string;
       organizationName: string;
       invitationUrl: string;

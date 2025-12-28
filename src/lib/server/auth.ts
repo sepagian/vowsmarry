@@ -114,6 +114,7 @@ export function getAuth(d1: D1Database) {
           await sendEmail({
             type: "password-reset",
             to: user.email,
+            baseUrl: BETTER_AUTH_URL,
             user: {
               name: user.name || undefined,
               email: user.email,
@@ -141,6 +142,7 @@ export function getAuth(d1: D1Database) {
           await sendEmail({
             type: "verification",
             to: user.email,
+            baseUrl: BETTER_AUTH_URL,
             user: {
               name: user.name || undefined,
               email: user.email,

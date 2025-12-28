@@ -15,15 +15,30 @@ function escapeHtml(text: string): string {
 
 /**
  * Validate and escape URL to prevent javascript: and data: protocol attacks
- * Only allows http://, https://, and mailto: protocols
+ * and open redirect vulnerabilities. Only allows http://, https://, and mailto: protocols.
+ * For http/https URLs, validates against a trusted origin to prevent open redirects.
  */
-function sanitizeUrl(url: string): string {
+function sanitizeUrl(url: string, trustedOrigin?: string): string {
   try {
     const parsed = new URL(url);
     // Only allow http and https protocols
     if (!["http:", "https:"].includes(parsed.protocol)) {
       return "about:blank";
     }
+
+    // Validate against open redirects by checking against trusted origin
+    if (trustedOrigin) {
+      try {
+        const trusted = new URL(trustedOrigin);
+        if (parsed.origin !== trusted.origin) {
+          return "about:blank";
+        }
+      } catch {
+        // If trustedOrigin is invalid, reject the URL
+        return "about:blank";
+      }
+    }
+
     return url;
   } catch {
     // If URL parsing fails, check for mailto: prefix
@@ -55,7 +70,7 @@ export function generateInvitationEmail({
   baseUrl,
 }: InvitationEmailParams): { subject: string; html: string; text: string } {
   const acceptUrl = `${baseUrl}/accept-invitation/${invitationId}`;
-  const sanitizedUrl = sanitizeUrl(acceptUrl);
+  const sanitizedUrl = sanitizeUrl(acceptUrl, baseUrl);
   const escapedInviterName = escapeHtml(inviterName);
   const escapedOrgName = escapeHtml(organizationName);
   const escapedEmail = escapeHtml(inviteeEmail);

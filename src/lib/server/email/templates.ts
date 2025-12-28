@@ -17,15 +17,30 @@ function escapeHtml(text: string): string {
 
 /**
  * Validate and escape URL to prevent javascript: and data: protocol attacks
- * Only allows http://, https://, and mailto: protocols
+ * and open redirect vulnerabilities. Only allows http://, https://, and mailto: protocols.
+ * For http/https URLs, validates against a trusted origin to prevent open redirects.
  */
-function sanitizeUrl(url: string): string {
+function sanitizeUrl(url: string, trustedOrigin?: string): string {
   try {
     const parsed = new URL(url);
     // Only allow http and https protocols
     if (!["http:", "https:"].includes(parsed.protocol)) {
       return "about:blank";
     }
+
+    // Validate against open redirects by checking against trusted origin
+    if (trustedOrigin) {
+      try {
+        const trusted = new URL(trustedOrigin);
+        if (parsed.origin !== trusted.origin) {
+          return "about:blank";
+        }
+      } catch {
+        // If trustedOrigin is invalid, reject the URL
+        return "about:blank";
+      }
+    }
+
     return url;
   } catch {
     // If URL parsing fails, check for mailto: prefix
@@ -44,6 +59,7 @@ type BaseTemplateData = {
   brandName: string;
   year: number;
   supportEmail: string;
+  baseUrl: string;
 };
 
 /**
@@ -90,7 +106,7 @@ function renderVerificationTemplate(
   },
 ): { subject: string; html: string; text: string } {
   const subject = "Verify your email address";
-  const sanitizedUrl = sanitizeUrl(data.verificationUrl);
+  const sanitizedUrl = sanitizeUrl(data.verificationUrl, data.baseUrl);
 
   const html = `
 <!DOCTYPE html>
@@ -174,7 +190,7 @@ function renderPasswordResetTemplate(
   },
 ): { subject: string; html: string; text: string } {
   const subject = "Reset your password";
-  const sanitizedUrl = sanitizeUrl(data.resetUrl);
+  const sanitizedUrl = sanitizeUrl(data.resetUrl, data.baseUrl);
 
   const html = `
 <!DOCTYPE html>
@@ -259,7 +275,7 @@ function renderEmailUpdateTemplate(
   },
 ): { subject: string; html: string; text: string } {
   const subject = "Confirm your new email address";
-  const sanitizedUrl = sanitizeUrl(data.confirmUrl);
+  const sanitizedUrl = sanitizeUrl(data.confirmUrl, data.baseUrl);
   const escapedNewEmail = escapeHtml(data.newEmail);
 
   const html = `
@@ -346,7 +362,7 @@ function renderInvitationTemplate(
 ): { subject: string; html: string; text: string } {
   const escapedInviterName = escapeHtml(data.inviterName);
   const escapedOrgName = escapeHtml(data.organizationName);
-  const sanitizedUrl = sanitizeUrl(data.invitationUrl);
+  const sanitizedUrl = sanitizeUrl(data.invitationUrl, data.baseUrl);
   const subject = `${escapedInviterName} invited you to ${escapedOrgName}`;
 
   const html = `
