@@ -10,6 +10,7 @@ import { getRequestEvent } from "$app/server";
 import { BETTER_AUTH_SECRET, BETTER_AUTH_URL } from "$env/static/private";
 
 import { sendEmail } from "$lib/server/email";
+import { validateBaseURL } from "$lib/server/url-utils";
 
 import { SESSION_CONFIG, VALIDATION_CONFIG } from "$lib/constants/config";
 
@@ -38,13 +39,8 @@ if (!BETTER_AUTH_URL) {
   throw new Error("BETTER_AUTH_URL environment variable is required");
 }
 
-try {
-  new URL(BETTER_AUTH_URL);
-} catch {
-  throw new Error(
-    `BETTER_AUTH_URL must be a valid URL, got: ${BETTER_AUTH_URL}`,
-  );
-}
+// Validate BETTER_AUTH_URL with hostname verification
+validateBaseURL(BETTER_AUTH_URL);
 
 if (BETTER_AUTH_SECRET.length < 32) {
   throw new Error(
@@ -114,16 +110,21 @@ export function getAuth(d1: D1Database) {
         url: string;
         token: string;
       }) => {
-        await sendEmail({
-          type: "password-reset",
-          to: user.email,
-          user: {
-            name: user.name || undefined,
-            email: user.email,
-          },
-          resetUrl: url,
-          token,
-        });
+        try {
+          await sendEmail({
+            type: "password-reset",
+            to: user.email,
+            baseUrl: BETTER_AUTH_URL,
+            user: {
+              name: user.name || undefined,
+              email: user.email,
+            },
+            resetUrl: url,
+            token,
+          });
+        } catch (error) {
+          console.error("Failed to send password reset email:", error);
+        }
       },
     },
 
@@ -137,16 +138,21 @@ export function getAuth(d1: D1Database) {
         url: string;
         token: string;
       }) => {
-        await sendEmail({
-          type: "verification",
-          to: user.email,
-          user: {
-            name: user.name || undefined,
-            email: user.email,
-          },
-          verificationUrl: url,
-          token,
-        });
+        try {
+          await sendEmail({
+            type: "verification",
+            to: user.email,
+            baseUrl: BETTER_AUTH_URL,
+            user: {
+              name: user.name || undefined,
+              email: user.email,
+            },
+            verificationUrl: url,
+            token,
+          });
+        } catch (error) {
+          console.error("Failed to send verification email:", error);
+        }
       },
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
