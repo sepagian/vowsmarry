@@ -1,25 +1,28 @@
-import { createAuthClient } from 'better-auth/svelte';
-import { organizationClient, inferOrgAdditionalFields } from 'better-auth/client/plugins';
-import { dev } from '$app/environment';
-import { env } from '$env/dynamic/public';
-import type { Auth } from '$lib/server/auth';
+import { createAuthClient } from "better-auth/svelte";
+import {
+  organizationClient,
+  inferOrgAdditionalFields,
+} from "better-auth/client/plugins";
+import { dev } from "$app/environment";
+import { env } from "$env/dynamic/public";
+import type { Auth } from "$lib/server/auth";
 
 /**
  * Get the base URL for Better Auth client
  */
 function getBaseURL(): string {
-	// Use public env var (prefixed with PUBLIC_)
-	if (env.PUBLIC_BETTER_AUTH_URL) {
-		return env.PUBLIC_BETTER_AUTH_URL;
-	}
+  // Use public env var (prefixed with PUBLIC_)
+  if (env.PUBLIC_BETTER_AUTH_URL) {
+    return env.PUBLIC_BETTER_AUTH_URL;
+  }
 
-	// Development default
-	if (dev) {
-		return 'http://localhost:5173';
-	}
+  // Development default
+  if (dev) {
+    return "http://localhost:5173";
+  }
 
-	// Production: empty string tells Better Auth to use current origin
-	return '';
+  // Production: empty string tells Better Auth to use current origin
+  return "";
 }
 
 /**
@@ -38,12 +41,12 @@ function getBaseURL(): string {
  *
  */
 export const authClient = createAuthClient({
-	baseURL: getBaseURL(),
-	plugins: [
-		organizationClient({
-			schema: inferOrgAdditionalFields<Auth>(),
-		}),
-	],
+  baseURL: getBaseURL(),
+  plugins: [
+    organizationClient({
+      schema: inferOrgAdditionalFields<Auth>(),
+    }),
+  ],
 });
 
 /**
