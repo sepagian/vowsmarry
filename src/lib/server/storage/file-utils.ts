@@ -4,12 +4,12 @@
  * Integrates with Kysely for D1 metadata storage
  */
 
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from './r2-client';
-import { FileStorageError } from './file-errors';
-import { sanitizeFileName } from './file-validation';
-import type { Kysely } from 'kysely';
-import type { Database } from '$lib/server/db/schema/types';
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from "./r2-client";
+import { FileStorageError } from "./file-errors";
+import { sanitizeFileName } from "./file-validation";
+import type { Kysely } from "kysely";
+import type { Database } from "$lib/server/db/schema/types";
 
 // ============================================================================
 // Core Types
@@ -42,11 +42,15 @@ export interface DocumentUploadOptions extends UploadOptions {
 	/** Document name */
 	documentName: string;
 	/** Document category */
-	documentCategory: 'legal_formal' | 'vendor_finance' | 'guest_ceremony' | 'personal_keepsake';
+	documentCategory:
+		| "legal_formal"
+		| "vendor_finance"
+		| "guest_ceremony"
+		| "personal_keepsake";
 	/** Document date (ISO date string) */
 	documentDate: string;
 	/** Document status */
-	documentStatus?: 'pending' | 'approved' | 'rejected';
+	documentStatus?: "pending" | "approved" | "rejected";
 	/** Document due date (ISO date string) */
 	documentDueDate?: string;
 }
@@ -57,7 +61,7 @@ export interface GalleryUploadOptions extends UploadOptions {
 	/** Invitation ID for the gallery item */
 	invitationId: string;
 	/** Gallery type */
-	type: 'photo' | 'video';
+	type: "photo" | "video";
 	/** User ID who uploaded the file */
 	uploadedBy: string;
 	/** Sort order */
@@ -77,7 +81,7 @@ export interface GalleryUploadOptions extends UploadOptions {
 /**
  * Generates a unique file key for R2 storage
  * Format: {pathPrefix}/{scopeId}/{timestamp}-{sanitizedFileName}
- * 
+ *
  * @example
  * generateFileKey('documents', 'wedding-123', 'My Document.pdf')
  * // Returns: 'documents/wedding-123/1234567890-my-document.pdf'
@@ -94,12 +98,12 @@ export function generateFileKey(
 
 /**
  * Uploads a file to R2 storage
- * 
+ *
  * @param file - The file to upload
  * @param options - Upload configuration
  * @returns Upload result with file URL and metadata
  * @throws FileStorageError if upload fails
- * 
+ *
  * @example
  * const result = await uploadFile(file, {
  *   pathPrefix: 'documents',
@@ -111,7 +115,12 @@ export async function uploadFile(
 	file: File,
 	options: UploadOptions
 ): Promise<UploadResult> {
-	const { pathPrefix, scopeId, metadata, cacheControl = 'public, max-age=31536000' } = options;
+	const {
+		pathPrefix,
+		scopeId,
+		metadata,
+		cacheControl = "public, max-age=31536000",
+	} = options;
 
 	try {
 		// Generate unique file key
@@ -146,7 +155,7 @@ export async function uploadFile(
 			key: fileKey,
 		};
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to upload file "${file.name}": ${message}`,
 			error instanceof Error ? error : undefined
@@ -156,7 +165,7 @@ export async function uploadFile(
 
 /**
  * Uploads multiple files in sequence
- * 
+ *
  * @param files - Array of files to upload
  * @param options - Upload configuration (same for all files)
  * @returns Array of upload results
@@ -166,14 +175,8 @@ export async function uploadFiles(
 	files: File[],
 	options: UploadOptions
 ): Promise<UploadResult[]> {
-	const results: UploadResult[] = [];
-
-	for (const file of files) {
-		const result = await uploadFile(file, options);
-		results.push(result);
-	}
-
-	return results;
+	const uploadPromises = files.map((file) => uploadFile(file, options));
+	return Promise.all(uploadPromises);
 }
 
 // ============================================================================
@@ -187,9 +190,9 @@ export async function uploadFiles(
 export function extractFileKeyFromUrl(fileUrl: string): string {
 	// Try to use configured R2_PUBLIC_URL first
 	if (R2_PUBLIC_URL && fileUrl.startsWith(R2_PUBLIC_URL)) {
-		return fileUrl.replace(`${R2_PUBLIC_URL}/`, '');
+		return fileUrl.replace(`${R2_PUBLIC_URL}/`, "");
 	}
-	
+
 	// Fallback: extract everything after the domain
 	// Handles URLs like: https://pub-example.r2.dev/path/to/file.pdf
 	try {
@@ -204,7 +207,7 @@ export function extractFileKeyFromUrl(fileUrl: string): string {
 
 /**
  * Deletes a file from R2 storage by its key
- * 
+ *
  * @param key - The R2 storage key
  * @throws FileStorageError if deletion fails
  */
@@ -217,7 +220,7 @@ export async function deleteFileByKey(key: string): Promise<void> {
 			})
 		);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to delete file with key "${key}": ${message}`,
 			error instanceof Error ? error : undefined
@@ -227,7 +230,7 @@ export async function deleteFileByKey(key: string): Promise<void> {
 
 /**
  * Deletes a document file and its metadata from D1
- * 
+ *
  * @param documentId - The document ID in the database
  * @param db - Kysely database instance
  * @throws FileStorageError if deletion fails
@@ -239,9 +242,9 @@ export async function deleteDocumentFile(
 	try {
 		// Get document metadata from D1
 		const document = await db
-			.selectFrom('documents')
-			.select(['fileUrl'])
-			.where('id', '=', documentId)
+			.selectFrom("documents")
+			.select(["fileUrl"])
+			.where("id", "=", documentId)
 			.executeTakeFirst();
 
 		if (!document) {
@@ -255,9 +258,9 @@ export async function deleteDocumentFile(
 		await deleteFileByKey(fileKey);
 
 		// Delete metadata from D1
-		await db.deleteFrom('documents').where('id', '=', documentId).execute();
+		await db.deleteFrom("documents").where("id", "=", documentId).execute();
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to delete document: ${message}`,
 			error instanceof Error ? error : undefined
@@ -267,7 +270,7 @@ export async function deleteDocumentFile(
 
 /**
  * Deletes a gallery file and its metadata from D1
- * 
+ *
  * @param galleryId - The gallery item ID in the database
  * @param db - Kysely database instance
  * @throws FileStorageError if deletion fails
@@ -279,13 +282,15 @@ export async function deleteGalleryFile(
 	try {
 		// Get gallery metadata from D1
 		const galleryItem = await db
-			.selectFrom('gallery')
-			.select(['url'])
-			.where('id', '=', galleryId)
+			.selectFrom("gallery")
+			.select(["url"])
+			.where("id", "=", galleryId)
 			.executeTakeFirst();
 
 		if (!galleryItem) {
-			throw new FileStorageError(`Gallery item with ID "${galleryId}" not found`);
+			throw new FileStorageError(
+				`Gallery item with ID "${galleryId}" not found`
+			);
 		}
 
 		// Extract file key from URL
@@ -295,9 +300,9 @@ export async function deleteGalleryFile(
 		await deleteFileByKey(fileKey);
 
 		// Delete metadata from D1
-		await db.deleteFrom('gallery').where('id', '=', galleryId).execute();
+		await db.deleteFrom("gallery").where("id", "=", galleryId).execute();
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to delete gallery item: ${message}`,
 			error instanceof Error ? error : undefined
@@ -307,7 +312,7 @@ export async function deleteGalleryFile(
 
 /**
  * Deletes a file from R2 storage by its public URL
- * 
+ *
  * @param fileUrl - The public URL of the file
  * @throws FileStorageError if deletion fails
  */
@@ -318,11 +323,11 @@ export async function deleteFileByUrl(fileUrl: string): Promise<void> {
 
 /**
  * Deletes multiple files by their keys
- * 
+ *
  * @param keys - Array of R2 storage keys
  */
 export async function deleteFiles(keys: string[]): Promise<void> {
-	await Promise.all(keys.map(key => deleteFileByKey(key)));
+	await Promise.all(keys.map((key) => deleteFileByKey(key)));
 }
 
 // ============================================================================
@@ -331,63 +336,75 @@ export async function deleteFiles(keys: string[]): Promise<void> {
 
 /**
  * Gets document metadata from D1
- * 
+ *
  * @param documentId - The document ID
  * @param db - Kysely database instance
  * @returns Document metadata or null if not found
  */
-export async function getDocumentMetadata(documentId: string, db: Kysely<Database>) {
+export async function getDocumentMetadata(
+	documentId: string,
+	db: Kysely<Database>
+) {
 	return await db
-		.selectFrom('documents')
+		.selectFrom("documents")
 		.selectAll()
-		.where('id', '=', documentId)
+		.where("id", "=", documentId)
 		.executeTakeFirst();
 }
 
 /**
  * Gets all documents for an organization from D1
- * 
+ *
  * @param organizationId - The organization ID
  * @param db - Kysely database instance
  * @returns Array of document metadata
  */
-export async function getOrganizationDocuments(organizationId: string, db: Kysely<Database>) {
+export async function getOrganizationDocuments(
+	organizationId: string,
+	db: Kysely<Database>
+) {
 	return await db
-		.selectFrom('documents')
+		.selectFrom("documents")
 		.selectAll()
-		.where('organizationId', '=', organizationId)
-		.orderBy('createdAt', 'desc')
+		.where("organizationId", "=", organizationId)
+		.orderBy("createdAt", "desc")
 		.execute();
 }
 
 /**
  * Gets gallery item metadata from D1
- * 
+ *
  * @param galleryId - The gallery item ID
  * @param db - Kysely database instance
  * @returns Gallery item metadata or null if not found
  */
-export async function getGalleryMetadata(galleryId: string, db: Kysely<Database>) {
+export async function getGalleryMetadata(
+	galleryId: string,
+	db: Kysely<Database>
+) {
 	return await db
-		.selectFrom('gallery')
+		.selectFrom("gallery")
 		.selectAll()
-		.where('id', '=', galleryId)
+		.where("id", "=", galleryId)
 		.executeTakeFirst();
 }
 
 /**
  * Gets all gallery items for an invitation from D1
- * 
+ *
  * @param invitationId - The invitation ID
  * @param db - Kysely database instance
  * @returns Array of gallery item metadata
  */
-export async function getInvitationGallery(invitationId: string, db: Kysely<Database>) {
+export async function getInvitationGallery(
+	invitationId: string,
+	db: Kysely<Database>
+) {
 	return await db
-		.selectFrom('gallery')
+		.selectFrom("gallery")
 		.selectAll()
-		.where('invitationId', '=', invitationId)
-		.orderBy('sortOrder', 'asc')
+		.where("invitationId", "=", invitationId)
+		.orderBy("sortOrder", "asc")
 		.execute();
 }
 
@@ -398,7 +415,7 @@ export async function getInvitationGallery(invitationId: string, db: Kysely<Data
 /**
  * Uploads a document file for an organization and stores metadata in D1
  * Path: documents/{organizationId}/{timestamp}-{fileName}
- * 
+ *
  * @param file - The file to upload
  * @param options - Document upload options including database instance
  * @returns Upload result with file URL and metadata
@@ -414,13 +431,13 @@ export async function uploadDocumentFile(
 		documentName,
 		documentCategory,
 		documentDate,
-		documentStatus = 'pending',
+		documentStatus = "pending",
 		documentDueDate,
 	} = options;
 
 	// Upload file to R2
 	const uploadResult = await uploadFile(file, {
-		pathPrefix: 'documents',
+		pathPrefix: "documents",
 		scopeId: organizationId,
 		metadata: options.metadata,
 		cacheControl: options.cacheControl,
@@ -429,7 +446,7 @@ export async function uploadDocumentFile(
 	try {
 		// Store metadata in D1 using Kysely
 		await db
-			.insertInto('documents')
+			.insertInto("documents")
 			.values({
 				id: crypto.randomUUID(),
 				organizationId,
@@ -454,10 +471,13 @@ export async function uploadDocumentFile(
 		try {
 			await deleteFileByKey(uploadResult.key);
 		} catch (cleanupError) {
-			console.error('Failed to clean up file after database error:', cleanupError);
+			console.error(
+				"Failed to clean up file after database error:",
+				cleanupError
+			);
 		}
 
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to store document metadata: ${message}`,
 			error instanceof Error ? error : undefined
@@ -468,7 +488,7 @@ export async function uploadDocumentFile(
 /**
  * Uploads a gallery image for an invitation and stores metadata in D1
  * Path: gallery/{invitationId}/{timestamp}-{fileName}
- * 
+ *
  * @param file - The file to upload
  * @param options - Gallery upload options including database instance
  * @returns Upload result with file URL and metadata
@@ -491,7 +511,7 @@ export async function uploadGalleryImage(
 
 	// Upload file to R2
 	const uploadResult = await uploadFile(file, {
-		pathPrefix: 'gallery',
+		pathPrefix: "gallery",
 		scopeId: invitationId,
 		metadata: options.metadata,
 		cacheControl: options.cacheControl,
@@ -500,7 +520,7 @@ export async function uploadGalleryImage(
 	try {
 		// Store metadata in D1 using Kysely
 		await db
-			.insertInto('gallery')
+			.insertInto("gallery")
 			.values({
 				id: crypto.randomUUID(),
 				invitationId,
@@ -525,10 +545,13 @@ export async function uploadGalleryImage(
 		try {
 			await deleteFileByKey(uploadResult.key);
 		} catch (cleanupError) {
-			console.error('Failed to clean up file after database error:', cleanupError);
+			console.error(
+				"Failed to clean up file after database error:",
+				cleanupError
+			);
 		}
 
-		const message = error instanceof Error ? error.message : 'Unknown error';
+		const message = error instanceof Error ? error.message : "Unknown error";
 		throw new FileStorageError(
 			`Failed to store gallery metadata: ${message}`,
 			error instanceof Error ? error : undefined
@@ -546,7 +569,7 @@ export async function uploadAvatarImage(
 	file: File
 ): Promise<UploadResult> {
 	return uploadFile(file, {
-		pathPrefix: 'avatars',
+		pathPrefix: "avatars",
 		scopeId: userId,
 	});
 }
@@ -561,7 +584,7 @@ export async function uploadVendorAttachment(
 	file: File
 ): Promise<UploadResult> {
 	return uploadFile(file, {
-		pathPrefix: 'vendors',
+		pathPrefix: "vendors",
 		scopeId: organizationId,
 	});
 }
@@ -576,7 +599,7 @@ export async function uploadDresscodeImage(
 	file: File
 ): Promise<UploadResult> {
 	return uploadFile(file, {
-		pathPrefix: 'dresscodes',
+		pathPrefix: "dresscodes",
 		scopeId: organizationId,
 	});
 }
@@ -586,13 +609,13 @@ export async function uploadDresscodeImage(
  * Uploads the new file first, then deletes the old file
  * If the new file upload fails, the old file is retained (no changes made)
  * If the new file uploads successfully but old file deletion fails, the new file is still used
- * 
+ *
  * @param oldFileUrl - URL of the file to replace
  * @param file - New file to upload
  * @param options - Upload configuration
  * @returns Upload result for the new file
  * @throws FileStorageError if new file upload fails (old file remains unchanged)
- * 
+ *
  * @example
  * try {
  *   const result = await replaceFile(oldUrl, newFile, {
@@ -619,7 +642,7 @@ export async function replaceFile(
 		// Log error but don't fail the operation
 		// New file is already uploaded and will be used
 		// Old file remains in storage (orphaned but acceptable to prevent data loss)
-		console.error('Failed to delete old file during replacement:', error);
+		console.error("Failed to delete old file during replacement:", error);
 	}
 
 	return newFileResult;
