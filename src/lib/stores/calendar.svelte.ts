@@ -1,12 +1,12 @@
-import type { Schedule } from '$lib/types';
+import type { Schedule } from "$lib/types";
 import {
 	transformSchedules,
 	transformTasks,
 	transformExpenses,
 	type UnifiedCalendarEvent,
-} from '$lib/utils/calendar-transform';
-import { tasksState } from './tasks.svelte';
-import { expensesState } from './expenses.svelte';
+} from "$lib/utils/calendar-transform";
+import { tasksState } from "./tasks.svelte";
+import { expensesState } from "./expenses.svelte";
 
 /**
  * Event filter configuration
@@ -34,11 +34,14 @@ export interface CalendarStats {
 
 /**
  * Svelte 5 runes-based calendar state management
- * 
+ *
  * Provides unified calendar view combining schedules, tasks, and expenses
  * with filtering and statistics.
  */
 class CalendarState {
+	// Cache for transformed calendar events
+	calendarEventCache = $state(new Map<string, UnifiedCalendarEvent[]>());
+
 	schedules = $state<Schedule[]>([]);
 	filters = $state<EventFilters>({
 		showSchedules: true,
@@ -46,18 +49,31 @@ class CalendarState {
 		showExpenses: true,
 		showOverdueOnly: false,
 	});
-	
+
 	/**
 	 * Current workspace ID that this store's data belongs to
 	 * Used to ensure data consistency when workspace changes
 	 */
 	private currentWorkspaceId = $state<string | null>(null);
-	
+
 	/**
 	 * Get unified calendar events with applied filters
 	 */
 	get unifiedEvents(): UnifiedCalendarEvent[] {
 		try {
+			// Create cache key based on data and filters
+			const cacheKey = JSON.stringify({
+				schedules: this.schedules.length,
+				tasks: tasksState.tasks.length,
+				expenses: expensesState.expenses.length,
+				filters: this.filters,
+			});
+
+			// Check cache first
+			if (this.calendarEventCache.has(cacheKey)) {
+				return this.calendarEventCache.get(cacheKey)!;
+			}
+
 			const events: UnifiedCalendarEvent[] = [];
 
 			// Transform and add schedules if filter is enabled
@@ -66,7 +82,7 @@ class CalendarState {
 					const scheduleEvents = transformSchedules(this.schedules);
 					events.push(...scheduleEvents);
 				} catch (error) {
-					console.error('Error transforming schedules:', error);
+					console.error("Error transforming schedules:", error);
 				}
 			}
 
@@ -76,7 +92,7 @@ class CalendarState {
 					const taskEvents = transformTasks(tasksState.tasks);
 					events.push(...taskEvents);
 				} catch (error) {
-					console.error('Error transforming tasks:', error);
+					console.error("Error transforming tasks:", error);
 				}
 			}
 
@@ -86,22 +102,34 @@ class CalendarState {
 					const expenseEvents = transformExpenses(expensesState.expenses);
 					events.push(...expenseEvents);
 				} catch (error) {
-					console.error('Error transforming expenses:', error);
+					console.error("Error transforming expenses:", error);
 				}
 			}
 
+			let filteredEvents = events;
+
 			// Apply overdue-only filter if enabled
 			if (this.filters.showOverdueOnly) {
-				return events.filter((event) => event.isOverdue === true);
+				filteredEvents = events.filter((event) => event.isOverdue === true);
 			}
 
-			return events;
+			// Cache the result
+			this.calendarEventCache.set(cacheKey, filteredEvents);
+
+			return filteredEvents;
 		} catch (error) {
-			console.error('Critical error in unifiedEvents:', error);
+			console.error("Critical error in unifiedEvents:", error);
 			return [];
 		}
 	}
-	
+
+	/**
+	 * Clear the calendar event cache
+	 */
+	clearCache() {
+		this.calendarEventCache.clear();
+	}
+
 	/**
 	 * Get calendar statistics
 	 */
@@ -115,19 +143,19 @@ class CalendarState {
 			try {
 				scheduleEvents = transformSchedules(this.schedules);
 			} catch (error) {
-				console.error('Error transforming schedules for stats:', error);
+				console.error("Error transforming schedules for stats:", error);
 			}
 
 			try {
 				taskEvents = transformTasks(tasksState.tasks);
 			} catch (error) {
-				console.error('Error transforming tasks for stats:', error);
+				console.error("Error transforming tasks for stats:", error);
 			}
 
 			try {
 				expenseEvents = transformExpenses(expensesState.expenses);
 			} catch (error) {
-				console.error('Error transforming expenses for stats:', error);
+				console.error("Error transforming expenses for stats:", error);
 			}
 
 			// Calculate schedule stats
@@ -135,7 +163,9 @@ class CalendarState {
 			const upcomingSchedules = scheduleEvents.filter((event) => {
 				try {
 					const now = new Date();
-					const scheduleDate = new Date((event.sourceData as Schedule).scheduleDate);
+					const scheduleDate = new Date(
+						(event.sourceData as Schedule).scheduleDate
+					);
 					return scheduleDate >= now;
 				} catch {
 					return false;
@@ -144,13 +174,18 @@ class CalendarState {
 
 			// Calculate task stats using tasksState
 			const totalTasks = tasksState.stats.total;
-			const pendingTasks = tasksState.stats.pending + tasksState.stats.inProgress;
-			const overdueTasks = taskEvents.filter((event) => event.isOverdue === true).length;
+			const pendingTasks =
+				tasksState.stats.pending + tasksState.stats.inProgress;
+			const overdueTasks = taskEvents.filter(
+				(event) => event.isOverdue === true
+			).length;
 
 			// Calculate expense stats using expensesState
 			const totalExpenses = expensesState.stats.total;
 			const unpaidExpenses = expensesState.stats.unpaid;
-			const overdueExpenses = expenseEvents.filter((event) => event.isOverdue === true).length;
+			const overdueExpenses = expenseEvents.filter(
+				(event) => event.isOverdue === true
+			).length;
 
 			return {
 				totalSchedules,
@@ -163,7 +198,7 @@ class CalendarState {
 				overdueExpenses,
 			};
 		} catch (error) {
-			console.error('Critical error in calendar stats:', error);
+			console.error("Critical error in calendar stats:", error);
 			return {
 				totalSchedules: 0,
 				upcomingSchedules: 0,
@@ -176,7 +211,7 @@ class CalendarState {
 			};
 		}
 	}
-	
+
 	/**
 	 * Get the current workspace ID
 	 */
@@ -186,12 +221,13 @@ class CalendarState {
 
 	/**
 	 * Set schedules and optionally workspace context
-	 * 
+	 *
 	 * @param schedules - Schedules to set
 	 * @param workspaceId - Optional workspace ID to associate with this data
 	 */
 	setSchedules(schedules: Schedule[], workspaceId?: string | null): void {
 		this.schedules = schedules;
+		this.clearCache();
 		if (workspaceId !== undefined) {
 			this.currentWorkspaceId = workspaceId;
 		}
@@ -199,7 +235,7 @@ class CalendarState {
 
 	/**
 	 * Set the workspace context without changing schedules
-	 * 
+	 *
 	 * @param workspaceId - Workspace ID to set
 	 */
 	setWorkspace(workspaceId: string | null): void {
@@ -208,7 +244,7 @@ class CalendarState {
 
 	/**
 	 * Check if the store's data belongs to the given workspace
-	 * 
+	 *
 	 * @param workspaceId - Workspace ID to check
 	 * @returns true if data belongs to the workspace, false otherwise
 	 */
@@ -225,21 +261,23 @@ class CalendarState {
 		this.currentWorkspaceId = null;
 		this.resetFilters();
 	}
-	
+
 	/**
 	 * Update filters
 	 */
 	updateFilters(updates: Partial<EventFilters>): void {
 		this.filters = { ...this.filters, ...updates };
+		this.clearCache();
 	}
-	
+
 	/**
 	 * Toggle a specific filter
 	 */
 	toggleFilter(key: keyof EventFilters): void {
 		this.filters[key] = !this.filters[key];
+		this.clearCache();
 	}
-	
+
 	/**
 	 * Reset filters to default
 	 */

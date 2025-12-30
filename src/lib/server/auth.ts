@@ -15,37 +15,37 @@ import { validateBaseURL } from "$lib/server/url-utils";
 import { SESSION_CONFIG, VALIDATION_CONFIG } from "$lib/constants/config";
 
 import {
-  account,
-  accountRelations,
-  invitation,
-  invitationRelations,
-  member,
-  memberRelations,
-  organizationRelations,
-  organization as organizationTable,
-  session,
-  sessionRelations,
-  userRelations,
-  user as userTable,
-  verification,
+	account,
+	accountRelations,
+	invitation,
+	invitationRelations,
+	member,
+	memberRelations,
+	organizationRelations,
+	organization as organizationTable,
+	session,
+	sessionRelations,
+	userRelations,
+	user as userTable,
+	verification,
 } from "./db/schema/auth-schema";
 
 // Validate environment variables at module load time
 if (!BETTER_AUTH_SECRET) {
-  throw new Error("BETTER_AUTH_SECRET environment variable is required");
+	throw new Error("BETTER_AUTH_SECRET environment variable is required");
 }
 
 if (!BETTER_AUTH_URL) {
-  throw new Error("BETTER_AUTH_URL environment variable is required");
+	throw new Error("BETTER_AUTH_URL environment variable is required");
 }
 
 // Validate BETTER_AUTH_URL with hostname verification
 validateBaseURL(BETTER_AUTH_URL);
 
 if (BETTER_AUTH_SECRET.length < 32) {
-  throw new Error(
-    "BETTER_AUTH_SECRET must be at least 32 characters long for security",
-  );
+	throw new Error(
+		"BETTER_AUTH_SECRET must be at least 32 characters long for security"
+	);
 }
 
 /**
@@ -74,149 +74,152 @@ if (BETTER_AUTH_SECRET.length < 32) {
  * ```
  */
 export function getAuth(d1: D1Database) {
-  const schema = {
-    user: userTable,
-    session,
-    account,
-    verification,
-    userRelations,
-    sessionRelations,
-    accountRelations,
-    organization: organizationTable,
-    member,
-    invitation,
-    organizationRelations,
-    memberRelations,
-    invitationRelations,
-  };
-  const db = drizzle(d1, { schema });
+	const schema = {
+		user: userTable,
+		session,
+		account,
+		verification,
+		userRelations,
+		sessionRelations,
+		accountRelations,
+		organization: organizationTable,
+		member,
+		invitation,
+		organizationRelations,
+		memberRelations,
+		invitationRelations,
+	};
+	const db = drizzle(d1, { schema });
 
-  return betterAuth({
-    database: drizzleAdapter(db, {
-      provider: "sqlite",
-    }),
+	return betterAuth({
+		database: drizzleAdapter(db, {
+			provider: "sqlite",
+		}),
 
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: false,
-      minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
-      maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
-      sendResetPassword: async ({
-        user,
-        url,
-        token,
-      }: {
-        user: { email: string; name: string | null };
-        url: string;
-        token: string;
-      }) => {
-        try {
-          await sendEmail({
-            type: "password-reset",
-            to: user.email,
-            baseUrl: BETTER_AUTH_URL,
-            user: {
-              name: user.name || undefined,
-              email: user.email,
-            },
-            resetUrl: url,
-            token,
-          });
-        } catch (error) {
-          console.error("Failed to send password reset email:", error);
-        }
-      },
-    },
+		emailAndPassword: {
+			enabled: true,
+			requireEmailVerification: false,
+			minPasswordLength: VALIDATION_CONFIG.MIN_PASSWORD_LENGTH,
+			maxPasswordLength: VALIDATION_CONFIG.MAX_PASSWORD_LENGTH,
+			sendResetPassword: async ({
+				user,
+				url,
+				token,
+			}: {
+				user: { email: string; name: string | null };
+				url: string;
+				token: string;
+			}) => {
+				try {
+					await sendEmail({
+						type: "password-reset",
+						to: user.email,
+						baseUrl: BETTER_AUTH_URL,
+						user: {
+							name: user.name || undefined,
+							email: user.email,
+						},
+						resetUrl: url,
+						token,
+					});
+				} catch (error) {
+					console.error("Failed to send password reset email:", error);
+				}
+			},
+		},
 
-    emailVerification: {
-      sendVerificationEmail: async ({
-        user,
-        url,
-        token,
-      }: {
-        user: { email: string; name: string | null };
-        url: string;
-        token: string;
-      }) => {
-        try {
-          await sendEmail({
-            type: "verification",
-            to: user.email,
-            baseUrl: BETTER_AUTH_URL,
-            user: {
-              name: user.name || undefined,
-              email: user.email,
-            },
-            verificationUrl: url,
-            token,
-          });
-        } catch (error) {
-          console.error("Failed to send verification email:", error);
-        }
-      },
-      sendOnSignUp: true,
-      autoSignInAfterVerification: true,
-    },
+		emailVerification: {
+			sendVerificationEmail: ({
+				user,
+				url,
+				token,
+			}: {
+				user: { email: string; name: string | null };
+				url: string;
+				token: string;
+			}) => {
+				// Fire-and-forget email sending to avoid blocking registration
+				setTimeout(() => {
+					sendEmail({
+						type: "verification",
+						to: user.email,
+						baseUrl: BETTER_AUTH_URL,
+						user: {
+							name: user.name || undefined,
+							email: user.email,
+						},
+						verificationUrl: url,
+						token,
+					}).catch((error) => {
+						console.error("Failed to send verification email:", error);
+					});
+				}, 0);
+				// Return immediately to avoid blocking
+				return Promise.resolve();
+			},
+			sendOnSignUp: true,
+			autoSignInAfterVerification: true,
+		},
 
-    session: {
-      expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
-      updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
-      cookieCache: {
-        enabled: false,
-      },
-    },
+		session: {
+			expiresIn: SESSION_CONFIG.MAX_AGE_SECONDS,
+			updateAge: SESSION_CONFIG.UPDATE_INTERVAL_SECONDS,
+			cookieCache: {
+				enabled: true, // Enable for performance
+			},
+		},
 
-    secret: BETTER_AUTH_SECRET,
-    baseURL: BETTER_AUTH_URL,
+		secret: BETTER_AUTH_SECRET,
+		baseURL: BETTER_AUTH_URL,
 
-    advanced: {
-      cookiePrefix: "vowsmarry_auth",
-      crossSubDomainCookies: {
-        enabled: false,
-      },
-    },
+		advanced: {
+			cookiePrefix: "vowsmarry_auth",
+			crossSubDomainCookies: {
+				enabled: false,
+			},
+		},
 
-    trustedOrigins: dev
-      ? ["http://localhost:5173", "http://localhost:4173"]
-      : [BETTER_AUTH_URL],
+		trustedOrigins: dev
+			? ["http://localhost:5173", "http://localhost:4173"]
+			: [BETTER_AUTH_URL],
 
-    plugins: [
-      organization({
-        schema: {
-          organization: {
-            additionalFields: {
-              groomName: {
-                type: "string",
-                input: true,
-                required: false,
-              },
-              brideName: {
-                type: "string",
-                input: true,
-                required: false,
-              },
-              weddingDate: {
-                type: "string",
-                input: true,
-                required: false,
-              },
-              weddingVenue: {
-                type: "string",
-                input: true,
-                required: false,
-              },
-              weddingBudget: {
-                type: "string",
-                input: true,
-                required: false,
-              },
-            },
-          },
-        },
-      }),
-      sveltekitCookies(getRequestEvent),
-    ],
-  });
+		plugins: [
+			organization({
+				schema: {
+					organization: {
+						additionalFields: {
+							groomName: {
+								type: "string",
+								input: true,
+								required: false,
+							},
+							brideName: {
+								type: "string",
+								input: true,
+								required: false,
+							},
+							weddingDate: {
+								type: "string",
+								input: true,
+								required: false,
+							},
+							weddingVenue: {
+								type: "string",
+								input: true,
+								required: false,
+							},
+							weddingBudget: {
+								type: "string",
+								input: true,
+								required: false,
+							},
+						},
+					},
+				},
+			}),
+			sveltekitCookies(getRequestEvent),
+		],
+	});
 }
 
 /**

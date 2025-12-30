@@ -4,6 +4,9 @@
 	import { buttonVariants } from '$lib/components/ui/button/index';
 	import { expensesState } from '$lib/stores/expenses.svelte';
 	import { formatLastUpdate, formatCurrency, calculateDaysUntil } from '$lib/utils/format-utils';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { Pagination } from '$lib/components/ui/pagination';
 
 	const overviewTitle = 'Wedding Overview';
 
@@ -11,6 +14,21 @@
 
 	const weddingDate = data.workspace?.weddingDate ? new Date(data.workspace.weddingDate) : null;
 	const daysUntilWedding = $derived(calculateDaysUntil(weddingDate));
+
+	// Pagination state derived from URL
+	let currentPage = $derived(Number(page.url.searchParams.get('page')) || 1);
+	let limit = $derived(Number(page.url.searchParams.get('limit')) || 10);
+
+	// Handle page change
+	function handlePageChange(newPage: number) {
+		const url = new URL(page.url);
+		if (newPage !== 1) {
+			url.searchParams.set('page', newPage.toString());
+		} else {
+			url.searchParams.delete('page');
+		}
+		goto(url.toString(), { replaceState: true, noScroll: true });
+	}
 
 	// Update store whenever data changes (including after invalidation)
 	// Pass workspace ID to ensure data consistency when workspace changes
@@ -23,7 +41,7 @@
 				expensesState.clearWorkspace();
 			}
 
-			expensesState.set(data.expenses, workspaceId);
+			expensesState.set((data.expenses as any).list || data.expenses, workspaceId);
 		}
 	});
 
@@ -93,4 +111,15 @@
 		{overviewTitle}
 	/>
 	<SectionBudget {data} />
+
+	{#if data.expenses && (data.expenses as any).pagination}
+		<div class="flex justify-center mt-4">
+			<Pagination
+				count={(data.expenses as any).pagination.total}
+				perPage={limit}
+				page={currentPage}
+				onPageChange={handlePageChange}
+			/>
+		</div>
+	{/if}
 </div>

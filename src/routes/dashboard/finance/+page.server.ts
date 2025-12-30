@@ -6,7 +6,12 @@ import { expenseSchema } from "$lib/validation/planner";
 import type { ExpenseData, ExpenseStatus } from "$lib/types";
 import { withAuth } from "$lib/server/auth-helpers";
 
-export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
+export const load: PageServerLoad = async ({
+	locals,
+	plannerDb,
+	depends,
+	url,
+}) => {
 	depends("expense:list");
 	depends("calendar:data");
 	const expenseForm = await superValidate(valibot(expenseSchema));
@@ -20,6 +25,9 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	if (!activeWorkspaceId) {
 		redirect(302, "/onboarding");
 	}
+
+	const page = Number(url.searchParams.get("page")) || 1;
+	const limit = Number(url.searchParams.get("limit")) || 10;
 
 	const plannedBudget = Number(activeWorkspace?.weddingBudget ?? 0);
 
@@ -62,12 +70,22 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 	const savingProgress =
 		plannedBudget > 0 ? Math.floor((totalSavings / plannedBudget) * 100) : 0;
 
-	const expenses = await plannerDb
-		.selectFrom("expense_items")
-		.selectAll()
-		.where("organizationId", "=", activeWorkspaceId)
-		.orderBy("createdAt", "desc")
-		.execute();
+	const [expenses, expenseCount] = await Promise.all([
+		plannerDb
+			.selectFrom("expense_items")
+			.selectAll()
+			.where("organizationId", "=", activeWorkspaceId)
+			.orderBy("createdAt", "desc")
+			.limit(limit)
+			.offset((page - 1) * limit)
+			.execute(),
+		plannerDb
+			.selectFrom("expense_items")
+			.select((eb) => eb.fn.countAll().as("count"))
+			.where("organizationId", "=", activeWorkspaceId)
+			.executeTakeFirst()
+			.then((r) => Number(r?.count || 0)),
+	]);
 
 	return {
 		expenseForm,
@@ -82,7 +100,15 @@ export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
 			planned,
 			spent,
 		},
-		expenses,
+		expenses: {
+			list: expenses,
+			pagination: {
+				page,
+				limit,
+				total: expenseCount,
+				totalPages: Math.ceil(expenseCount / limit),
+			},
+		},
 	};
 };
 

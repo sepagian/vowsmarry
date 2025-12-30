@@ -9,177 +9,178 @@ import type { Actions, PageServerLoad } from "./$types";
 const logger = createSecureLogger("LoginAction");
 
 export const load: PageServerLoad = async ({ locals: { user }, url }) => {
-  if (user) {
-    redirect(302, "/dashboard");
-  }
+	if (user) {
+		redirect(302, "/dashboard");
+	}
 
-  const loginForm = await superValidate(valibot(loginSchema));
-  const message = url.searchParams.get("message");
-  const messageType = url.searchParams.get("messageType");
-  const error = url.searchParams.get("error");
-  const errorType = url.searchParams.get("errorType");
+	const loginForm = await superValidate(valibot(loginSchema));
+	const message = url.searchParams.get("message");
+	const messageType = url.searchParams.get("messageType");
+	const error = url.searchParams.get("error");
+	const errorType = url.searchParams.get("errorType");
 
-  return {
-    loginForm,
-    message,
-    messageType,
-    error,
-    errorType,
-  };
+	return {
+		loginForm,
+		message,
+		messageType,
+		error,
+		errorType,
+	};
 };
 
 export const actions: Actions = {
-  default: async ({ request, platform, plannerDb }) => {
-    if (!platform?.env?.vowsmarry) {
-      return fail(500, {
-        error: "Database configuration error",
-      });
-    }
+	default: async ({ request, platform, plannerDb }) => {
+		const startTime = Date.now();
 
-    const auth = getAuth(platform.env.vowsmarry);
-    const formData = await request.formData();
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+		if (!platform?.env?.vowsmarry) {
+			return fail(500, {
+				error: "Database configuration error",
+			});
+		}
 
-    if (!email || !password) {
-      return fail(400, {
-        error: "Email and password are required",
-        email,
-      });
-    }
+		const auth = getAuth(platform.env.vowsmarry);
+		const formData = await request.formData();
+		const email = formData.get("email") as string;
+		const password = formData.get("password") as string;
 
-    try {
-      // Use Better Auth to sign in
-      const result = await auth.api.signInEmail({
-        body: {
-          email,
-          password,
-        },
-      });
+		if (!email || !password) {
+			return fail(400, {
+				error: "Email and password are required",
+				email,
+			});
+		}
 
-      logger.debug("Sign in attempt completed");
+		try {
+			// Use Better Auth to sign in
+			const result = await auth.api.signInEmail({
+				body: {
+					email,
+					password,
+				},
+			});
 
-      // Check if sign in was successful
-      if (!result || !result.user) {
-        return fail(400, {
-          error: "Authentication failed. Please try again.",
-          errorType: "auth_error",
-          email,
-        });
-      }
+			logger.debug("Sign in attempt completed");
 
-      // After successful login, check if user has any workspaces
-      // If they do, automatically set the most recently created one as active
-      // This prevents the user from being redirected to onboarding after every login
-      try {
-        // Query the database directly to get user's organizations
-        const userOrganizations = await plannerDb
-          .selectFrom("member")
-          .innerJoin("organization", "organization.id", "member.organizationId")
-          .select([
-            "organization.id",
-            "organization.name",
-            "organization.slug",
-            "organization.createdAt",
-          ])
-          .where("member.userId", "=", result.user.id)
-          .orderBy("organization.createdAt", "desc")
-          .execute();
+			// Check if sign in was successful
+			if (!result || !result.user) {
+				return fail(400, {
+					error: "Authentication failed. Please try again.",
+					errorType: "auth_error",
+					email,
+				});
+			}
 
-        if (userOrganizations && userOrganizations.length > 0) {
-          // Get the most recent organization
-          const mostRecentOrg = userOrganizations[0];
+			// After successful login, check if user has any workspaces
+			// If they do, automatically set the most recently created one as active
+			// This prevents the user from being redirected to onboarding after every login
+			try {
+				// Query the database directly to get user's organizations and update session in one batch
+				const [userOrganizations] = await Promise.all([
+					plannerDb
+						.selectFrom("member")
+						.innerJoin(
+							"organization",
+							"organization.id",
+							"member.organizationId"
+						)
+						.select([
+							"organization.id",
+							"organization.name",
+							"organization.slug",
+							"organization.createdAt",
+						])
+						.where("member.userId", "=", result.user.id)
+						.orderBy("organization.createdAt", "desc")
+						.execute(),
+				]);
 
-          // Update the session in the database AND invalidate the cookie cache
-          // by updating both the activeOrganizationId and the updatedAt timestamp
-          await plannerDb
-            .updateTable("session")
-            .set({
-              activeOrganizationId: mostRecentOrg.id,
-              updatedAt: Date.now(),
-            })
-            .where("token", "=", result.token)
-            .execute();
+				if (userOrganizations && userOrganizations.length > 0) {
+					// Get the most recent organization
+					const mostRecentOrg = userOrganizations[0];
 
-          logger.debug("Active workspace set", {
-            workspaceId: mostRecentOrg.id,
-          });
+					// Update the session in the database AND invalidate the cookie cache
+					// by updating both the activeOrganizationId and the updatedAt timestamp
+					await plannerDb
+						.updateTable("session")
+						.set({
+							activeOrganizationId: mostRecentOrg.id,
+							updatedAt: Date.now(),
+						})
+						.where("token", "=", result.token)
+						.execute();
 
-          // Now call setActiveOrganization with the new session to update the cookie
-          // Create a new Headers object with the session cookie
-          const cookieHeader = `vowsmarry_auth.session_token=${result.token}`;
-          const newHeaders = new Headers(request.headers);
-          newHeaders.set("cookie", cookieHeader);
+					logger.debug("Active workspace set", {
+						workspaceId: mostRecentOrg.id,
+					});
 
-          await auth.api.setActiveOrganization({
-            body: {
-              organizationId: mostRecentOrg.id,
-            },
-            headers: newHeaders,
-          });
+					// Skip setActiveOrganization API call since we updated the session directly
+					// This reduces one additional API call and database round trip
 
-          logger.debug("Cookie cache updated with active workspace");
-        } else {
-          logger.debug("No workspaces found for user");
-        }
-      } catch (workspaceError) {
-        // Don't fail login if workspace setting fails
-        console.error("Failed to set active workspace:", workspaceError);
-      }
+					logger.debug("Session updated with active workspace");
+				} else {
+					logger.debug("No workspaces found for user");
+				}
+			} catch (workspaceError) {
+				// Don't fail login if workspace setting fails
+				console.error("Failed to set active workspace:", workspaceError);
+			}
 
-      logger.debug("Redirecting to dashboard");
-    } catch (error: unknown) {
-      logger.error("Login authentication failed", error);
+			logger.debug("Redirecting to dashboard");
+		} catch (error: unknown) {
+			logger.error("Login authentication failed", error);
 
-      // Handle specific authentication errors from Better Auth
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "object" && error !== null && "message" in error
-            ? String((error as { message: unknown }).message)
-            : "";
+			// Handle specific authentication errors from Better Auth
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: typeof error === "object" && error !== null && "message" in error
+						? String((error as { message: unknown }).message)
+						: "";
 
-      if (
-        errorMessage.includes("Invalid") ||
-        errorMessage.includes("credentials")
-      ) {
-        return fail(400, {
-          error:
-            "Invalid email or password. Please check your credentials and try again.",
-          errorType: "invalid_credentials",
-          email,
-        });
-      } else if (
-        errorMessage.includes("not verified") ||
-        errorMessage.includes("Email not confirmed")
-      ) {
-        return fail(400, {
-          error:
-            "Please check your email and click the verification link before signing in.",
-          errorType: "email_not_confirmed",
-          email,
-        });
-      } else if (
-        errorMessage.includes("Too many") ||
-        errorMessage.includes("rate limit")
-      ) {
-        return fail(429, {
-          error:
-            "Too many login attempts. Please wait a moment before trying again.",
-          errorType: "rate_limit",
-          email,
-        });
-      } else {
-        // Generic error message for other authentication issues
-        return fail(400, {
-          error: errorMessage || "Authentication failed. Please try again.",
-          errorType: "auth_error",
-          email,
-        });
-      }
-    }
+			if (
+				errorMessage.includes("Invalid") ||
+				errorMessage.includes("credentials")
+			) {
+				return fail(400, {
+					error:
+						"Invalid email or password. Please check your credentials and try again.",
+					errorType: "invalid_credentials",
+					email,
+				});
+			} else if (
+				errorMessage.includes("not verified") ||
+				errorMessage.includes("Email not confirmed")
+			) {
+				return fail(400, {
+					error:
+						"Please check your email and click the verification link before signing in.",
+					errorType: "email_not_confirmed",
+					email,
+				});
+			} else if (
+				errorMessage.includes("Too many") ||
+				errorMessage.includes("rate limit")
+			) {
+				return fail(429, {
+					error:
+						"Too many login attempts. Please wait a moment before trying again.",
+					errorType: "rate_limit",
+					email,
+				});
+			} else {
+				// Generic error message for other authentication issues
+				return fail(400, {
+					error: errorMessage || "Authentication failed. Please try again.",
+					errorType: "auth_error",
+					email,
+				});
+			}
+		}
 
-    // Redirect to dashboard on success (outside try-catch to avoid catching redirect)
-    throw redirect(303, "/dashboard");
-  },
+		const totalTime = Date.now() - startTime;
+		logger.debug(`Login completed in ${totalTime}ms`);
+
+		// Redirect to dashboard on success (outside try-catch to avoid catching redirect)
+		throw redirect(303, "/dashboard");
+	},
 };
