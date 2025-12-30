@@ -116,12 +116,14 @@ function isValidEmail(email: string): boolean {
  */
 function logEmailOperation(
 	type: EmailParams["type"],
+	to: string,
 	result: EmailResult
 ): void {
 	const status = result.success ? "success" : "failure";
 	const logData: Record<string, unknown> = {
 		type,
 		messageId: result.messageId,
+		to,
 	};
 
 	if (result.error) {
@@ -148,7 +150,7 @@ export async function sendEmail(params: EmailParams): Promise<EmailResult> {
 	// Validate recipient email address
 	if (!isValidEmail(params.to)) {
 		const error = "Invalid email address";
-		logEmailOperation(params.type, { success: false, error });
+		logEmailOperation(params.type, params.to, { success: false, error });
 		throw new Error(error);
 	}
 
@@ -168,19 +170,19 @@ export async function sendEmail(params: EmailParams): Promise<EmailResult> {
 		if (!response.success) {
 			const errorMessage = response.error || "Email send failed";
 			const result: EmailResult = { success: false, error: errorMessage };
-			logEmailOperation(params.type, result);
+			logEmailOperation(params.type, params.to, result);
 			throw new Error(errorMessage);
 		}
 
 		// Log successful send
 		const result: EmailResult = { success: true, messageId: response.id };
-		logEmailOperation(params.type, result);
+		logEmailOperation(params.type, params.to, result);
 
 		return result;
 	} catch (err) {
 		const error = err instanceof Error ? err.message : "Unknown error";
 		const result: EmailResult = { success: false, error };
-		logEmailOperation(params.type, result);
+		logEmailOperation(params.type, params.to, result);
 		throw err;
 	}
 }
