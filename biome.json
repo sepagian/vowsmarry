@@ -17,11 +17,11 @@
     "rules": {
       "recommended": true,
       "correctness": {
-				"noUnusedImports": {
-				  "level": "error",
-				  "fix": "safe"
-				}
-			}
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
+      }
     }
   },
   "javascript": {
@@ -45,7 +45,12 @@
               ":BLANK_LINE:",
               ["$lib/components/**"],
               ":BLANK_LINE:",
-              ["$lib/server/**", "$lib/stores/**", "$lib/validation/**", "$lib/utils/**"],
+              [
+                "$lib/server/**",
+                "$lib/stores/**",
+                "$lib/validation/**",
+                "$lib/utils/**"
+              ],
               ":BLANK_LINE:",
               ["$lib/**"],
               ":BLANK_LINE:",
