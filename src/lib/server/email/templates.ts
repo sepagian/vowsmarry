@@ -5,14 +5,14 @@ import type { EmailParams } from "./index";
  * Converts HTML metacharacters to their entity equivalents
  */
 function escapeHtml(text: string): string {
-  const htmlEscapeMap: Record<string, string> = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  };
-  return text.replace(/[&<>"']/g, (char) => htmlEscapeMap[char]);
+	const htmlEscapeMap: Record<string, string> = {
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		'"': "&quot;",
+		"'": "&#39;",
+	};
+	return text.replace(/[&<>"']/g, (char) => htmlEscapeMap[char]);
 }
 
 /**
@@ -21,45 +21,45 @@ function escapeHtml(text: string): string {
  * For http/https URLs, validates against a trusted origin to prevent open redirects.
  */
 function sanitizeUrl(url: string, trustedOrigin?: string): string {
-  try {
-    const parsed = new URL(url);
-    // Only allow http and https protocols
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return "about:blank";
-    }
+	try {
+		const parsed = new URL(url);
+		// Only allow http and https protocols
+		if (!["http:", "https:"].includes(parsed.protocol)) {
+			return "about:blank";
+		}
 
-    // Validate against open redirects by checking against trusted origin
-    if (trustedOrigin) {
-      try {
-        const trusted = new URL(trustedOrigin);
-        if (parsed.origin !== trusted.origin) {
-          return "about:blank";
-        }
-      } catch {
-        // If trustedOrigin is invalid, reject the URL
-        return "about:blank";
-      }
-    }
+		// Validate against open redirects by checking against trusted origin
+		if (trustedOrigin) {
+			try {
+				const trusted = new URL(trustedOrigin);
+				if (parsed.origin !== trusted.origin) {
+					return "about:blank";
+				}
+			} catch {
+				// If trustedOrigin is invalid, reject the URL
+				return "about:blank";
+			}
+		}
 
-    return url;
-  } catch {
-    // If URL parsing fails, check for mailto: prefix
-    if (url.startsWith("mailto:")) {
-      return escapeHtml(url);
-    }
-    // Default to blank for invalid URLs
-    return "about:blank";
-  }
+		return url;
+	} catch {
+		// If URL parsing fails, check for mailto: prefix
+		if (url.startsWith("mailto:")) {
+			return escapeHtml(url);
+		}
+		// Default to blank for invalid URLs
+		return "about:blank";
+	}
 }
 
 /**
  * Base data for all email templates
  */
 type BaseTemplateData = {
-  brandName: string;
-  year: number;
-  supportEmail: string;
-  baseUrl: string;
+	brandName: string;
+	year: number;
+	supportEmail: string;
+	baseUrl: string;
 };
 
 /**
@@ -67,48 +67,48 @@ type BaseTemplateData = {
  * Returns subject, HTML, and plain text versions
  */
 export function renderTemplate(params: EmailParams): {
-  subject: string;
-  html: string;
-  text: string;
+	subject: string;
+	html: string;
+	text: string;
 } {
-  const baseData = {
-    brandName: "VowsMarry",
-    year: new Date().getFullYear(),
-    supportEmail: "support@vowsmarry.com",
-  };
+	const baseData = {
+		brandName: "VowsMarry",
+		year: new Date().getFullYear(),
+		supportEmail: "support@vowsmarry.sepagian.xyz",
+	};
 
-  switch (params.type) {
-    case "verification":
-      return renderVerificationTemplate({ ...baseData, ...params });
-    case "password-reset":
-      return renderPasswordResetTemplate({ ...baseData, ...params });
-    case "email-update":
-      return renderEmailUpdateTemplate({ ...baseData, ...params });
-    case "invitation":
-      return renderInvitationTemplate({ ...baseData, ...params });
-    default: {
-      const _exhaustive: never = params;
-      return _exhaustive;
-    }
-  }
+	switch (params.type) {
+		case "verification":
+			return renderVerificationTemplate({ ...baseData, ...params });
+		case "password-reset":
+			return renderPasswordResetTemplate({ ...baseData, ...params });
+		case "email-update":
+			return renderEmailUpdateTemplate({ ...baseData, ...params });
+		case "invitation":
+			return renderInvitationTemplate({ ...baseData, ...params });
+		default: {
+			const _exhaustive: never = params;
+			return _exhaustive;
+		}
+	}
 }
 
 /**
  * Render verification email template
  */
 function renderVerificationTemplate(
-  data: BaseTemplateData & {
-    type: "verification";
-    to: string;
-    user: { name?: string; email: string };
-    verificationUrl: string;
-    token: string;
-  },
+	data: BaseTemplateData & {
+		type: "verification";
+		to: string;
+		user: { name?: string; email: string };
+		verificationUrl: string;
+		token: string;
+	}
 ): { subject: string; html: string; text: string } {
-  const subject = "Verify your email address";
-  const sanitizedUrl = sanitizeUrl(data.verificationUrl, data.baseUrl);
+	const subject = "Verify your email address";
+	const sanitizedUrl = sanitizeUrl(data.verificationUrl, data.baseUrl);
 
-  const html = `
+	const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -159,7 +159,7 @@ function renderVerificationTemplate(
 </html>
 	`.trim();
 
-  const plainText = `
+	const plainText = `
 Verify Your Email Address
 
 Welcome to ${data.brandName}! Please verify your email address to complete your registration and start planning your wedding.
@@ -174,25 +174,25 @@ If you didn't create this account, you can safely ignore this email.
 © ${data.year} ${data.brandName}. All rights reserved.
 	`.trim();
 
-  return { subject, html, text: plainText };
+	return { subject, html, text: plainText };
 }
 
 /**
  * Render password reset email template
  */
 function renderPasswordResetTemplate(
-  data: BaseTemplateData & {
-    type: "password-reset";
-    to: string;
-    user: { name?: string; email: string };
-    resetUrl: string;
-    token: string;
-  },
+	data: BaseTemplateData & {
+		type: "password-reset";
+		to: string;
+		user: { name?: string; email: string };
+		resetUrl: string;
+		token: string;
+	}
 ): { subject: string; html: string; text: string } {
-  const subject = "Reset your password";
-  const sanitizedUrl = sanitizeUrl(data.resetUrl, data.baseUrl);
+	const subject = "Reset your password";
+	const sanitizedUrl = sanitizeUrl(data.resetUrl, data.baseUrl);
 
-  const html = `
+	const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -243,7 +243,7 @@ function renderPasswordResetTemplate(
 </html>
 	`.trim();
 
-  const plainText = `
+	const plainText = `
 Reset Your Password
 
 We received a request to reset your password. Click the link below to create a new password.
@@ -258,27 +258,27 @@ If you didn't request a password reset, you can safely ignore this email. Your p
 © ${data.year} ${data.brandName}. All rights reserved.
 	`.trim();
 
-  return { subject, html, text: plainText };
+	return { subject, html, text: plainText };
 }
 
 /**
  * Render email update confirmation template
  */
 function renderEmailUpdateTemplate(
-  data: BaseTemplateData & {
-    type: "email-update";
-    to: string;
-    user: { name?: string; email: string };
-    newEmail: string;
-    confirmUrl: string;
-    token: string;
-  },
+	data: BaseTemplateData & {
+		type: "email-update";
+		to: string;
+		user: { name?: string; email: string };
+		newEmail: string;
+		confirmUrl: string;
+		token: string;
+	}
 ): { subject: string; html: string; text: string } {
-  const subject = "Confirm your new email address";
-  const sanitizedUrl = sanitizeUrl(data.confirmUrl, data.baseUrl);
-  const escapedNewEmail = escapeHtml(data.newEmail);
+	const subject = "Confirm your new email address";
+	const sanitizedUrl = sanitizeUrl(data.confirmUrl, data.baseUrl);
+	const escapedNewEmail = escapeHtml(data.newEmail);
 
-  const html = `
+	const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -329,7 +329,7 @@ function renderEmailUpdateTemplate(
 </html>
 	`.trim();
 
-  const plainText = `
+	const plainText = `
 Confirm Your New Email Address
 
 You requested to change your email address to ${data.newEmail}. Click the link below to confirm this change.
@@ -344,28 +344,28 @@ If you didn't request this change, you can safely ignore this email. Your email 
 © ${data.year} ${data.brandName}. All rights reserved.
 	`.trim();
 
-  return { subject, html, text: plainText };
+	return { subject, html, text: plainText };
 }
 
 /**
  * Render invitation email template
  */
 function renderInvitationTemplate(
-  data: BaseTemplateData & {
-    type: "invitation";
-    to: string;
-    inviterName: string;
-    organizationName: string;
-    invitationUrl: string;
-    invitationId: string;
-  },
+	data: BaseTemplateData & {
+		type: "invitation";
+		to: string;
+		inviterName: string;
+		organizationName: string;
+		invitationUrl: string;
+		invitationId: string;
+	}
 ): { subject: string; html: string; text: string } {
-  const escapedInviterName = escapeHtml(data.inviterName);
-  const escapedOrgName = escapeHtml(data.organizationName);
-  const sanitizedUrl = sanitizeUrl(data.invitationUrl, data.baseUrl);
-  const subject = `${escapedInviterName} invited you to ${escapedOrgName}`;
+	const escapedInviterName = escapeHtml(data.inviterName);
+	const escapedOrgName = escapeHtml(data.organizationName);
+	const sanitizedUrl = sanitizeUrl(data.invitationUrl, data.baseUrl);
+	const subject = `${escapedInviterName} invited you to ${escapedOrgName}`;
 
-  const html = `
+	const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -422,7 +422,7 @@ function renderInvitationTemplate(
 </html>
 	`.trim();
 
-  const plainText = `
+	const plainText = `
 You're Invited to ${data.organizationName}!
 
 ${data.inviterName} has invited you to collaborate on their wedding planning workspace.
@@ -437,5 +437,5 @@ This invitation was sent to ${data.to}. If you didn't expect this invitation, yo
 © ${data.year} ${data.brandName}. All rights reserved.
 	`.trim();
 
-  return { subject, html, text: plainText };
+	return { subject, html, text: plainText };
 }
