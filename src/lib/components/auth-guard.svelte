@@ -1,60 +1,56 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import type { User, Session } from 'better-auth/types';
-	import type { Snippet } from 'svelte';
+  import type { Session, User } from "better-auth/types";
+  import type { Snippet } from "svelte";
+  import { goto } from "$app/navigation";
 
-	type Props = {
-		requireAuth?: boolean;
-		redirectTo?: string;
-		loadingContent?: Snippet;
-		unauthenticatedContent?: Snippet;
-		children: Snippet;
-		user?: User | null;
-		session?: Session | null;
-	};
+  type Props = {
+    requireAuth?: boolean;
+    redirectTo?: string;
+    loadingContent?: Snippet;
+    unauthenticatedContent?: Snippet;
+    children: Snippet;
+    user?: User | null;
+    session?: Session | null;
+  };
 
-	let {
-		requireAuth = false,
-		redirectTo = '/login',
-		loadingContent,
-		unauthenticatedContent,
-		children,
-		user = null,
-		session = null,
-	}: Props = $props();
+  let {
+    requireAuth = false,
+    redirectTo = "/login",
+    loadingContent,
+    unauthenticatedContent,
+    children,
+    user = null,
+    session = null,
+  }: Props = $props();
 
-	let isLoading = $state(!user && !session);
-	let isAuth = $derived(user !== null);
+  let isLoading = $derived(user === undefined);
+  let isAuth = $derived(user !== null && session !== null);
 
-	$effect(() => {
-		if (user !== null || session !== null) {
-			isLoading = false;
-		}
-	});
-
-	$effect(() => {
-		if (!isLoading && requireAuth && !isAuth) {
-			goto(redirectTo);
-		}
-	});
+  $effect(() => {
+    if (!isLoading && requireAuth && !isAuth) {
+      goto(redirectTo);
+    }
+  });
 </script>
 
 {#if isLoading}
-	{#if loadingContent}
-		{@render loadingContent()}
-	{:else}
-		<div class="flex items-center justify-center p-4">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-		</div>
-	{/if}
+  {#if loadingContent}
+    {@render loadingContent()}
+  {:else}
+    <div class="flex items-center justify-center p-4">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
+      ></div>
+    </div>
+  {/if}
 {:else if requireAuth}
-	{#if isAuth}
-		{@render children()}
-	{/if}
+  {#if isAuth}
+    {@render children()}
+  {/if}
 {:else if isAuth}
-	{@render children()}
+  {@render children()}
 {:else if unauthenticatedContent}
-	{@render unauthenticatedContent()}
+  {@render unauthenticatedContent()}
 {:else}
-	{@render children()}
+  {@render children()}
 {/if}
