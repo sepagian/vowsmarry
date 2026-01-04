@@ -3,6 +3,7 @@
   import { Progress } from "@friendofsvelte/progress";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
+  import { setContext } from "svelte";
 
   import { browser } from "$app/environment";
 
@@ -16,8 +17,10 @@
   } from "$lib/utils/broadcast";
 
   let { data, children } = $props<{
-    data: { user: unknown; session: unknown; pageTitle?: string };
+    data: { pageTitle?: string };
   }>();
+
+  setContext("auth", { user: data.user, session: data.session });
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -43,13 +46,13 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon}>
+  <link rel="icon" href={favicon} />
   <title>{data.pageTitle}</title>
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
-  <SvelteQueryDevtools/>
-  <Progress size="md" color="blue"/>
+  <SvelteQueryDevtools />
+  <Progress size="md" color="blue" />
   {@render children()}
   <Toaster
     richColors
