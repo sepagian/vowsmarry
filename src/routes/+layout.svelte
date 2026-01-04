@@ -3,13 +3,10 @@
   import { Progress } from "@friendofsvelte/progress";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
-  import { onMount } from "svelte";
 
   import { browser } from "$app/environment";
 
   import { Toaster } from "$lib/components/ui/sonner";
-
-  import { authStore } from "$lib/stores/auth";
 
   import favicon from "$lib/assets/favicon.svg";
   import { TOAST_CONFIG } from "$lib/constants/config";
@@ -21,7 +18,6 @@
   let { data, children } = $props<{
     data: { user: unknown; session: unknown; pageTitle?: string };
   }>();
-  let { user, session, pageTitle } = $derived(data);
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,9 +31,7 @@
     },
   });
 
-  onMount(() => {
-    authStore.initialize(user, session);
-
+  $effect(() => {
     if (browser) {
       getBroadcastChannel();
       onBroadcastMessage((queryKeys) => {
@@ -46,22 +40,16 @@
       });
     }
   });
-
-  $effect(() => {
-    if (authStore.getState().initialized) {
-      authStore.setAuth(user, session);
-    }
-  });
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
-  <title>{pageTitle}</title>
+  <link rel="icon" href={favicon}>
+  <title>{data.pageTitle}</title>
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
-  <SvelteQueryDevtools />
-  <Progress size="md" color="blue" />
+  <SvelteQueryDevtools/>
+  <Progress size="md" color="blue"/>
   {@render children()}
   <Toaster
     richColors
