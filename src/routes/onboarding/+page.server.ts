@@ -6,7 +6,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { BETTER_AUTH_URL } from "$env/static/private";
 
 import { getAuth } from "$lib/server/auth";
-import { getUser } from "$lib/server/auth-helpers";
+import { getUser } from "$lib/server/auth";
 import { sendEmail } from "$lib/server/email";
 import { constructInvitationURL } from "$lib/server/url-utils";
 import { parseUserName } from "$lib/utils/user-utils";

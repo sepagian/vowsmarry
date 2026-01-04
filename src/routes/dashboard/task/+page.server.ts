@@ -1,164 +1,54 @@
-import type { PageServerLoad, Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
-import { valibot } from 'sveltekit-superforms/adapters';
-import { taskSchema } from '$lib/validation/planner';
-import type { TaskStatus } from '$lib/types';
-import { withAuth } from '$lib/server/auth-helpers';
-import { handleActionError } from '$lib/server/error-handler';
-import { FormDataParser } from '$lib/utils/form-helpers';
+import { fail, redirect } from "@sveltejs/kit";
+import { superValidate } from "sveltekit-superforms";
+import { valibot } from "sveltekit-superforms/adapters";
 
-export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
-	depends('task:list');
-	depends('calendar:data');
+import { withAuth } from "$lib/server/auth";
+import { handleActionError } from "$lib/server/error-handler";
+import { taskSchema } from "$lib/validation/planner";
+import { TABLES } from "$lib/constants/database";
 
-	const { user, activeWorkspaceId } = locals;
+import type { Actions, PageServerLoad } from "./$types";
 
-	if (!user) redirect(302, '/login');
-	if (!activeWorkspaceId) redirect(302, '/onboarding');
+export const load: PageServerLoad = async ({ locals }) => {
+  const { user } = locals;
 
-	const taskForm = await superValidate(valibot(taskSchema));
+  if (!user) {
+    redirect(302, "/login");
+  }
 
-	const tasksList = await plannerDb
-		.selectFrom('tasks')
-		.selectAll()
-		.where('organizationId', '=', activeWorkspaceId)
-		.orderBy('taskDueDate', 'asc')
-		.execute();
+  const taskForm = await superValidate(valibot(taskSchema));
 
-	const taskStats = tasksList.reduce(
-		(acc, task) => {
-			acc.total++;
-			if (task.taskStatus === 'pending') acc.pending++;
-			else if (task.taskStatus === 'on_progress') acc.onProgress++;
-			else if (task.taskStatus === 'completed') acc.completed++;
-			return acc;
-		},
-		{ total: 0, pending: 0, onProgress: 0, completed: 0 },
-	);
-
-	const getLatestUpdate = (status?: TaskStatus) =>
-		tasksList
-			.filter((t) => !status || t.taskStatus === status)
-			.sort((a, b) => Number(b.updatedAt) - Number(a.updatedAt))[0]?.updatedAt ?? null;
-
-	return {
-		taskForm,
-		tasks: tasksList,
-		taskStats,
-		update: {
-			total: getLatestUpdate(),
-			pending: getLatestUpdate('pending'),
-			onProgress: getLatestUpdate('on_progress'),
-			completed: getLatestUpdate('completed'),
-		},
-	};
+  return {
+    taskForm,
+  };
 };
 
 export const actions: Actions = {
-	createTask: withAuth(async ({ user, organizationId, plannerDb }, { request }) => {
-		const form = await superValidate(request, valibot(taskSchema));
-		if (!form.valid) return fail(400, { form });
+  createTask: withAuth(
+    async ({ user, organizationId, plannerDb }, { request }) => {
+      const form = await superValidate(request, valibot(taskSchema));
+      if (!form.valid) {
+        return fail(400, { form });
+      }
 
-		try {
-			const newTask = await plannerDb
-				.insertInto('tasks')
-				.values({
-					id: crypto.randomUUID(),
-					organizationId,
-					taskDescription: form.data.taskDescription,
-					taskCategory: form.data.taskCategory,
-					taskPriority: form.data.taskPriority,
-					taskStatus: form.data.taskStatus,
-					taskDueDate: String(form.data.taskDueDate),
-					completedAt: null,
-					assignedTo: null,
-					createdBy: user.id,
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-				})
-				.returningAll()
-				.executeTakeFirstOrThrow();
+      try {
+        const newTask = await plannerDb
+          .insertInto(TABLES.TASKS)
+          .values({
+            ...form.data,
+            id: crypto.randomUUID(),
+            organizationId,
+            createdBy: user.id,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
 
-			return { form, success: true, task: newTask };
-		} catch (error) {
-			return handleActionError(error, 'create task', { form });
-		}
-	}),
-
-	updateTaskStatus: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		try {
-			const parser = new FormDataParser(await request.formData());
-			const taskId = parser.getString('id');
-			const newStatus = parser.getEnum('status', ['pending', 'on_progress', 'completed'] as const);
-
-			const updatedTask = await plannerDb
-				.updateTable('tasks')
-				.set({
-					taskStatus: newStatus,
-					completedAt: newStatus === 'completed' ? Date.now() : null,
-					updatedAt: Date.now(),
-				})
-				.where('id', '=', taskId)
-				.where('organizationId', '=', organizationId)
-				.returningAll()
-				.executeTakeFirst();
-
-			if (!updatedTask) return fail(404, { error: 'Task not found' });
-
-			return { success: true, task: updatedTask };
-		} catch (error) {
-			return handleActionError(error, 'update task status');
-		}
-	}),
-
-	updateTask: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		const clonedRequest = request.clone();
-		const parser = new FormDataParser(await clonedRequest.formData());
-		const taskId = parser.getString('id');
-
-		const form = await superValidate(request, valibot(taskSchema));
-		if (!form.valid) return fail(400, { form });
-
-		try {
-			const updatedTask = await plannerDb
-				.updateTable('tasks')
-				.set({
-					...form.data,
-					taskDueDate: String(form.data.taskDueDate),
-					completedAt: form.data.taskStatus === 'completed' ? Date.now() : null,
-					updatedAt: Date.now(),
-				})
-				.where('id', '=', taskId)
-				.where('organizationId', '=', organizationId)
-				.returningAll()
-				.executeTakeFirst();
-
-			if (!updatedTask) return fail(404, { form, error: 'Task not found' });
-
-			return { form, success: true, task: updatedTask };
-		} catch (error) {
-			return handleActionError(error, 'update task', { form });
-		}
-	}),
-
-	deleteTask: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		try {
-			const parser = new FormDataParser(await request.formData());
-			const taskId = parser.getString('id');
-
-			const deletedTask = await plannerDb
-				.deleteFrom('tasks')
-				.where('id', '=', taskId)
-				.where('organizationId', '=', organizationId)
-				.returningAll()
-				.executeTakeFirst();
-
-			if (!deletedTask) return fail(404, { error: 'Task not found' });
-
-			return { success: true };
-		} catch (error) {
-			return handleActionError(error, 'delete task');
-		}
-	}),
+        return { form, success: true, task: newTask };
+      } catch (error) {
+        return handleActionError(error, "create task", { form });
+      }
+    }
+  ),
 };
