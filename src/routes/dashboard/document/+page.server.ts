@@ -1,303 +1,92 @@
-import type { PageServerLoad, Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms';
-import { valibot } from 'sveltekit-superforms/adapters';
-import { documentSchema } from '$lib/validation/planner';
-import { validateDocumentFile } from '$lib/server/storage/file-validation';
-import { withAuth } from '$lib/server/auth-helpers';
+import { fail, redirect } from "@sveltejs/kit";
+import { superValidate } from "sveltekit-superforms";
+import { valibot } from "sveltekit-superforms/adapters";
 
-export const load: PageServerLoad = async ({ locals, plannerDb, depends }) => {
-	depends('document:list');
+import { withAuth } from "$lib/server/auth";
+import { handleActionError } from "$lib/server/error-handler";
+import { uploadFile } from "$lib/server/storage";
+import { validateDocumentFile } from "$lib/server/storage/file-validation";
+import { documentSchema } from "$lib/validation/planner";
+import { TABLES } from "$lib/constants/database";
 
-	const { user, activeWorkspaceId } = locals;
+import type { Actions, PageServerLoad } from "./$types";
 
-	if (!user) redirect(302, '/login');
+export const load: PageServerLoad = async ({ locals }) => {
+  const { user } = locals;
 
-	if (!activeWorkspaceId) redirect(302, '/onboarding');
+  if (!user) {
+    redirect(302, "/login");
+  }
 
-	const documentForm = await superValidate(valibot(documentSchema));
+  const documentForm = await superValidate(valibot(documentSchema));
 
-	const documentList = await plannerDb
-		.selectFrom('documents')
-		.selectAll()
-		.where('organizationId', '=', activeWorkspaceId)
-		.orderBy('documentDate', 'asc')
-		.execute();
-
-	return { documents: documentList, documentForm };
+  return {
+    documentForm,
+  };
 };
 
 export const actions: Actions = {
-	createDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		try {
-			const form = await superValidate(request, valibot(documentSchema));
-		if (!form.valid) return fail(400, { form });
+  createDocument: withAuth(
+    async ({ organizationId, plannerDb }, { request }) => {
+      const formData = await request.formData();
 
-		const file = form.data.file?.[0];
+      const documentName = formData.get("documentName") as string;
+      const documentCategory = formData.get("documentCategory") as string;
+      const documentDate = formData.get("documentDate") as string;
+      const file = formData.get("file") as File | null;
 
-		if (!file || !(file instanceof File)) {
-			return fail(400, {
-				form: {
-					...form,
-					errors: {
-						...form.errors,
-						file: ['Please select a file to upload'],
-					},
-				},
-			});
-		}
+      if (!(documentName && documentCategory && documentDate)) {
+        return fail(400, { error: "Missing required fields" });
+      }
 
-		// Validate the file
-		const fileValidation = validateDocumentFile(file);
-		if (!fileValidation.valid) {
-			return fail(400, {
-				form: {
-					...form,
-					errors: {
-						...form.errors,
-						file: [fileValidation.error || 'Invalid file'],
-					},
-				},
-			});
-		}
+      if (!(file && file instanceof File) || file.size === 0) {
+        return fail(400, { error: "A valid file is required" });
+      }
 
-		
-		let uploadResult;
-		try {
-			// Upload file to R2 storage
-			const { uploadFile } = await import('$lib/server/storage');
-			uploadResult = await uploadFile(file, {
-				pathPrefix: 'documents',
-				scopeId: organizationId,
-			});
-		} catch (error) {
-			console.error('File upload failed:', error);
-			return fail(500, {
-				form: {
-					...form,
-					errors: {
-						...form.errors,
-						file: ['Failed to upload file. Please try again.'],
-					},
-				},
-			});
-		}
+      const fileValidation = validateDocumentFile(file);
+      if (!fileValidation.valid) {
+        return fail(400, { error: fileValidation.error });
+      }
 
-		// Create document record in database with file metadata
-		try {
-			const newDocument = await plannerDb
-				.insertInto('documents')
-				.values({
-					id: crypto.randomUUID(),
-					organizationId,
-					documentName: form.data.documentName,
-					documentCategory: form.data.documentCategory,
-					documentDate: String(form.data.documentDate),
-					documentStatus: 'pending',
-					documentDueDate: null,
-					fileUrl: uploadResult.fileUrl,
-					fileName: uploadResult.fileName,
-					fileSize: uploadResult.fileSize,
-					mimeType: uploadResult.mimeType,
-					reminderSent: 0,
-					createdAt: Date.now(),
-					updatedAt: Date.now(),
-				})
-				.returningAll()
-				.executeTakeFirstOrThrow();
+      try {
+        const uploadResult = await uploadFile(file, {
+          pathPrefix: "documents",
+          scopeId: organizationId,
+        });
 
-			// Remove file from form data to avoid serialization error
-			const { file: _, ...formDataWithoutFile } = form.data;
-			return { form: { ...form, data: formDataWithoutFile }, success: true, document: newDocument };
-		} catch (error) {
-			// Database insertion failed - rollback by deleting uploaded file
-			console.error('Document create - Database insertion failed:', error);
-			try {
-				const { deleteFileByUrl } = await import('$lib/server/storage');
-				await deleteFileByUrl(uploadResult.fileUrl);
-			} catch (deleteError) {
-				console.error('Failed to delete file during rollback:', deleteError);
-			}
+        const now = Date.now();
+        const newDocument = await plannerDb
+          .insertInto(TABLES.DOCUMENTS)
+          .values({
+            id: crypto.randomUUID(),
+            organizationId,
+            documentName,
+            documentCategory: documentCategory as
+              | "legal_formal"
+              | "vendor_finance"
+              | "guest_ceremony"
+              | "personal_keepsake",
+            documentDate,
+            documentStatus: "pending",
+            reminderSent: 0,
+            fileUrl: uploadResult.fileUrl,
+            fileName: uploadResult.fileName,
+            fileSize: uploadResult.fileSize,
+            mimeType: uploadResult.mimeType,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
 
-			return fail(500, {
-				form: {
-					...form,
-					errors: {
-						...form.errors,
-						_errors: ['Failed to save document. Please try again.'],
-					},
-				},
-			});
-		}
-		} catch (error) {
-			console.error('Document create - Unexpected error:', error);
-			return fail(500, { error: 'An unexpected error occurred' });
-		}
-	}),
-	updateDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		try {
-			const form = await superValidate(request, valibot(documentSchema));
-		if (!form.valid) return fail(400, { form });
-
-		// Extract document ID from form data
-		const formData = await request.formData();
-		const documentId = formData.get('id') as string;
-
-		if (!documentId) {
-			return fail(400, { error: 'Document ID is required' });
-		}
-
-		// Verify user owns the document being updated
-		const existingDocument = await plannerDb
-			.selectFrom('documents')
-			.selectAll()
-			.where('id', '=', documentId)
-			.where('organizationId', '=', organizationId)
-			.executeTakeFirst();
-
-		if (!existingDocument) {
-			return fail(404, { error: 'Document not found' });
-		}
-
-		// Implement conditional file replacement
-		let fileMetadata = {
-			fileUrl: existingDocument.fileUrl,
-			fileName: existingDocument.fileName,
-			fileSize: existingDocument.fileSize,
-			mimeType: existingDocument.mimeType,
-		};
-
-		// Check if new file is provided in form data
-		const file = form.data.file?.[0];
-		if (file && file instanceof File) {
-			// If new file exists, validate and upload to R2
-			const fileValidation = validateDocumentFile(file);
-			if (!fileValidation.valid) {
-				return fail(400, {
-					form: {
-						...form,
-						errors: {
-							...form.errors,
-							file: [fileValidation.error || 'Invalid file'],
-						},
-					},
-				});
-			}
-
-			try {
-				// Replace old file in R2 with new file
-				const { replaceFile } = await import('$lib/server/storage');
-				const uploadResult = await replaceFile(existingDocument.fileUrl, file, {
-					pathPrefix: 'documents',
-					scopeId: organizationId,
-				});
-
-				// Update database record with new file metadata
-				fileMetadata = {
-					fileUrl: uploadResult.fileUrl,
-					fileName: uploadResult.fileName,
-					fileSize: uploadResult.fileSize,
-					mimeType: uploadResult.mimeType,
-				};
-			} catch (error) {
-				// Implement rollback on failure (retain old file)
-				console.error('File replacement failed:', error);
-				return fail(500, {
-					form: {
-						...form,
-						errors: {
-							...form.errors,
-							file: ['Failed to upload new file. Please try again.'],
-						},
-					},
-				});
-			}
-		}
-
-		// Update document metadata
-		try {
-			// Update document name, category, dates, status, and notes
-			// Preserve existing file metadata if no new file provided
-			const updatedDocument = await plannerDb
-				.updateTable('documents')
-				.set({
-					documentName: form.data.documentName,
-					documentCategory: form.data.documentCategory,
-					documentDate: String(form.data.documentDate),
-					...fileMetadata,
-					updatedAt: Date.now(),
-				})
-				.where('id', '=', documentId)
-				.returningAll()
-				.executeTakeFirstOrThrow();
-
-			// Remove file from form data to avoid serialization error
-			const { file: _, ...formDataWithoutFile } = form.data;
-			return { form: { ...form, data: formDataWithoutFile }, success: true, document: updatedDocument };
-		} catch (error) {
-			console.error('Document update - Database update failed:', error);
-			return fail(500, {
-				form: {
-					...form,
-					errors: {
-						...form.errors,
-						_errors: ['Failed to update document. Please try again.'],
-					},
-				},
-			});
-		}
-		} catch (error) {
-			console.error('Document update - Unexpected error:', error);
-			return fail(500, { error: 'An unexpected error occurred' });
-		}
-	}),
-	deleteDocument: withAuth(async ({ organizationId, plannerDb }, { request }) => {
-		try {
-			// Extract document ID from form data
-		const formData = await request.formData();
-		const documentId = formData.get('id') as string;
-
-		if (!documentId) {
-			return fail(400, { error: 'Document ID is required' });
-		}
-
-		// Retrieve document record to get file URL
-		const existingDocument = await plannerDb
-			.selectFrom('documents')
-			.selectAll()
-			.where('id', '=', documentId)
-			.where('organizationId', '=', organizationId)
-			.executeTakeFirst();
-
-		if (!existingDocument) {
-			return fail(404, { error: 'Document not found' });
-		}
-
-		// Delete file from R2 storage
-		try {
-			const { deleteFileByUrl } = await import('$lib/server/storage');
-			await deleteFileByUrl(existingDocument.fileUrl);
-		} catch (error) {
-			// If R2 Storage deletion fails, log the error and proceed with database deletion
-			console.error('Failed to delete file from R2 storage:', error);
-		}
-
-		// Delete document record from database
-		try {
-			await plannerDb
-				.deleteFrom('documents')
-				.where('id', '=', documentId)
-				.execute();
-
-			// Return success response
-			return { success: true, message: 'Document deleted successfully' };
-		} catch (error) {
-			console.error('Document delete - Database deletion failed:', error);
-			return fail(500, { error: 'Failed to delete document. Please try again.' });
-		}
-		} catch (error) {
-			console.error('Document delete - Unexpected error:', error);
-			return fail(500, { error: 'An unexpected error occurred' });
-		}
-	}),
+        return { success: true, document: newDocument };
+      } catch (error) {
+        return handleActionError(error, "create document", {
+          form: {
+            errors: { form: ["Failed to upload document. Please try again."] },
+          },
+        });
+      }
+    }
+  ),
 };
