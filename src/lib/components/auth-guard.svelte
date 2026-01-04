@@ -1,30 +1,17 @@
 <script lang="ts">
-	import { isAuthenticated, isAuthLoading, isAuthInitialized } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import type { User, Session } from 'better-auth/types';
+	import type { Snippet } from 'svelte';
 
-	interface Props {
-		/**
-		 * Whether authentication is required to view this content
-		 */
+	type Props = {
 		requireAuth?: boolean;
-		/**
-		 * Redirect URL when authentication is required but user is not authenticated
-		 */
 		redirectTo?: string;
-		/**
-		 * Content to show while authentication is loading
-		 */
-		loadingContent?: any;
-		/**
-		 * Content to show when user is not authenticated (if requireAuth is false)
-		 */
-		unauthenticatedContent?: any;
-		/**
-		 * The main content to render
-		 */
-		children: any;
-	}
+		loadingContent?: Snippet;
+		unauthenticatedContent?: Snippet;
+		children: Snippet;
+		user?: User | null;
+		session?: Session | null;
+	};
 
 	let {
 		requireAuth = false,
@@ -32,25 +19,27 @@
 		loadingContent,
 		unauthenticatedContent,
 		children,
+		user = null,
+		session = null,
 	}: Props = $props();
 
-	// Handle redirect when auth is required but user is not authenticated
-	onMount(() => {
-		if (requireAuth && $isAuthInitialized && !$isAuthenticated) {
-			goto(redirectTo);
+	let isLoading = $state(!user && !session);
+	let isAuth = $derived(user !== null);
+
+	$effect(() => {
+		if (user !== null || session !== null) {
+			isLoading = false;
 		}
 	});
 
-	// Reactive redirect when auth state changes
 	$effect(() => {
-		if (requireAuth && $isAuthInitialized && !$isAuthenticated) {
+		if (!isLoading && requireAuth && !isAuth) {
 			goto(redirectTo);
 		}
 	});
 </script>
 
-<!-- Show loading state while auth is initializing -->
-{#if $isAuthLoading || !$isAuthInitialized}
+{#if isLoading}
 	{#if loadingContent}
 		{@render loadingContent()}
 	{:else}
@@ -58,18 +47,14 @@
 			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
 		</div>
 	{/if}
-	<!-- Show content based on auth requirements -->
 {:else if requireAuth}
-	{#if $isAuthenticated}
+	{#if isAuth}
 		{@render children()}
 	{/if}
+{:else if isAuth}
+	{@render children()}
+{:else if unauthenticatedContent}
+	{@render unauthenticatedContent()}
 {:else}
-	<!-- No auth required, show appropriate content -->
-	{#if $isAuthenticated}
-		{@render children()}
-	{:else if unauthenticatedContent}
-		{@render unauthenticatedContent()}
-	{:else}
-		{@render children()}
-	{/if}
+	{@render children()}
 {/if}
