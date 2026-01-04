@@ -2,6 +2,10 @@ node_modules
 .kiro
 .vscode
 notes
+docs
+dist
+todo
+AGENTS.md
 
 # Output
 .output
@@ -24,3 +28,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Localflare generated files
+.localflare/

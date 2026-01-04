@@ -1,24 +1,20 @@
 <script lang="ts">
-	import TaskTableEdit from './task-table-edit.svelte';
-	import TaskTableDelete from './task-table-delete.svelte';
+    import type { Task } from "$lib/types";
+    import TaskTableEdit from "./task-table-edit.svelte";
+    import TaskTableDelete from "./task-table-delete.svelte";
 
-	let { task, data, onUpdate, onDelete } = $props<{
-		task: any;
-		data: any;
-		onUpdate: (taskId: string, updatedData: any) => Promise<void>;
-		onDelete: (taskId: string) => Promise<void>;
-	}>();
+    let { task, data, onDelete } = $props<{
+        task: Task;
+        data: unknown;
+        onDelete: (taskId: string) => Promise<void>;
+    }>();
 </script>
 
 <div class="flex gap-2 justify-center">
-	<TaskTableEdit
-		{task}
-		{data}
-		{onUpdate}
-	/>
-	<TaskTableDelete
-		taskId={task.id}
-		taskDescription={task.taskDescription}
-		{onDelete}
-	/>
+    <TaskTableEdit {task} {data} />
+    <TaskTableDelete
+        taskId={task.id}
+        taskDescription={task.taskDescription}
+        {onDelete}
+    />
 </div>

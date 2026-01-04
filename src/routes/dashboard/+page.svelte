@@ -1,58 +1,74 @@
 <script lang="ts">
-	import SectionCards from '$lib/components/section/section-cards.svelte';
-	import SectionBudget from '$lib/components/section/section-budget.svelte';
-	import { buttonVariants } from '$lib/components/ui/button/index';
-	import { expensesState } from '$lib/stores/expenses.svelte';
-	import { formatLastUpdate, formatCurrency, calculateDaysUntil } from '$lib/utils/format-utils';
+	import SectionCards from "$lib/components/section/section-cards.svelte";
+	import SectionBudget from "$lib/components/section/section-budget.svelte";
+	import { formatLastUpdate, formatCurrency, calculateDaysUntil } from "$lib/utils/format-utils";
+	import { useTasks } from "$lib/query/task";
+	import { useExpenses } from "$lib/query/expense";
+	import { useVendors } from "$lib/query/vendor";
 
-	const overviewTitle = 'Wedding Overview';
+	const overviewTitle = "Wedding Overview";
 
 	let { data } = $props();
+
+	const taskQuery = useTasks();
+	const expensesQuery = useExpenses();
+	const vendorQuery = useVendors();
 
 	const weddingDate = data.workspace?.weddingDate ? new Date(data.workspace.weddingDate) : null;
 	const daysUntilWedding = $derived(calculateDaysUntil(weddingDate));
 
-	// Update store whenever data changes (including after invalidation)
-	// Pass workspace ID to ensure data consistency when workspace changes
-	$effect(() => {
-		if (data.expenses) {
-			const workspaceId = data.workspace?.id || null;
-
-			// Clear store if workspace changed to prevent stale data
-			if (!expensesState.isWorkspace(workspaceId)) {
-				expensesState.clearWorkspace();
-			}
-
-			expensesState.set(data.expenses, workspaceId);
-		}
+	const formatter = new Intl.NumberFormat("id-ID", {
+		style: "currency",
+		currency: "IDR",
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
 	});
+
+	const expensePaidAmount = $derived(
+		expensesQuery.data?.expenses.reduce(
+			(sum, e) => sum + Number(e.expenseAmount),
+			0,
+		) ?? 0
+	);
+
+	const vendorCount = $derived(vendorQuery.data?.vendors.length ?? 0);
 
 	let overviewCards = $derived([
 		{
-			title: data.stats.taskCount.toString(),
-			description: 'Tasks',
-			action: 'Total',
-			footer: formatLastUpdate(data.update.taskUpdate),
+			title: (taskQuery.data?.tasks.length ?? 0).toString(),
+			description: "Tasks",
+			action: "Total",
+			footer: taskQuery.data?.update?.total
+				? formatLastUpdate(taskQuery.data.update.total)
+				: "No data yet",
 		},
 		{
-			title: formatCurrency(data.stats.expensePaidAmount),
-			description: 'Budget Spent',
-			action: 'Total',
-			footer: formatLastUpdate(data.update.expenseUpdate),
+			title: formatter.format(expensePaidAmount),
+			description: "Budget Spent",
+			action: "Total",
+			footer: expensesQuery.data?.update?.spent
+				? formatLastUpdate(expensesQuery.data.update.spent)
+				: "No data yet",
 		},
 		{
-			title: data.stats.documentCount.toString(),
-			description: 'Documents',
-			action: 'Total',
-			footer: formatLastUpdate(data.update.documentUpdate),
+			title: (data.stats.documentCount ?? 0).toString(),
+			description: "Documents",
+			action: "Total",
+			footer: "Loading...",
 		},
 		{
-			title: data.stats.vendorCount.toString(),
-			description: 'Vendors',
-			action: 'Total',
-			footer: formatLastUpdate(data.update.vendorUpdate),
+			title: vendorCount.toString(),
+			description: "Vendors",
+			action: "Total",
+			footer: vendorQuery.data?.update?.booked
+				? formatLastUpdate(vendorQuery.data.update.booked)
+				: "No data yet",
 		},
 	]);
+
+	let isLoading = $derived(
+		taskQuery.isLoading || expensesQuery.isLoading || vendorQuery.isLoading
+	);
 </script>
 
 <div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
@@ -88,9 +104,6 @@
 		</div>
 	</div>
 
-	<SectionCards
-		{overviewCards}
-		{overviewTitle}
-	/>
+	<SectionCards {overviewCards} {overviewTitle} />
 	<SectionBudget {data} />
 </div>
