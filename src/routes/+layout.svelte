@@ -1,6 +1,7 @@
 <script lang="ts">
   import "uno.css";
   import { Progress } from "@friendofsvelte/progress";
+  import type { User, Session } from "better-auth/types";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
   import { setContext } from "svelte";
@@ -20,7 +21,17 @@
     data: { pageTitle?: string };
   }>();
 
-  setContext("auth", { user: data.user, session: data.session });
+  type AuthContext = {
+    user: User | null;
+    session: Session | null;
+  };
+
+  const authState = $state<AuthContext>({
+    user: data.user,
+    session: data.session,
+  });
+
+  setContext("auth", authState);
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,6 +46,8 @@
   });
 
   $effect(() => {
+    authState.user = data.user;
+    authState.session = data.session;
     if (browser) {
       getBroadcastChannel();
       onBroadcastMessage((queryKeys) => {

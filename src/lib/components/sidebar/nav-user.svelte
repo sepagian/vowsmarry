@@ -25,7 +25,12 @@
   import { useSidebar } from "$lib/components/ui/sidebar/index";
 
   import type { WithoutChildren } from "$lib/utils.js";
-  import type { User } from "better-auth/types";
+  import type { User, Session } from "better-auth/types";
+
+  type AuthContext = {
+    user: User | null;
+    session: Session | null;
+  };
 
   const sidebar = useSidebar();
   let {
@@ -35,7 +40,8 @@
     items: { title: string; url: string; icon: string }[];
   } & WithoutChildren<ComponentProps<typeof SidebarGroup>> = $props();
 
-  const { user }: { user: User | null } = getContext("auth");
+  const auth = getContext<AuthContext>("auth");
+  const user = $derived(auth?.user);
 
   const fullName = $derived(user?.name || "");
   const displayName = $derived(fullName || "User");
