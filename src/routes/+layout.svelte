@@ -1,15 +1,14 @@
 <script lang="ts">
   import "uno.css";
   import { Progress } from "@friendofsvelte/progress";
+  import type { User, Session } from "better-auth/types";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
-  import { onMount } from "svelte";
+  import { setContext } from "svelte";
 
   import { browser } from "$app/environment";
 
   import { Toaster } from "$lib/components/ui/sonner";
-
-  import { authStore } from "$lib/stores/auth";
 
   import favicon from "$lib/assets/favicon.svg";
   import { TOAST_CONFIG } from "$lib/constants/config";
@@ -19,9 +18,20 @@
   } from "$lib/utils/broadcast";
 
   let { data, children } = $props<{
-    data: { user: unknown; session: unknown; pageTitle?: string };
+    data: { pageTitle?: string };
   }>();
-  let { user, session, pageTitle } = $derived(data);
+
+  type AuthContext = {
+    user: User | null;
+    session: Session | null;
+  };
+
+  const authState = $state<AuthContext>({
+    user: data.user,
+    session: data.session,
+  });
+
+  setContext("auth", authState);
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,9 +45,9 @@
     },
   });
 
-  onMount(() => {
-    authStore.initialize(user, session);
-
+  $effect(() => {
+    authState.user = data.user;
+    authState.session = data.session;
     if (browser) {
       getBroadcastChannel();
       onBroadcastMessage((queryKeys) => {
@@ -46,17 +56,11 @@
       });
     }
   });
-
-  $effect(() => {
-    if (authStore.getState().initialized) {
-      authStore.setAuth(user, session);
-    }
-  });
 </script>
 
 <svelte:head>
   <link rel="icon" href={favicon} />
-  <title>{pageTitle}</title>
+  <title>{data.pageTitle}</title>
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>
