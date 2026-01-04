@@ -1,203 +1,228 @@
 <script lang="ts">
-	import { Button } from "$lib/components/ui/button/index";
-	import {
-		Dialog,
-		DialogContent,
-		DialogDescription,
-		DialogFooter,
-		DialogHeader,
-		DialogTitle,
-	} from "$lib/components/ui/dialog/index";
-	import { Input } from "$lib/components/ui/input/index";
-	import { Label } from "$lib/components/ui/label/index";
-	import {
-		Select,
-		SelectContent,
-		SelectItem,
-		SelectTrigger,
-	} from "$lib/components/ui/select/index";
+  import { useQueryClient } from "@tanstack/svelte-query";
+  import { superForm } from "sveltekit-superforms";
+  import { valibot } from "sveltekit-superforms/adapters";
 
-	import { vendorsState } from "$lib/stores/vendors.svelte";
-	import { createFormDataWithId } from "$lib/utils/form-helpers";
-	import { InvalidationService } from "$lib/utils/invalidation-helpers";
-	import { CrudToasts } from "$lib/utils/toasts";
-	import {
-		categoryEnum,
-		vendorRatingEnum,
-		vendorStatusEnum,
-	} from "$lib/validation/planner";
+  import { Button } from "$lib/components/ui/button/index";
+  import {
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+  } from "$lib/components/ui/dialog/index";
+  import {
+    FormButton,
+    FormControl,
+    FormField,
+    FormFieldErrors,
+    FormLabel,
+  } from "$lib/components/ui/form/index";
+  import { Input } from "$lib/components/ui/input/index";
+  import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+  } from "$lib/components/ui/select/index";
 
-	import type { Vendor } from "$lib/types";
+  import { broadcastInvalidate } from "$lib/utils/broadcast";
+  import { CrudToasts, FormToasts } from "$lib/utils/toasts";
+  import type { Vendor } from "$lib/types";
+  import { useUpdateVendor } from "$lib/mutation/vendor";
 
-	let { vendor, open = $bindable() } = $props<{
-		vendor: Vendor;
-		open: boolean;
-	}>();
+  import {
+    vendorSchema,
+    categoryEnum,
+    vendorRatingEnum,
+    vendorStatusEnum,
+  } from "$lib/validation/planner";
 
-	let isSubmitting = $state(false);
-	let formData = $state({
-		vendorName: vendor.vendorName,
-		vendorCategory: vendor.vendorCategory,
-		vendorInstagram: vendor.vendorInstagram,
-		vendorStatus: vendor.vendorStatus,
-		vendorRating: vendor.vendorRating,
-	});
+  let {
+    vendor,
+    data,
+    open = $bindable(),
+  }: {
+    vendor: Vendor;
+    data: { vendorForm: unknown };
+    open: boolean;
+  } = $props();
 
-	const selectedCategory = $derived(
-		formData.vendorCategory
-			? categoryEnum.find((c) => c.value === formData.vendorCategory)?.label
-			: "Choose category",
-	);
+  const updateVendorMutation = useUpdateVendor();
+  const queryClient = useQueryClient();
 
-	const selectedStatus = $derived(
-		formData.vendorStatus
-			? vendorStatusEnum.find((s) => s.value === formData.vendorStatus)?.label
-			: "Select progress status",
-	);
+  const form = superForm(data.vendorForm, {
+    validators: valibot(vendorSchema),
+    resetForm: false,
+    onResult: ({ result }) => {
+      if (result.type === "success") {
+        const vendorName = $formData.vendorName || "Vendor";
+        CrudToasts.success("update", "vendor", { itemName: vendorName });
+        queryClient.invalidateQueries({ queryKey: ["vendors"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+        broadcastInvalidate(["vendors", "dashboard"]);
+        open = false;
+      } else if (result.type === "failure") {
+        FormToasts.emptyFormError();
+      } else if (result.type === "error") {
+        CrudToasts.error(
+          "update",
+          "An error occurred while updating the vendor",
+          "vendor"
+        );
+      }
+    },
+  });
+  const { form: formData, enhance } = form;
 
-	const selectedRating = $derived(
-		formData.vendorRating
-			? vendorRatingEnum.find((r) => r.value === formData.vendorRating)?.label
-			: "Select vendor rating",
-	);
+  $effect(() => {
+    if (open) {
+      $formData.vendorName = vendor.vendorName;
+      $formData.vendorCategory = vendor.vendorCategory;
+      $formData.vendorInstagram = vendor.vendorInstagram ?? "";
+      $formData.vendorStatus = vendor.vendorStatus;
+      $formData.vendorRating = vendor.vendorRating;
+    }
+  });
 
-	async function handleSubmit(e: Event) {
-		e.preventDefault();
-		isSubmitting = true;
+  const isUpdating = $derived(updateVendorMutation.isPending.value);
 
-		// Optimistic update
-		const originalVendor = vendorsState.findById(vendor.id!);
-		vendorsState.update(vendor.id!, {
-			vendorName: formData.vendorName,
-			vendorCategory: formData.vendorCategory,
-			vendorInstagram: formData.vendorInstagram,
-			vendorStatus: formData.vendorStatus,
-			vendorRating: formData.vendorRating,
-		});
+  const selectedCategory = $derived(
+    $formData.vendorCategory
+      ? categoryEnum.find((c) => c.value === $formData.vendorCategory)?.label
+      : "Choose category"
+  );
 
-		try {
-			const form = createFormDataWithId(vendor.id!, {
-				vendorName: formData.vendorName,
-				vendorCategory: formData.vendorCategory,
-				vendorInstagram: formData.vendorInstagram || "",
-				vendorStatus: formData.vendorStatus,
-				vendorRating: formData.vendorRating,
-			});
+  const selectedStatus = $derived(
+    $formData.vendorStatus
+      ? vendorStatusEnum.find((s) => s.value === $formData.vendorStatus)?.label
+      : "Select progress status"
+  );
 
-			const response = await fetch("?/updateVendor", {
-				method: "POST",
-				body: form,
-			});
-
-			const result = (await response.json()) as {
-				type: string;
-				error?: string;
-			};
-
-			if (result.type === "success") {
-				CrudToasts.success("update", "vendor", {
-					itemName: formData.vendorName,
-				});
-				await InvalidationService.invalidateVendor();
-				open = false;
-			} else {
-				throw new Error(result.error || "Failed to update vendor");
-			}
-		} catch (error) {
-			// Revert optimistic update on error
-			if (originalVendor) {
-				vendorsState.update(vendor.id!, originalVendor);
-			}
-			CrudToasts.error(
-				"update",
-				error instanceof Error ? error.message : "Failed to update vendor",
-				"vendor",
-			);
-		} finally {
-			isSubmitting = false;
-		}
-	}
+  const selectedRating = $derived(
+    $formData.vendorRating
+      ? vendorRatingEnum.find((r) => r.value === $formData.vendorRating)?.label
+      : "Select vendor rating"
+  );
 </script>
 
-<Dialog bind:open>
-	<DialogContent class="sm:max-w-[425px]">
-		<DialogHeader>
-			<DialogTitle>Edit Vendor</DialogTitle>
-			<DialogDescription>
-				<p>Update vendor information</p>
-			</DialogDescription>
-		</DialogHeader>
-		<form onsubmit={handleSubmit} class="flex flex-col gap-4">
-			<div class="flex flex-col gap-2">
-				<Label for="name">Name</Label>
-				<Input
-					id="name"
-					type="text"
-					bind:value={formData.vendorName}
-					required
-				/>
-			</div>
-			<div class="flex w-full gap-4">
-				<div class="flex flex-col w-full gap-2">
-					<Label for="category">Category</Label>
-					<Select type="single" bind:value={formData.vendorCategory}>
-						<SelectTrigger class="flex w-full">
-							{selectedCategory}
-						</SelectTrigger>
-						<SelectContent>
-							{#each categoryEnum as option (option.value)}
-								<SelectItem value={option.value}>
-									{option.label}
-								</SelectItem>
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-				<div class="flex flex-col w-full gap-2">
-					<Label for="instagram">Instagram</Label>
-					<Input
-						id="instagram"
-						type="text"
-						bind:value={formData.vendorInstagram}
-					/>
-				</div>
-			</div>
-			<div class="flex w-full gap-4">
-				<div class="flex flex-col w-full gap-2">
-					<Label for="status">Status</Label>
-					<Select type="single" bind:value={formData.vendorStatus}>
-						<SelectTrigger class="flex w-full">{selectedStatus}</SelectTrigger>
-						<SelectContent>
-							{#each vendorStatusEnum as option (option.value)}
-								<SelectItem value={option.value}>
-									{option.label}
-								</SelectItem>
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-				<div class="flex flex-col w-full gap-2">
-					<Label for="rating">Rating</Label>
-					<Select type="single" bind:value={formData.vendorRating}>
-						<SelectTrigger class="flex w-full">
-							{selectedRating}stars
-						</SelectTrigger>
-						<SelectContent>
-							{#each vendorRatingEnum as option (option.value)}
-								<SelectItem value={option.value}>
-									{option.label} stars
-								</SelectItem>
-							{/each}
-						</SelectContent>
-					</Select>
-				</div>
-			</div>
-
-			<DialogFooter>
-				<Button type="submit" disabled={isSubmitting}>
-					{isSubmitting ? "Updating..." : "Update Vendor"}
-				</Button>
-			</DialogFooter>
-		</form>
-	</DialogContent>
-</Dialog>
+<DialogContent class="sm:max-w-[425px]">
+  <DialogHeader>
+    <DialogTitle>Edit Vendor</DialogTitle>
+    <DialogDescription>
+      <p>Update the vendor details below.</p>
+    </DialogDescription>
+  </DialogHeader>
+  <form
+    use:enhance
+    method="POST"
+    action="?/updateVendor"
+    class="flex flex-col gap-4"
+    onsubmit={(e) => {
+      if (!$formData.valid) {
+        e.preventDefault();
+      }
+    }}
+  >
+    <input type="hidden" name="id" value={vendor.id}>
+    <FormField {form} name="vendorName">
+      <FormControl>
+        {#snippet children({ props })}
+          <FormLabel>Name</FormLabel>
+          <Input {...props} type="text" bind:value={$formData.vendorName} />
+        {/snippet}
+      </FormControl>
+      <FormFieldErrors class="text-xs text-red-500"/>
+    </FormField>
+    <div class="flex w-full gap-4">
+      <FormField {form} name="vendorCategory" class="flex flex-col w-full">
+        <FormControl>
+          {#snippet children({ props })}
+            <FormLabel>Category</FormLabel>
+            <Select
+              type="single"
+              bind:value={$formData.vendorCategory}
+              name={props.name}
+            >
+              <SelectTrigger {...props} class="flex w-full">
+                {selectedCategory}
+              </SelectTrigger>
+              <SelectContent>
+                {#each categoryEnum as option (option.value)}
+                  <SelectItem value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                {/each}
+              </SelectContent>
+            </Select>
+          {/snippet}
+        </FormControl>
+        <FormFieldErrors class="text-xs"/>
+      </FormField>
+      <FormField {form} name="vendorInstagram" class="flex flex-col w-full">
+        <FormControl>
+          {#snippet children({ props })}
+            <FormLabel>Instagram</FormLabel>
+            <Input {...props} type="text" bind:value={$formData.vendorInstagram} />
+          {/snippet}
+        </FormControl>
+        <FormFieldErrors class="text-xs text-red-500"/>
+      </FormField>
+    </div>
+    <div class="flex w-full gap-4">
+      <FormField {form} name="vendorStatus" class="flex flex-col w-full">
+        <FormControl>
+          {#snippet children({ props })}
+            <FormLabel>Status</FormLabel>
+            <Select
+              type="single"
+              bind:value={$formData.vendorStatus}
+              name={props.name}
+            >
+              <SelectTrigger {...props} class="flex w-full">
+                {selectedStatus}
+              </SelectTrigger>
+              <SelectContent>
+                {#each vendorStatusEnum as option (option.value)}
+                  <SelectItem value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                {/each}
+              </SelectContent>
+            </Select>
+          {/snippet}
+        </FormControl>
+        <FormFieldErrors class="text-xs"/>
+      </FormField>
+      <FormField {form} name="vendorRating" class="flex flex-col w-full">
+        <FormControl>
+          {#snippet children({ props })}
+            <FormLabel>Rating</FormLabel>
+            <Select
+              type="single"
+              bind:value={$formData.vendorRating}
+              name={props.name}
+            >
+              <SelectTrigger {...props} class="flex w-full">
+                {selectedRating} stars
+              </SelectTrigger>
+              <SelectContent>
+                {#each vendorRatingEnum as option (option.value)}
+                  <SelectItem value={option.value}>
+                    {option.label} stars
+                  </SelectItem>
+                {/each}
+              </SelectContent>
+            </Select>
+          {/snippet}
+        </FormControl>
+        <FormFieldErrors class="text-xs"/>
+      </FormField>
+    </div>
+    <DialogFooter>
+      <FormButton disabled={isUpdating}>
+        {isUpdating ? "Updating..." : "Update Vendor"}
+      </FormButton>
+    </DialogFooter>
+  </form>
+</DialogContent>
