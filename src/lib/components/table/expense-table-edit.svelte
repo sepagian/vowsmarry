@@ -7,81 +7,75 @@
     import { superForm } from "sveltekit-superforms";
     import { valibot } from "sveltekit-superforms/adapters";
     import { CrudToasts } from "$lib/utils/toasts";
-    import type { Task } from "$lib/types";
-    import { useUpdateTask } from "$lib/mutation/task";
+    import type { Expense } from "$lib/types";
+    import { useUpdateExpense } from "$lib/mutation/expense";
 
     import {
-        taskSchema,
+        expenseSchema,
         categoryEnum,
-        taskPriorityEnum,
-        taskStatusEnum,
+        expenseStatusEnum,
     } from "$lib/validation/planner";
 
-    let { task, data, onUpdate } = $props<{
-        task: Task;
+    let { expense, data } = $props<{
+        expense: Expense;
         data: any;
-        onUpdate?: (taskId: string, updatedData: any) => Promise<void>;
     }>();
 
     let dialogOpen = $state(false);
 
-    const updateTaskMutation = useUpdateTask();
+    const updateExpenseMutation = useUpdateExpense();
 
-    const form = superForm(data.taskForm, {
-        validators: valibot(taskSchema),
+    const form = superForm(data.expenseForm, {
+        validators: valibot(expenseSchema),
         resetForm: false,
     });
     const { form: formData } = form;
 
     $effect(() => {
         if (dialogOpen) {
-            $formData.taskDescription = task.taskDescription;
-            $formData.taskCategory = task.taskCategory;
-            $formData.taskPriority = task.taskPriority;
-            $formData.taskStatus = task.taskStatus;
-            $formData.taskDueDate = task.taskDueDate;
+            $formData.expenseDescription = expense.expenseDescription;
+            $formData.expenseCategory = expense.expenseCategory;
+            $formData.expenseAmount = expense.expenseAmount;
+            $formData.expensePaymentStatus = expense.expensePaymentStatus;
+            $formData.expenseDueDate = expense.expenseDueDate;
         }
     });
 
     async function handleSubmit() {
         try {
-            await updateTaskMutation.mutateAsync({
-                id: task.id,
-                taskDescription: $formData.taskDescription,
-                taskCategory: $formData.taskCategory,
-                taskPriority: $formData.taskPriority,
-                taskStatus: $formData.taskStatus,
-                taskDueDate: $formData.taskDueDate,
+            await updateExpenseMutation.mutateAsync({
+                id: expense.id,
+                expenseDescription: $formData.expenseDescription,
+                expenseCategory: $formData.expenseCategory,
+                expenseAmount: $formData.expenseAmount,
+                expensePaymentStatus: $formData.expensePaymentStatus,
+                expenseDueDate: $formData.expenseDueDate,
             });
-            CrudToasts.success("update", "task", {
-                itemName: $formData.taskDescription,
+            CrudToasts.success("update", "expense", {
+                itemName: $formData.expenseDescription,
             });
             dialogOpen = false;
         } catch (error) {
             console.error("Update error:", error);
             CrudToasts.error(
                 "update",
-                "An error occurred while updating the task",
-                "task",
+                "An error occurred while updating the expense",
+                "expense",
             );
         }
     }
 
-    const isUpdating = $derived(updateTaskMutation.isPending.value);
+    const isUpdating = $derived(updateExpenseMutation.isPending);
 
     const selectedCategory = $derived(
-        categoryEnum.find((c) => c.value === $formData.taskCategory)?.label ??
-            "Choose category",
-    );
-
-    const selectedPriority = $derived(
-        taskPriorityEnum.find((p) => p.value === $formData.taskPriority)
-            ?.label ?? "Select priority",
+        categoryEnum.find((c) => c.value === $formData.expenseCategory)
+            ?.label ?? "Choose category",
     );
 
     const selectedStatus = $derived(
-        taskStatusEnum.find((s) => s.value === $formData.taskStatus)?.label ??
-            "Select task status",
+        expenseStatusEnum.find(
+            (s) => s.value === $formData.expensePaymentStatus,
+        )?.label ?? "Select payment status",
     );
 </script>
 
@@ -93,7 +87,7 @@
                 variant="outline"
                 size="sm"
                 class="h-8 w-8 p-0"
-                title="Edit task"
+                title="Edit expense"
             >
                 <div class="i-lucide:pencil h-4 w-4"></div>
             </Button>
@@ -108,67 +102,57 @@
             class="flex flex-col gap-4"
         >
             <Dialog.Header>
-                <Dialog.Title>Edit Task</Dialog.Title>
+                <Dialog.Title>Edit Expense</Dialog.Title>
                 <Dialog.Description>
-                    <p>Update the details of your wedding task.</p>
+                    <p>Update the expense details below.</p>
                 </Dialog.Description>
             </Dialog.Header>
-            <Form.Field {form} name="taskDescription">
+            <Form.Field {form} name="expenseDescription">
                 <Form.Control>
                     {#snippet children({ props })}
                         <Form.Label>Description</Form.Label>
                         <Input
                             {...props}
                             type="text"
-                            bind:value={$formData.taskDescription}
+                            bind:value={$formData.expenseDescription}
                         />
                     {/snippet}
                 </Form.Control>
                 <Form.FieldErrors class="text-xs text-red-500" />
             </Form.Field>
-            <Form.Field {form} name="taskCategory">
+            <Form.Field {form} name="expenseAmount">
                 <Form.Control>
                     {#snippet children({ props })}
-                        <Form.Label>Category</Form.Label>
-                        <Select.Root
-                            type="single"
-                            bind:value={$formData.taskCategory}
-                            name={props.name}
-                        >
-                            <Select.Trigger {...props} class="w-full">
-                                {selectedCategory}
-                            </Select.Trigger>
-                            <Select.Content>
-                                {#each categoryEnum as option (option.value)}
-                                    <Select.Item value={option.value}>
-                                        {option.label}
-                                    </Select.Item>
-                                {/each}
-                            </Select.Content>
-                        </Select.Root>
+                        <Form.Label>Amount</Form.Label>
+                        <Input
+                            {...props}
+                            type="number"
+                            pattern="[0-9]*"
+                            bind:value={$formData.expenseAmount}
+                        />
                     {/snippet}
                 </Form.Control>
-                <Form.FieldErrors />
+                <Form.FieldErrors class="text-xs text-red-500" />
             </Form.Field>
             <div class="flex w-full gap-4">
                 <Form.Field
                     {form}
-                    name="taskPriority"
+                    name="expenseCategory"
                     class="flex flex-col w-full"
                 >
                     <Form.Control>
                         {#snippet children({ props })}
-                            <Form.Label>Priority</Form.Label>
+                            <Form.Label>Category</Form.Label>
                             <Select.Root
                                 type="single"
-                                bind:value={$formData.taskPriority}
+                                bind:value={$formData.expenseCategory}
                                 name={props.name}
                             >
                                 <Select.Trigger {...props} class="w-full">
-                                    {selectedPriority}
+                                    {selectedCategory}
                                 </Select.Trigger>
-                                <Select.Content class="w-full">
-                                    {#each taskPriorityEnum as option (option.value)}
+                                <Select.Content>
+                                    {#each categoryEnum as option (option.value)}
                                         <Select.Item value={option.value}>
                                             {option.label}
                                         </Select.Item>
@@ -181,22 +165,22 @@
                 </Form.Field>
                 <Form.Field
                     {form}
-                    name="taskStatus"
+                    name="expensePaymentStatus"
                     class="flex flex-col w-full"
                 >
                     <Form.Control>
                         {#snippet children({ props })}
-                            <Form.Label>Status</Form.Label>
+                            <Form.Label>Payment Status</Form.Label>
                             <Select.Root
                                 type="single"
-                                bind:value={$formData.taskStatus}
+                                bind:value={$formData.expensePaymentStatus}
                                 name={props.name}
                             >
                                 <Select.Trigger {...props} class="w-full">
                                     {selectedStatus}
                                 </Select.Trigger>
                                 <Select.Content class="w-full">
-                                    {#each taskStatusEnum as option (option.value)}
+                                    {#each expenseStatusEnum as option (option.value)}
                                         <Select.Item value={option.value}>
                                             {option.label}
                                         </Select.Item>
@@ -208,15 +192,14 @@
                     <Form.FieldErrors />
                 </Form.Field>
             </div>
-
-            <Form.Field {form} name="taskDueDate">
+            <Form.Field {form} name="expenseDueDate">
                 <Form.Control>
                     {#snippet children({ props })}
                         <Form.Label>Due Date</Form.Label>
                         <Input
                             {...props}
                             type="date"
-                            bind:value={$formData.taskDueDate}
+                            bind:value={$formData.expenseDueDate}
                         />
                     {/snippet}
                 </Form.Control>
@@ -224,7 +207,7 @@
             </Form.Field>
             <Dialog.Footer>
                 <Button type="submit" disabled={isUpdating}>
-                    {isUpdating ? "Updating..." : "Update Task"}
+                    {isUpdating ? "Updating..." : "Update Expense"}
                 </Button>
             </Dialog.Footer>
         </form>
