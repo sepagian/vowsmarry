@@ -19,10 +19,8 @@
           .replace(/-/g, " ")
           .replace(/\b\w/g, (c) => c.toUpperCase());
         return { title, href, isLast: index === arr.length - 1 };
-      })
+      }),
   );
-
-  const user = $derived(page.data.user ?? null);
 
   let data = {
     navUser: [],
@@ -33,7 +31,7 @@
   const toggleIcon = $derived(
     sidebar.open
       ? "i-tabler:layout-sidebar-left-collapse-filled"
-      : "i-tabler:layout-sidebar-right-collapse-filled"
+      : "i-tabler:layout-sidebar-right-collapse-filled",
   );
 </script>
 
@@ -47,28 +45,28 @@
           class="{toggleIcon} h-7 w-7 text-muted-foreground hover:text-foreground transition-all duration-300 ease-in-out"
         ></div>
       </Button>
-      <Separator orientation="vertical" class="mr-2 h-14"/>
+      <Separator orientation="vertical" class="mr-2 h-14" />
       <Breadcrumb.Root class="hidden sm:block">
         <Breadcrumb.List>
-					{#each breadcrumbs as crumb, i (i)}
-						<Breadcrumb.Item>
-							{#if crumb.isLast}
-								<Breadcrumb.Page>{crumb.title}</Breadcrumb.Page>
-							{:else}
-								<Breadcrumb.Link href={crumb.href}
-									>{crumb.title}</Breadcrumb.Link
-								>
-							{/if}
-						</Breadcrumb.Item>
-						{#if !crumb.isLast}
-							<Breadcrumb.Separator />
-						{/if}
-					{/each}
-				</Breadcrumb.List>
+          {#each breadcrumbs as crumb, i (i)}
+            <Breadcrumb.Item>
+              {#if crumb.isLast}
+                <Breadcrumb.Page>{crumb.title}</Breadcrumb.Page>
+              {:else}
+                <Breadcrumb.Link href={crumb.href}
+                  >{crumb.title}</Breadcrumb.Link
+                >
+              {/if}
+            </Breadcrumb.Item>
+            {#if !crumb.isLast}
+              <Breadcrumb.Separator />
+            {/if}
+          {/each}
+        </Breadcrumb.List>
       </Breadcrumb.Root>
     </div>
     <div class="flex justify-end gap-4 items-center">
-      <NavUser items={data.navUser} {user}/>
+      <NavUser items={data.navUser} />
     </div>
   </div>
 </header>

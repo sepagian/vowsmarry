@@ -1,6 +1,7 @@
 <script lang="ts">
   import { mode, toggleMode } from "mode-watcher";
   import type { ComponentProps } from "svelte";
+  import { getContext } from "svelte";
 
   import { enhance } from "$app/forms";
 
@@ -29,16 +30,14 @@
   const sidebar = useSidebar();
   let {
     items,
-    user,
     ...restProps
   }: {
     items: { title: string; url: string; icon: string }[];
-    user?: User | null;
   } & WithoutChildren<ComponentProps<typeof SidebarGroup>> = $props();
 
-  type UserWithFirstName = User & { firstName?: string | null };
-  const userWithFirst = user as UserWithFirstName | null;
-  const fullName = $derived(user?.name || userWithFirst?.firstName || "");
+  const { user }: { user: User | null } = getContext("auth");
+
+  const fullName = $derived(user?.name || "");
   const displayName = $derived(fullName || "User");
   const displayEmail = $derived(user?.email || "");
   const initials = $derived(
@@ -47,7 +46,7 @@
       .map((n: string) => n.charAt(0))
       .join("")
       .toUpperCase()
-      .slice(0, 2) || "U"
+      .slice(0, 2) || "U",
   );
 </script>
 
