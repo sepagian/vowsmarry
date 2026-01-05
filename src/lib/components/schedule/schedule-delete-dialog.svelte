@@ -8,14 +8,14 @@
   } from "$lib/components/ui/dialog";
   import { Button } from "$lib/components/ui/button";
   import type { Schedule } from "$lib/types";
-  import { FormToasts } from "$lib/utils/toasts";
+  import { CrudToasts, FormToasts } from "$lib/utils/toasts";
 
-  interface Props {
+  type Props = {
     open: boolean;
     schedule: Schedule | null;
     onOpenChange: (open: boolean) => void;
     onConfirm?: () => void;
-  }
+  };
 
   let {
     open = $bindable(),
@@ -39,18 +39,25 @@
         body: formData,
       });
 
-      const result = await response.json();
+      const result = (await response.json()) as {
+        type: string;
+        error?: string;
+      };
 
       if (result.type === "success") {
-        FormToasts.success("Schedule deleted successfully!");
+        CrudToasts.success("delete", "Schedule deleted successfully!");
         onOpenChange(false);
         onConfirm?.();
       } else {
-        FormToasts.error(result.error || "Failed to delete schedule");
+        CrudToasts.error("delete", "Failed to delete schedule", "schedule");
       }
     } catch (error) {
       console.error("Delete error:", error);
-      FormToasts.error("An error occurred while deleting the schedule");
+      CrudToasts.error(
+        "delete",
+        "An error occurred while deleting the schedule",
+        "schedule",
+      );
     } finally {
       isDeleting = false;
     }
