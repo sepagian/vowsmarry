@@ -1,9 +1,9 @@
 <script lang="ts">
   import { mode, toggleMode } from "mode-watcher";
   import type { ComponentProps } from "svelte";
+  import { getContext } from "svelte";
 
   import { enhance } from "$app/forms";
-  import { get } from "svelte/store";
 
   import {
     Root as AvatarRoot,
@@ -24,9 +24,13 @@
   } from "$lib/components/ui/sidebar/index";
   import { useSidebar } from "$lib/components/ui/sidebar/index";
 
-  import { currentUser } from "$lib/stores/auth";
-
   import type { WithoutChildren } from "$lib/utils.js";
+  import type { User, Session } from "better-auth/types";
+
+  type AuthContext = {
+    user: User | null;
+    session: Session | null;
+  };
 
   const sidebar = useSidebar();
   let {
@@ -36,28 +40,19 @@
     items: { title: string; url: string; icon: string }[];
   } & WithoutChildren<ComponentProps<typeof SidebarGroup>> = $props();
 
-  let user = $state(get(currentUser));
+  const auth = getContext<AuthContext>("auth");
+  const user = $derived(auth?.user);
 
-  $effect(() => {
-    return currentUser.subscribe((value) => (user = value));
-  });
-
-  // Better Auth stores the full name in the 'name' field
   const fullName = $derived(user?.name || "");
-  const nameParts = $derived(fullName.split(" "));
-  const firstName = $derived(nameParts[0] || "");
-  const lastName = $derived(nameParts.slice(1).join(" ") || "");
   const displayName = $derived(fullName || "User");
   const displayEmail = $derived(user?.email || "");
   const initials = $derived(
-    firstName && lastName
-      ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-      : displayName
-          .split(" ")
-          .map((n: string) => n.charAt(0))
-          .join("")
-          .toUpperCase()
-          .slice(0, 2) || "U",
+    displayName
+      .split(" ")
+      .map((n: string) => n.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "U",
   );
 </script>
 

@@ -29,7 +29,9 @@
   let overviewCards = $derived([
     {
       title: formatter.format(
-        Number.parseFloat(expensesQuery.data?.financeStats.plannedBudget ?? "0")
+        Number.parseFloat(
+          expensesQuery.data?.financeStats.plannedBudget ?? "0",
+        ),
       ),
       description: "Planned Budget",
       actionClass: "i-lucide:wallet",
@@ -39,13 +41,13 @@
             new Date(expensesQuery.data.update.planned),
             {
               addSuffix: true,
-            }
+            },
           )}`
         : "No data yet",
     },
     {
       title: formatter.format(
-        Number.parseFloat(expensesQuery.data?.financeStats.totalSavings ?? "0")
+        Number.parseFloat(expensesQuery.data?.financeStats.totalSavings ?? "0"),
       ),
       description: "Savings",
       actionClass: "i-lucide:piggy-bank",
@@ -54,7 +56,7 @@
     },
     {
       title: formatter.format(
-        Number.parseFloat(expensesQuery.data?.financeStats.budgetSpent ?? "0")
+        Number.parseFloat(expensesQuery.data?.financeStats.budgetSpent ?? "0"),
       ),
       description: "Expenses",
       actionClass: "i-lucide:receipt-text",
@@ -64,15 +66,15 @@
             new Date(expensesQuery.data.update.spent),
             {
               addSuffix: true,
-            }
+            },
           )}`
         : "No data yet",
     },
     {
       title: formatter.format(
         Number.parseFloat(
-          expensesQuery.data?.financeStats.budgetRemaining ?? "0"
-        )
+          expensesQuery.data?.financeStats.budgetRemaining ?? "0",
+        ),
       ),
       description: "Remaining Balance",
       actionClass: "i-lucide:chart-area",
@@ -82,7 +84,7 @@
             new Date(expensesQuery.data.update.spent),
             {
               addSuffix: true,
-            }
+            },
           )}`
         : "No data yet",
     },
@@ -93,10 +95,10 @@
   let isLoading = $derived(expensesQuery.isLoading);
 </script>
 
-<ConfirmDeleteDialog/>
+<ConfirmDeleteDialog />
 
 <div class="flex flex-1 flex-col gap-2 py-4 max-w-screen-xl mx-auto">
-  <SectionCards {overviewCards} {overviewTitle}/>
+  <SectionCards {overviewCards} {overviewTitle} />
   <Tabs value="expense" class="px-4">
     <TabsList class="w-full">
       <TabsTrigger value="expense">Expenses</TabsTrigger>
@@ -113,7 +115,7 @@
       {:else}
         <div class="grid grid-cols-3 gap-4 flex flex-col">
           <div class="flex flex-col col-span-3 lg:col-span-2 gap-2">
-            <ExpenseTable {data} allowAdd={true}/>
+            <ExpenseTable {data} allowAdd={true} />
           </div>
           <div
             class="flex flex-col col-span-3 lg:col-span-1 row-span-3 gap-2 pb-4"
@@ -126,7 +128,7 @@
       {/if}
     </TabsContent>
     <TabsContent value="savings">
-      <SectionSavings/>
+      <SectionSavings />
     </TabsContent>
   </Tabs>
 </div>

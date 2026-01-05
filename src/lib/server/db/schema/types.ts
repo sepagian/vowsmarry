@@ -120,7 +120,7 @@ export interface OrganizationTable {
   brideName: string | null;
   weddingDate: string | null; // ISO date string (YYYY-MM-DD)
   weddingVenue: string | null;
-  weddingBudget: string | null; // Stored as text to match Better Auth's type system
+  weddingBudget: number | null; // Stored as integer (IDR - no decimals)
 }
 
 export interface MemberTable {

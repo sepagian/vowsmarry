@@ -1,21 +1,14 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { error, fail } from "@sveltejs/kit";
 import { superValidate } from "sveltekit-superforms";
 import { valibot } from "sveltekit-superforms/adapters";
 
-import { withAuth } from "$lib/server/auth";
 import { handleActionError } from "$lib/server/error-handler";
 import { vendorSchema } from "$lib/validation/planner";
 import { TABLES } from "$lib/constants/database";
 
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals }) => {
-  const { user } = locals;
-
-  if (!user) {
-    redirect(302, "/login");
-  }
-
+export const load: PageServerLoad = async () => {
   const vendorForm = await superValidate(valibot(vendorSchema));
 
   return {
@@ -24,8 +17,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  createVendor: withAuth(async ({ organizationId, plannerDb }, { request }) => {
+  createVendor: async ({ locals, request, plannerDb }) => {
+    const { activeWorkspaceId } = locals;
+
+    if (!activeWorkspaceId) {
+      throw error(404, "No active workspace found");
+    }
+
     const form = await superValidate(request, valibot(vendorSchema));
+
     if (!form.valid) {
       return fail(400, { form });
     }
@@ -37,7 +37,7 @@ export const actions: Actions = {
         .values({
           ...form.data,
           id: crypto.randomUUID(),
-          organizationId,
+          organizationId: activeWorkspaceId,
           createdAt: now,
           updatedAt: now,
         })
@@ -48,5 +48,5 @@ export const actions: Actions = {
     } catch (error) {
       return handleActionError(error, "create vendor", { form });
     }
-  }),
+  },
 };

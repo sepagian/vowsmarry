@@ -1,15 +1,15 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import "uno.css";
   import { Progress } from "@friendofsvelte/progress";
+  import type { User, Session } from "better-auth/types";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { SvelteQueryDevtools } from "@tanstack/svelte-query-devtools";
-  import { onMount } from "svelte";
+  import { setContext } from "svelte";
 
   import { browser } from "$app/environment";
 
   import { Toaster } from "$lib/components/ui/sonner";
-
-  import { authStore } from "$lib/stores/auth";
 
   import favicon from "$lib/assets/favicon.svg";
   import { TOAST_CONFIG } from "$lib/constants/config";
@@ -19,9 +19,20 @@
   } from "$lib/utils/broadcast";
 
   let { data, children } = $props<{
-    data: { user: unknown; session: unknown; pageTitle?: string };
+    data: { pageTitle?: string };
   }>();
-  let { user, session, pageTitle } = $derived(data);
+
+  type AuthContext = {
+    user: User | null;
+    session: Session | null;
+  };
+
+  const authState = $state<AuthContext>({
+    user: data.user,
+    session: data.session,
+  });
+
+  setContext("auth", authState);
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,21 +46,46 @@
     },
   });
 
-  onMount(() => {
-    authStore.initialize(user, session);
+  const pageTitle = $derived.by(() => {
+    const path = page.url.pathname;
 
+    const titleMap: Record<string, string> = {
+      "/login": "Login | VowsMarry",
+      "/register": "Register | VowsMarry",
+      "/forgot-password": "Forgot Password | VowsMarry",
+      "/reset-password": "Reset Password | VowsMarry",
+      "/onboarding": "Setup Your Wedding | VowsMarry",
+      "/dashboard": "Dashboard | VowsMarry",
+    };
+
+    if (path.startsWith("/dashboard")) {
+      const section = path.split("/dashboard/")[1]?.split("/")[0];
+      const sectionTitles: Record<string, string> = {
+        task: "Tasks",
+        document: "Document",
+        finance: "Finance",
+        vendor: "Vendor",
+        schedule: "Schedule",
+      };
+
+      if (section && sectionTitles[section]) {
+        return `${sectionTitles[section]} | VowsMarry`;
+      }
+      return "Dashboard | VowsMarry";
+    }
+
+    return titleMap[path] || "VowsMarry";
+  });
+
+  $effect(() => {
+    authState.user = data.user;
+    authState.session = data.session;
     if (browser) {
       getBroadcastChannel();
       onBroadcastMessage((queryKeys) => {
         console.log("[Broadcast] Invalidating:", queryKeys);
         queryClient.invalidateQueries();
       });
-    }
-  });
-
-  $effect(() => {
-    if (authStore.getState().initialized) {
-      authStore.setAuth(user, session);
     }
   });
 </script>

@@ -4,44 +4,24 @@ import { getTableCount } from "$lib/server/db/query-helpers";
 import { TABLES } from "$lib/constants/database";
 
 export const load: LayoutServerLoad = async ({ locals, plannerDb }) => {
-  const { user, activeWorkspace, activeWorkspaceId } = locals;
+  const { user, activeWorkspaceId } = locals;
 
   if (!user) {
     redirect(302, "/login");
   }
 
-  if (!activeWorkspace) {
+  if (!activeWorkspaceId) {
     redirect(302, "/onboarding");
   }
 
-  if (!activeWorkspaceId) {
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.name || null,
-        lastName: null,
-      },
-      workspace: {
-        id: activeWorkspace.id,
-        name: activeWorkspace.name,
-        slug: activeWorkspace.slug,
-        groomName: activeWorkspace.groomName || null,
-        brideName: activeWorkspace.brideName || null,
-        weddingDate: activeWorkspace.weddingDate || null,
-        weddingVenue: activeWorkspace.weddingVenue || null,
-        weddingBudget: activeWorkspace.weddingBudget
-          ? Number.parseFloat(activeWorkspace.weddingBudget)
-          : null,
-      },
-      hasWeddingData: true,
-      stats: {
-        taskCount: 0,
-        expensePaidAmount: 0,
-        documentCount: 0,
-        vendorCount: 0,
-      },
-    };
+  const workspace = await plannerDb
+    .selectFrom("organization")
+    .selectAll()
+    .where("id", "=", activeWorkspaceId)
+    .executeTakeFirst();
+
+  if (!workspace) {
+    redirect(302, "/onboarding");
   }
 
   const [taskCount, documentCount, vendorCount] = await Promise.all([
@@ -65,16 +45,14 @@ export const load: LayoutServerLoad = async ({ locals, plannerDb }) => {
       lastName: null,
     },
     workspace: {
-      id: activeWorkspace.id,
-      name: activeWorkspace.name,
-      slug: activeWorkspace.slug,
-      groomName: activeWorkspace.groomName || null,
-      brideName: activeWorkspace.brideName || null,
-      weddingDate: activeWorkspace.weddingDate || null,
-      weddingVenue: activeWorkspace.weddingVenue || null,
-      weddingBudget: activeWorkspace.weddingBudget
-        ? Number.parseFloat(activeWorkspace.weddingBudget)
-        : null,
+      id: workspace.id,
+      name: workspace.name,
+      slug: workspace.slug,
+      groomName: workspace.groomName || null,
+      brideName: workspace.brideName || null,
+      weddingDate: workspace.weddingDate || null,
+      weddingVenue: workspace.weddingVenue || null,
+      weddingBudget: workspace.weddingBudget ?? null,
     },
     hasWeddingData: true,
     stats: {

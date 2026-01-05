@@ -91,7 +91,7 @@ export type GalleryUploadOptions = UploadOptions & {
 export function generateFileKey(
   pathPrefix: string,
   scopeId: string,
-  fileName: string
+  fileName: string,
 ): string {
   const timestamp = Date.now();
   const sanitized = sanitizeFileName(fileName);
@@ -115,7 +115,7 @@ export function generateFileKey(
  */
 export async function uploadFile(
   file: File,
-  options: UploadOptions
+  options: UploadOptions,
 ): Promise<UploadResult> {
   const {
     pathPrefix,
@@ -160,7 +160,7 @@ export async function uploadFile(
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to upload file "${file.name}": ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -175,7 +175,7 @@ export async function uploadFile(
  */
 export async function uploadFiles(
   files: File[],
-  options: UploadOptions
+  options: UploadOptions,
 ): Promise<UploadResult[]> {
   const results: UploadResult[] = [];
 
@@ -232,13 +232,13 @@ export async function deleteFileByKey(key: string): Promise<void> {
       new DeleteObjectCommand({
         Bucket: R2_BUCKET_NAME,
         Key: key,
-      })
+      }),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to delete file with key "${key}": ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -252,7 +252,7 @@ export async function deleteFileByKey(key: string): Promise<void> {
  */
 export async function deleteDocumentFile(
   documentId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ): Promise<void> {
   try {
     // Get document metadata from D1
@@ -278,7 +278,7 @@ export async function deleteDocumentFile(
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to delete document: ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -292,7 +292,7 @@ export async function deleteDocumentFile(
  */
 export async function deleteGalleryFile(
   galleryId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ): Promise<void> {
   try {
     // Get gallery metadata from D1
@@ -304,7 +304,7 @@ export async function deleteGalleryFile(
 
     if (!galleryItem) {
       throw new FileStorageError(
-        `Gallery item with ID "${galleryId}" not found`
+        `Gallery item with ID "${galleryId}" not found`,
       );
     }
 
@@ -320,7 +320,7 @@ export async function deleteGalleryFile(
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to delete gallery item: ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -358,7 +358,7 @@ export async function deleteFiles(keys: string[]): Promise<void> {
  */
 export async function getDocumentMetadata(
   documentId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ) {
   return await db
     .selectFrom("documents")
@@ -376,7 +376,7 @@ export async function getDocumentMetadata(
  */
 export async function getOrganizationDocuments(
   organizationId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ) {
   return await db
     .selectFrom("documents")
@@ -395,7 +395,7 @@ export async function getOrganizationDocuments(
  */
 export async function getGalleryMetadata(
   galleryId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ) {
   return await db
     .selectFrom("gallery")
@@ -413,7 +413,7 @@ export async function getGalleryMetadata(
  */
 export async function getInvitationGallery(
   invitationId: string,
-  db: Kysely<Database>
+  db: Kysely<Database>,
 ) {
   return await db
     .selectFrom("gallery")
@@ -438,7 +438,7 @@ export async function getInvitationGallery(
  */
 export async function uploadDocumentFile(
   file: File,
-  options: DocumentUploadOptions
+  options: DocumentUploadOptions,
 ): Promise<UploadResult> {
   const {
     db,
@@ -488,14 +488,14 @@ export async function uploadDocumentFile(
     } catch (cleanupError) {
       console.error(
         "Failed to clean up file after database error:",
-        cleanupError
+        cleanupError,
       );
     }
 
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to store document metadata: ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -511,7 +511,7 @@ export async function uploadDocumentFile(
  */
 export async function uploadGalleryImage(
   file: File,
-  options: GalleryUploadOptions
+  options: GalleryUploadOptions,
 ): Promise<UploadResult> {
   const {
     db,
@@ -562,14 +562,14 @@ export async function uploadGalleryImage(
     } catch (cleanupError) {
       console.error(
         "Failed to clean up file after database error:",
-        cleanupError
+        cleanupError,
       );
     }
 
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new FileStorageError(
       `Failed to store gallery metadata: ${message}`,
-      error instanceof Error ? error : undefined
+      error instanceof Error ? error : undefined,
     );
   }
 }
@@ -581,7 +581,7 @@ export async function uploadGalleryImage(
  */
 export async function uploadAvatarImage(
   userId: string,
-  file: File
+  file: File,
 ): Promise<UploadResult> {
   return uploadFile(file, {
     pathPrefix: "avatars",
@@ -596,7 +596,7 @@ export async function uploadAvatarImage(
  */
 export async function uploadVendorAttachment(
   organizationId: string,
-  file: File
+  file: File,
 ): Promise<UploadResult> {
   return uploadFile(file, {
     pathPrefix: "vendors",
@@ -611,7 +611,7 @@ export async function uploadVendorAttachment(
  */
 export async function uploadDresscodeImage(
   organizationId: string,
-  file: File
+  file: File,
 ): Promise<UploadResult> {
   return uploadFile(file, {
     pathPrefix: "dresscodes",
@@ -645,7 +645,7 @@ export async function uploadDresscodeImage(
 export async function replaceFile(
   oldFileUrl: string,
   file: File,
-  options: UploadOptions
+  options: UploadOptions,
 ): Promise<UploadResult> {
   // Upload new file first - if this fails, old file remains unchanged
   const newFileResult = await uploadFile(file, options);
