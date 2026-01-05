@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import "uno.css";
   import { Progress } from "@friendofsvelte/progress";
   import type { User, Session } from "better-auth/types";
@@ -45,6 +46,37 @@
     },
   });
 
+  const pageTitle = $derived.by(() => {
+    const path = page.url.pathname;
+
+    const titleMap: Record<string, string> = {
+      "/login": "Login | VowsMarry",
+      "/register": "Register | VowsMarry",
+      "/forgot-password": "Forgot Password | VowsMarry",
+      "/reset-password": "Reset Password | VowsMarry",
+      "/onboarding": "Setup Your Wedding | VowsMarry",
+      "/dashboard": "Dashboard | VowsMarry",
+    };
+
+    if (path.startsWith("/dashboard")) {
+      const section = path.split("/dashboard/")[1]?.split("/")[0];
+      const sectionTitles: Record<string, string> = {
+        task: "Tasks",
+        document: "Document",
+        finance: "Finance",
+        vendor: "Vendor",
+        schedule: "Schedule",
+      };
+
+      if (section && sectionTitles[section]) {
+        return `${sectionTitles[section]} | VowsMarry`;
+      }
+      return "Dashboard | VowsMarry";
+    }
+
+    return titleMap[path] || "VowsMarry";
+  });
+
   $effect(() => {
     authState.user = data.user;
     authState.session = data.session;
@@ -60,7 +92,7 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
-  <title>{data.pageTitle}</title>
+  <title>{pageTitle}</title>
 </svelte:head>
 
 <QueryClientProvider client={queryClient}>

@@ -90,8 +90,7 @@ export const actions: Actions = {
           // Get the most recent organization
           const mostRecentOrg = userOrganizations[0];
 
-          // Update the session in the database AND invalidate the cookie cache
-          // by updating both the activeOrganizationId and the updatedAt timestamp
+          // Update the session in the database with the active organization
           await plannerDb
             .updateTable("session")
             .set({
@@ -101,30 +100,27 @@ export const actions: Actions = {
             .where("token", "=", result.token)
             .execute();
 
+          // Verify the update worked by querying the session
+          const updatedSession = await plannerDb
+            .selectFrom("session")
+            .select("activeOrganizationId")
+            .where("token", "=", result.token)
+            .executeTakeFirst();
+
           logger.debug("Active workspace set", {
             workspaceId: mostRecentOrg.id,
+            dbValue: updatedSession?.activeOrganizationId,
           });
-
-          // Now call setActiveOrganization with the new session to update the cookie
-          // Create a new Headers object with the session cookie
-          const cookieHeader = `vowsmarry_auth.session_token=${result.token}`;
-          const newHeaders = new Headers(request.headers);
-          newHeaders.set("cookie", cookieHeader);
-
-          await auth.api.setActiveOrganization({
-            body: {
-              organizationId: mostRecentOrg.id,
-            },
-            headers: newHeaders,
-          });
-
-          logger.debug("Cookie cache updated with active workspace");
         } else {
           logger.debug("No workspaces found for user");
         }
       } catch (workspaceError) {
-        // Don't fail login if workspace setting fails
-        console.error("Failed to set active workspace:", workspaceError);
+        logger.debug("Workspace setting skipped", {
+          message:
+            workspaceError instanceof Error
+              ? workspaceError.message
+              : "Unknown",
+        });
       }
 
       logger.debug("Redirecting to dashboard");

@@ -1,10 +1,14 @@
-import { toast } from 'svelte-sonner';
-import type { CrudOperation, PromiseToastMessages, EntityConfig } from '$lib/types.js';
-import { TOAST_CONFIG, BYTES, RETRY_CONFIG } from '$lib/constants/config.js';
+import { toast } from "svelte-sonner";
+import type {
+  CrudOperation,
+  PromiseToastMessages,
+  EntityConfig,
+} from "$lib/types.js";
+import { TOAST_CONFIG, BYTES, RETRY_CONFIG } from "$lib/constants/config.js";
 
 /**
  * Unified Toast Utilities
- * 
+ *
  * Consolidated toast service providing consistent messaging across the application.
  * Combines CRUD operations, form handling, and authentication toasts.
  */
@@ -14,202 +18,202 @@ import { TOAST_CONFIG, BYTES, RETRY_CONFIG } from '$lib/constants/config.js';
 // ============================================================================
 
 interface SonnerToastOptions {
-	duration?: number;
-	description?: string;
-	action?: {
-		label: string;
-		onClick: (event: MouseEvent) => void;
-	};
+  duration?: number;
+  description?: string;
+  action?: {
+    label: string;
+    onClick: (event: MouseEvent) => void;
+  };
 }
 
 export interface FileUploadConfig {
-	fileName: string;
-	fileSize?: number;
-	fileType?: string;
-	maxSize?: number;
+  fileName: string;
+  fileSize?: number;
+  fileType?: string;
+  maxSize?: number;
 }
 
 export interface FormSubmissionConfig {
-	formName?: string;
-	successMessage?: string;
-	errorMessage?: string;
-	loadingMessage?: string;
-	redirectAfterSuccess?: string;
+  formName?: string;
+  successMessage?: string;
+  errorMessage?: string;
+  loadingMessage?: string;
+  redirectAfterSuccess?: string;
 }
 
 export interface NetworkErrorConfig {
-	isRetryable?: boolean;
-	retryAction?: () => void | Promise<void>;
-	maxRetries?: number;
-	currentRetry?: number;
+  isRetryable?: boolean;
+  retryAction?: () => void | Promise<void>;
+  maxRetries?: number;
+  currentRetry?: number;
 }
 
 export interface ServerValidationError {
-	field: string;
-	message: string;
-	code?: string;
+  field: string;
+  message: string;
+  code?: string;
 }
 
-export type BetterAuthErrorCode = 
-	| 'INVALID_CREDENTIALS'
-	| 'EMAIL_NOT_VERIFIED'
-	| 'RATE_LIMIT_EXCEEDED'
-	| 'USER_NOT_FOUND'
-	| 'EMAIL_ALREADY_EXISTS'
-	| 'WEAK_PASSWORD'
-	| 'INVALID_EMAIL'
-	| 'PASSWORD_RESET_FAILED'
-	| 'INVALID_TOKEN'
-	| 'NETWORK_ERROR'
-	| 'SERVER_ERROR'
-	| 'UNAUTHORIZED'
-	| 'SESSION_EXPIRED';
+export type BetterAuthErrorCode =
+  | "INVALID_CREDENTIALS"
+  | "EMAIL_NOT_VERIFIED"
+  | "RATE_LIMIT_EXCEEDED"
+  | "USER_NOT_FOUND"
+  | "EMAIL_ALREADY_EXISTS"
+  | "WEAK_PASSWORD"
+  | "INVALID_EMAIL"
+  | "PASSWORD_RESET_FAILED"
+  | "INVALID_TOKEN"
+  | "NETWORK_ERROR"
+  | "SERVER_ERROR"
+  | "UNAUTHORIZED"
+  | "SESSION_EXPIRED";
 
 // ============================================================================
 // ENTITY CONFIGURATIONS
 // ============================================================================
 
 export const entityConfigs: Record<string, EntityConfig> = {
-	wedding: {
-		name: 'wedding',
-		displayName: 'Wedding',
-		operations: {
-			create: 'Wedding data created successfully',
-			update: 'Wedding data updated successfully',
-			delete: 'Wedding data deleted successfully',
-			fetch: 'Wedding data loaded successfully',
-		},
-	},
-	workspace: {
-		name: 'workspace',
-		displayName: 'Workspace',
-		operations: {
-			create: 'Workspace created successfully',
-			update: 'Workspace updated successfully',
-			delete: 'Workspace deleted successfully',
-			fetch: 'Workspace loaded successfully',
-		},
-	},
-	task: {
-		name: 'task',
-		displayName: 'Task',
-		operations: {
-			create: 'Task created successfully',
-			update: 'Task updated successfully',
-			delete: 'Task deleted successfully',
-			fetch: 'Tasks loaded successfully',
-		},
-	},
-	vendor: {
-		name: 'vendor',
-		displayName: 'Vendor',
-		operations: {
-			create: 'Vendor added successfully',
-			update: 'Vendor updated successfully',
-			delete: 'Vendor removed successfully',
-			fetch: 'Vendors loaded successfully',
-		},
-	},
-	document: {
-		name: 'document',
-		displayName: 'Document',
-		operations: {
-			create: 'Document uploaded successfully',
-			update: 'Document updated successfully',
-			delete: 'Document deleted successfully',
-			fetch: 'Documents loaded successfully',
-		},
-	},
-	expense: {
-		name: 'expense',
-		displayName: 'Expense',
-		operations: {
-			create: 'Expense added successfully',
-			update: 'Expense updated successfully',
-			delete: 'Expense deleted successfully',
-			fetch: 'Expenses loaded successfully',
-		},
-	},
-	rundown: {
-		name: 'rundown',
-		displayName: 'Rundown Item',
-		operations: {
-			create: 'Rundown item created successfully',
-			update: 'Rundown item updated successfully',
-			delete: 'Rundown item deleted successfully',
-			fetch: 'Rundown loaded successfully',
-		},
-	},
-	schedule: {
-		name: 'schedule',
-		displayName: 'Schedule',
-		operations: {
-			create: 'Schedule created successfully',
-			update: 'Schedule updated successfully',
-			delete: 'Schedule deleted successfully',
-			fetch: 'Schedules loaded successfully',
-		},
-	},
-	saving: {
-		name: 'saving',
-		displayName: 'Saving',
-		operations: {
-			create: 'Saving added successfully',
-			update: 'Saving updated successfully',
-			delete: 'Saving deleted successfully',
-			fetch: 'Savings loaded successfully',
-		},
-	},
-	dowry: {
-		name: 'dowry',
-		displayName: 'Dowry',
-		operations: {
-			create: 'Dowry item added successfully',
-			update: 'Dowry item updated successfully',
-			delete: 'Dowry item deleted successfully',
-			fetch: 'Dowry items loaded successfully',
-		},
-	},
-	souvenir: {
-		name: 'souvenir',
-		displayName: 'Souvenir',
-		operations: {
-			create: 'Souvenir added successfully',
-			update: 'Souvenir updated successfully',
-			delete: 'Souvenir deleted successfully',
-			fetch: 'Souvenirs loaded successfully',
-		},
-	},
-	dresscode: {
-		name: 'dresscode',
-		displayName: 'Dresscode',
-		operations: {
-			create: 'Dresscode added successfully',
-			update: 'Dresscode updated successfully',
-			delete: 'Dresscode deleted successfully',
-			fetch: 'Dresscodes loaded successfully',
-		},
-	},
-	invitation: {
-		name: 'invitation',
-		displayName: 'Invitation',
-		operations: {
-			create: 'Invitation sent successfully',
-			update: 'Invitation updated successfully',
-			delete: 'Invitation cancelled successfully',
-			fetch: 'Invitations loaded successfully',
-		},
-	},
-	member: {
-		name: 'member',
-		displayName: 'Member',
-		operations: {
-			create: 'Member added successfully',
-			update: 'Member updated successfully',
-			delete: 'Member removed successfully',
-			fetch: 'Members loaded successfully',
-		},
-	},
+  wedding: {
+    name: "wedding",
+    displayName: "Wedding",
+    operations: {
+      create: "Wedding data created successfully",
+      update: "Wedding data updated successfully",
+      delete: "Wedding data deleted successfully",
+      fetch: "Wedding data loaded successfully",
+    },
+  },
+  workspace: {
+    name: "workspace",
+    displayName: "Workspace",
+    operations: {
+      create: "Workspace created successfully",
+      update: "Workspace updated successfully",
+      delete: "Workspace deleted successfully",
+      fetch: "Workspace loaded successfully",
+    },
+  },
+  task: {
+    name: "task",
+    displayName: "Task",
+    operations: {
+      create: "Task created successfully",
+      update: "Task updated successfully",
+      delete: "Task deleted successfully",
+      fetch: "Tasks loaded successfully",
+    },
+  },
+  vendor: {
+    name: "vendor",
+    displayName: "Vendor",
+    operations: {
+      create: "Vendor added successfully",
+      update: "Vendor updated successfully",
+      delete: "Vendor removed successfully",
+      fetch: "Vendors loaded successfully",
+    },
+  },
+  document: {
+    name: "document",
+    displayName: "Document",
+    operations: {
+      create: "Document uploaded successfully",
+      update: "Document updated successfully",
+      delete: "Document deleted successfully",
+      fetch: "Documents loaded successfully",
+    },
+  },
+  expense: {
+    name: "expense",
+    displayName: "Expense",
+    operations: {
+      create: "Expense added successfully",
+      update: "Expense updated successfully",
+      delete: "Expense deleted successfully",
+      fetch: "Expenses loaded successfully",
+    },
+  },
+  rundown: {
+    name: "rundown",
+    displayName: "Rundown Item",
+    operations: {
+      create: "Rundown item created successfully",
+      update: "Rundown item updated successfully",
+      delete: "Rundown item deleted successfully",
+      fetch: "Rundown loaded successfully",
+    },
+  },
+  schedule: {
+    name: "schedule",
+    displayName: "Schedule",
+    operations: {
+      create: "Schedule created successfully",
+      update: "Schedule updated successfully",
+      delete: "Schedule deleted successfully",
+      fetch: "Schedules loaded successfully",
+    },
+  },
+  saving: {
+    name: "saving",
+    displayName: "Saving",
+    operations: {
+      create: "Saving added successfully",
+      update: "Saving updated successfully",
+      delete: "Saving deleted successfully",
+      fetch: "Savings loaded successfully",
+    },
+  },
+  dowry: {
+    name: "dowry",
+    displayName: "Dowry",
+    operations: {
+      create: "Dowry item added successfully",
+      update: "Dowry item updated successfully",
+      delete: "Dowry item deleted successfully",
+      fetch: "Dowry items loaded successfully",
+    },
+  },
+  souvenir: {
+    name: "souvenir",
+    displayName: "Souvenir",
+    operations: {
+      create: "Souvenir added successfully",
+      update: "Souvenir updated successfully",
+      delete: "Souvenir deleted successfully",
+      fetch: "Souvenirs loaded successfully",
+    },
+  },
+  dresscode: {
+    name: "dresscode",
+    displayName: "Dresscode",
+    operations: {
+      create: "Dresscode added successfully",
+      update: "Dresscode updated successfully",
+      delete: "Dresscode deleted successfully",
+      fetch: "Dresscodes loaded successfully",
+    },
+  },
+  invitation: {
+    name: "invitation",
+    displayName: "Invitation",
+    operations: {
+      create: "Invitation sent successfully",
+      update: "Invitation updated successfully",
+      delete: "Invitation cancelled successfully",
+      fetch: "Invitations loaded successfully",
+    },
+  },
+  member: {
+    name: "member",
+    displayName: "Member",
+    operations: {
+      create: "Member added successfully",
+      update: "Member updated successfully",
+      delete: "Member removed successfully",
+      fetch: "Members loaded successfully",
+    },
+  },
 };
 
 // ============================================================================
@@ -217,63 +221,75 @@ export const entityConfigs: Record<string, EntityConfig> = {
 // ============================================================================
 
 export const AUTH_MESSAGES = {
-	success: {
-		login: "Welcome back! You've been logged in successfully.",
-		register: 'Account created successfully! Welcome to VowsMarry.',
-		logout: "You've been logged out successfully. See you soon!",
-		passwordResetRequest: 'Password reset email sent! Check your inbox for further instructions.',
-		passwordResetSuccess: 'Password updated successfully! You can now log in with your new password.',
-		passwordChangeSuccess: 'Password changed successfully!',
-		emailVerification: 'Email verified successfully! You can now access all features.',
-		profileUpdate: 'Profile updated successfully!',
-		invitationSent: 'Invitation sent successfully!',
-		invitationAccepted: 'Invitation accepted! Welcome to the workspace.',
-		invitationRejected: 'Invitation declined.',
-		memberRemoved: 'Member removed successfully.',
-		workspaceLeft: 'You have left the workspace.',
-	},
-	error: {
-		// Authentication errors
-		invalidCredentials: 'Invalid email or password. Please check your credentials and try again.',
-		emailNotConfirmed: 'Please verify your email address before signing in. Check your inbox for the verification link.',
-		tooManyRequests: 'Too many attempts. Please wait a moment before trying again.',
-		userNotFound: 'No account found with this email address.',
-		emailAlreadyExists: 'An account with this email already exists. Try logging in instead.',
-		weakPassword: 'Password is too weak. Please choose a stronger password with at least 8 characters.',
-		invalidEmail: 'Please enter a valid email address.',
-		
-		// Password management errors
-		passwordResetFailed: 'Failed to send password reset email. Please try again.',
-		invalidResetToken: 'Invalid or expired reset link. Please request a new password reset.',
-		passwordUpdateFailed: 'Failed to update password. Please try again.',
-		passwordMismatch: 'Passwords do not match. Please try again.',
-		incorrectPassword: 'Current password is incorrect. Please try again.',
-		
-		// Session errors
-		networkError: 'Network error. Please check your connection and try again.',
-		serverError: 'Something went wrong on our end. Please try again later.',
-		validationError: 'Please fix the errors in the form before submitting.',
-		unexpectedError: 'An unexpected error occurred. Please try again.',
-		sessionExpired: 'Your session has expired. Please log in again.',
-		unauthorized: 'You need to be logged in to access this feature.',
-		
-		// Organization/Workspace errors
-		organizationNotFound: 'Workspace not found.',
-		invitationFailed: 'Failed to send invitation. Please try again.',
-		invitationNotFound: 'Invitation not found or has expired.',
-		alreadyMember: 'This user is already a member of the workspace.',
-		cannotRemoveSelf: 'You cannot remove yourself. Use "Leave Workspace" instead.',
-		cannotRemoveLastOwner: 'Cannot remove the last owner. Transfer ownership first.',
-		
-		// Generic errors
-		databaseError: 'Database error occurred. Please try again.',
-		configurationError: 'Configuration error. Please contact support.',
-	},
-	warning: {
-		sessionExpiring: 'Your session will expire soon. Please save your work.',
-		emailNotVerified: 'Please verify your email to access all features.',
-		pendingInvitation: 'You have a pending invitation to join a workspace.',
-	},
+  success: {
+    login: "Welcome back! You've been logged in successfully.",
+    register: "Account created successfully! Welcome to VowsMarry.",
+    logout: "You've been logged out successfully. See you soon!",
+    passwordResetRequest:
+      "Password reset email sent! Check your inbox for further instructions.",
+    passwordResetSuccess:
+      "Password updated successfully! You can now log in with your new password.",
+    passwordChangeSuccess: "Password changed successfully!",
+    emailVerification:
+      "Email verified successfully! You can now access all features.",
+    profileUpdate: "Profile updated successfully!",
+    invitationSent: "Invitation sent successfully!",
+    invitationAccepted: "Invitation accepted! Welcome to the workspace.",
+    invitationRejected: "Invitation declined.",
+    memberRemoved: "Member removed successfully.",
+    workspaceLeft: "You have left the workspace.",
+  },
+  error: {
+    // Authentication errors
+    invalidCredentials:
+      "Invalid email or password. Please check your credentials and try again.",
+    emailNotConfirmed:
+      "Please verify your email address before signing in. Check your inbox for the verification link.",
+    tooManyRequests:
+      "Too many attempts. Please wait a moment before trying again.",
+    userNotFound: "No account found with this email address.",
+    emailAlreadyExists:
+      "An account with this email already exists. Try logging in instead.",
+    weakPassword:
+      "Password is too weak. Please choose a stronger password with at least 8 characters.",
+    invalidEmail: "Please enter a valid email address.",
+
+    // Password management errors
+    passwordResetFailed:
+      "Failed to send password reset email. Please try again.",
+    invalidResetToken:
+      "Invalid or expired reset link. Please request a new password reset.",
+    passwordUpdateFailed: "Failed to update password. Please try again.",
+    passwordMismatch: "Passwords do not match. Please try again.",
+    incorrectPassword: "Current password is incorrect. Please try again.",
+
+    // Session errors
+    networkError: "Network error. Please check your connection and try again.",
+    serverError: "Something went wrong on our end. Please try again later.",
+    validationError: "Please fix the errors in the form before submitting.",
+    unexpectedError: "An unexpected error occurred. Please try again.",
+    sessionExpired: "Your session has expired. Please log in again.",
+    unauthorized: "You need to be logged in to access this feature.",
+
+    // Organization/Workspace errors
+    organizationNotFound: "Workspace not found.",
+    invitationFailed: "Failed to send invitation. Please try again.",
+    invitationNotFound: "Invitation not found or has expired.",
+    alreadyMember: "This user is already a member of the workspace.",
+    cannotRemoveSelf:
+      'You cannot remove yourself. Use "Leave Workspace" instead.',
+    cannotRemoveLastOwner:
+      "Cannot remove the last owner. Transfer ownership first.",
+
+    // Generic errors
+    databaseError: "Database error occurred. Please try again.",
+    configurationError: "Configuration error. Please contact support.",
+  },
+  warning: {
+    sessionExpiring: "Your session will expire soon. Please save your work.",
+    emailNotVerified: "Please verify your email to access all features.",
+    pendingInvitation: "You have a pending invitation to join a workspace.",
+  },
 } as const;
 
 // ============================================================================
@@ -281,30 +297,33 @@ export const AUTH_MESSAGES = {
 // ============================================================================
 
 export const toasts = {
-	message: (message: string): void => {
-		toast(message);
-	},
-	success: (message: string): void => {
-		toast.success(message);
-	},
-	error: (message: string): void => {
-		toast.error(message);
-	},
-	warning: (message: string): void => {
-		toast.warning(message);
-	},
-	info: (message: string): void => {
-		toast.info(message);
-	},
-	promise: <T>(promise: Promise<T>, messages: PromiseToastMessages<T>): void => {
-		toast.promise(promise, messages);
-	},
-	dismiss: (toastId?: string): void => {
-		toast.dismiss(toastId);
-	},
-	dismissAll: (): void => {
-		toast.dismiss();
-	},
+  message: (message: string): void => {
+    toast(message);
+  },
+  success: (message: string): void => {
+    toast.success(message);
+  },
+  error: (message: string): void => {
+    toast.error(message);
+  },
+  warning: (message: string): void => {
+    toast.warning(message);
+  },
+  info: (message: string): void => {
+    toast.info(message);
+  },
+  promise: <T>(
+    promise: Promise<T>,
+    messages: PromiseToastMessages<T>,
+  ): void => {
+    toast.promise(promise, messages);
+  },
+  dismiss: (toastId?: string): void => {
+    toast.dismiss(toastId);
+  },
+  dismissAll: (): void => {
+    toast.dismiss();
+  },
 };
 
 // ============================================================================
@@ -312,149 +331,156 @@ export const toasts = {
 // ============================================================================
 
 export const crud = {
-	success: (
-		operation: CrudOperation,
-		entity?: string,
-		options?: {
-			itemName?: string;
-			undoAction?: () => void | Promise<void>;
-			duration?: number;
-		},
-	): void => {
-		const config = entity ? entityConfigs[entity] : null;
-		const message = config?.operations[operation] || getDefaultMessage(operation, 'success');
+  success: (
+    operation: CrudOperation,
+    entity?: string,
+    options?: {
+      itemName?: string;
+      undoAction?: () => void | Promise<void>;
+      duration?: number;
+    },
+  ): void => {
+    const config = entity ? entityConfigs[entity] : null;
+    const message =
+      config?.operations[operation] || getDefaultMessage(operation, "success");
 
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || TOAST_CONFIG.SUCCESS_DURATION,
-		};
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || TOAST_CONFIG.SUCCESS_DURATION,
+    };
 
-		if (options?.itemName) {
-			toastOptions.description = `"${options.itemName}"`;
-		}
+    if (options?.itemName) {
+      toastOptions.description = `"${options.itemName}"`;
+    }
 
-		if (operation === 'delete' && options?.undoAction) {
-			toastOptions.action = {
-				label: 'Undo',
-				onClick: async (event: MouseEvent) => {
-					event.preventDefault();
-					try {
-						if (options.undoAction) {
-							await options.undoAction();
-							toast.success('Action undone successfully');
-						}
-					} catch {
-						toast.error('Failed to undo action');
-					}
-				},
-			};
-		}
+    if (operation === "delete" && options?.undoAction) {
+      toastOptions.action = {
+        label: "Undo",
+        onClick: async (event: MouseEvent) => {
+          event.preventDefault();
+          try {
+            if (options.undoAction) {
+              await options.undoAction();
+              toast.success("Action undone successfully");
+            }
+          } catch {
+            toast.error("Failed to undo action");
+          }
+        },
+      };
+    }
 
-		toast.success(message, toastOptions);
-	},
+    toast.success(message, toastOptions);
+  },
 
-	error: (
-		operation: CrudOperation,
-		error: string,
-		entity?: string,
-		options?: {
-			retryAction?: () => void | Promise<void>;
-			isNetworkError?: boolean;
-			duration?: number;
-		},
-	): void => {
-		const config = entity ? entityConfigs[entity] : null;
-		const baseMessage = config
-			? `Failed to ${operation} ${config.displayName.toLowerCase()}`
-			: getDefaultMessage(operation, 'error');
+  error: (
+    operation: CrudOperation,
+    error: string,
+    entity?: string,
+    options?: {
+      retryAction?: () => void | Promise<void>;
+      isNetworkError?: boolean;
+      duration?: number;
+    },
+  ): void => {
+    const config = entity ? entityConfigs[entity] : null;
+    const baseMessage = config
+      ? `Failed to ${operation} ${config.displayName.toLowerCase()}`
+      : getDefaultMessage(operation, "error");
 
-		const message = `${baseMessage}: ${error}`;
+    const message = `${baseMessage}: ${error}`;
 
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
-			description: options?.isNetworkError
-				? 'Please check your connection and try again'
-				: undefined,
-		};
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
+      description: options?.isNetworkError
+        ? "Please check your connection and try again"
+        : undefined,
+    };
 
-		if (options?.retryAction && (options?.isNetworkError || operation !== 'delete')) {
-			toastOptions.action = {
-				label: 'Retry',
-				onClick: async (event: MouseEvent) => {
-					event.preventDefault();
-					try {
-						if (options.retryAction) {
-							await options.retryAction();
-						}
-					} catch {
-						crud.error(operation, 'Retry failed', entity, {
-							isNetworkError: options.isNetworkError,
-						});
-					}
-				},
-			};
-		}
+    if (
+      options?.retryAction &&
+      (options?.isNetworkError || operation !== "delete")
+    ) {
+      toastOptions.action = {
+        label: "Retry",
+        onClick: async (event: MouseEvent) => {
+          event.preventDefault();
+          try {
+            if (options.retryAction) {
+              await options.retryAction();
+            }
+          } catch {
+            crud.error(operation, "Retry failed", entity, {
+              isNetworkError: options.isNetworkError,
+            });
+          }
+        },
+      };
+    }
 
-		toast.error(message, toastOptions);
-	},
+    toast.error(message, toastOptions);
+  },
 
-	promise: <T>(
-		promise: Promise<T>,
-		operation: CrudOperation,
-		entity?: string,
-		options?: {
-			messages?: Partial<PromiseToastMessages<T>>;
-			itemName?: string;
-		},
-	): Promise<T> => {
-		const config = entity ? entityConfigs[entity] : null;
+  promise: <T>(
+    promise: Promise<T>,
+    operation: CrudOperation,
+    entity?: string,
+    options?: {
+      messages?: Partial<PromiseToastMessages<T>>;
+      itemName?: string;
+    },
+  ): Promise<T> => {
+    const config = entity ? entityConfigs[entity] : null;
 
-		const successMsg =
-			config?.operations[operation] || getDefaultMessage(operation, 'success');
-		const successMessage = options?.itemName ? `${successMsg}: "${options.itemName}"` : successMsg;
+    const successMsg =
+      config?.operations[operation] || getDefaultMessage(operation, "success");
+    const successMessage = options?.itemName
+      ? `${successMsg}: "${options.itemName}"`
+      : successMsg;
 
-		const defaultMessages: PromiseToastMessages<T> = {
-			loading: getLoadingMessage(operation, config),
-			success: successMessage,
-			error: config
-				? `Failed to ${operation} ${config.displayName.toLowerCase()}`
-				: getDefaultMessage(operation, 'error'),
-		};
+    const defaultMessages: PromiseToastMessages<T> = {
+      loading: getLoadingMessage(operation, config),
+      success: successMessage,
+      error: config
+        ? `Failed to ${operation} ${config.displayName.toLowerCase()}`
+        : getDefaultMessage(operation, "error"),
+    };
 
-		const finalMessages = { ...defaultMessages, ...options?.messages };
-		toast.promise(promise, finalMessages);
-		return promise;
-	},
+    const finalMessages = { ...defaultMessages, ...options?.messages };
+    toast.promise(promise, finalMessages);
+    return promise;
+  },
 
-	batch: <T>(
-		promises: Promise<T>[],
-		operation: CrudOperation,
-		entity?: string,
-		options?: {
-			itemCount?: number;
-			successMessage?: string;
-			errorMessage?: string;
-		},
-	): Promise<T[]> => {
-		const config = entity ? entityConfigs[entity] : null;
-		const itemCount = options?.itemCount || promises.length;
-		const entityName = config?.displayName.toLowerCase() || 'item';
-		const pluralEntityName = itemCount === 1 ? entityName : pluralize(entityName);
+  batch: <T>(
+    promises: Promise<T>[],
+    operation: CrudOperation,
+    entity?: string,
+    options?: {
+      itemCount?: number;
+      successMessage?: string;
+      errorMessage?: string;
+    },
+  ): Promise<T[]> => {
+    const config = entity ? entityConfigs[entity] : null;
+    const itemCount = options?.itemCount || promises.length;
+    const entityName = config?.displayName.toLowerCase() || "item";
+    const pluralEntityName =
+      itemCount === 1 ? entityName : pluralize(entityName);
 
-		const batchPromise = Promise.all(promises);
+    const batchPromise = Promise.all(promises);
 
-		const messages: PromiseToastMessages<T[]> = {
-			loading: `${capitalizeFirst(getOperationVerb(operation))} ${itemCount} ${pluralEntityName}...`,
-			success:
-				options?.successMessage ||
-				`Successfully ${getOperationPastTense(operation)} ${itemCount} ${pluralEntityName}`,
-			error:
-				options?.errorMessage ||
-				`Failed to ${operation} some ${pluralEntityName}. Please try again.`,
-		};
+    const messages: PromiseToastMessages<T[]> = {
+      loading: `${capitalizeFirst(getOperationVerb(operation))} ${itemCount} ${pluralEntityName}...`,
+      success:
+        options?.successMessage ||
+        `Successfully ${getOperationPastTense(operation)} ${itemCount} ${pluralEntityName}`,
+      error:
+        options?.errorMessage ||
+        `Failed to ${operation} some ${pluralEntityName}. Please try again.`,
+    };
 
-		toast.promise(batchPromise, messages);
-		return batchPromise;
-	},
+    toast.promise(batchPromise, messages);
+    return batchPromise;
+  },
 };
 
 // ============================================================================
@@ -462,408 +488,447 @@ export const crud = {
 // ============================================================================
 
 export const form = {
-	success: (
-		message = 'Form submitted successfully!',
-		options?: {
-			description?: string;
-			redirectAction?: () => void;
-			undoAction?: () => void | Promise<void>;
-			duration?: number;
-		},
-	): void => {
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || TOAST_CONFIG.DEFAULT_DURATION,
-			description: options?.description,
-		};
+  success: (
+    message = "Form submitted successfully!",
+    options?: {
+      description?: string;
+      redirectAction?: () => void;
+      undoAction?: () => void | Promise<void>;
+      duration?: number;
+    },
+  ): void => {
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || TOAST_CONFIG.DEFAULT_DURATION,
+      description: options?.description,
+    };
 
-		if (options?.redirectAction) {
-			toastOptions.action = {
-				label: 'Continue',
-				onClick: (event: MouseEvent) => {
-					event.preventDefault();
-					options.redirectAction?.();
-				},
-			};
-		} else if (options?.undoAction) {
-			toastOptions.action = {
-				label: 'Undo',
-				onClick: async (event: MouseEvent) => {
-					event.preventDefault();
-					try {
-						if (options.undoAction) {
-							await options.undoAction();
-							toast.success('Changes undone successfully');
-						}
-					} catch {
-						toast.error('Failed to undo changes');
-					}
-				},
-			};
-		}
+    if (options?.redirectAction) {
+      toastOptions.action = {
+        label: "Continue",
+        onClick: (event: MouseEvent) => {
+          event.preventDefault();
+          options.redirectAction?.();
+        },
+      };
+    } else if (options?.undoAction) {
+      toastOptions.action = {
+        label: "Undo",
+        onClick: async (event: MouseEvent) => {
+          event.preventDefault();
+          try {
+            if (options.undoAction) {
+              await options.undoAction();
+              toast.success("Changes undone successfully");
+            }
+          } catch {
+            toast.error("Failed to undo changes");
+          }
+        },
+      };
+    }
 
-		toast.success(message, toastOptions);
-	},
+    toast.success(message, toastOptions);
+  },
 
-	validationError: (
-		errors: string[] | { field: string; message: string; displayName?: string }[],
-		options?: {
-			scrollToFirstError?: () => void;
-			maxDisplayErrors?: number;
-			duration?: number;
-		},
-	): void => {
-		if (typeof errors[0] === 'string') {
-			const stringErrors = errors as string[];
+  error: (
+    message: string,
+    options?: {
+      duration?: number;
+      action?: {
+        label: string;
+        onClick: (event: MouseEvent) => void;
+      };
+    },
+  ): void => {
+    toast.error(message, {
+      duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
+      action: options?.action,
+    });
+  },
 
-			if (stringErrors.length === 1) {
-				toast.error(stringErrors[0], {
-					duration: options?.duration || TOAST_CONFIG.WARNING_DURATION,
-					action: options?.scrollToFirstError
-						? {
-								label: 'Review',
-								onClick: (event: MouseEvent) => {
-									event.preventDefault();
-									options.scrollToFirstError?.();
-								},
-							}
-						: undefined,
-				});
-			} else {
-				const message = `Please fix ${stringErrors.length} validation errors`;
-				const description = stringErrors
-					.slice(0, options?.maxDisplayErrors || 3)
-					.map((error) => `• ${error}`)
-					.join('\n');
+  validationError: (
+    errors:
+      | string[]
+      | { field: string; message: string; displayName?: string }[],
+    options?: {
+      scrollToFirstError?: () => void;
+      maxDisplayErrors?: number;
+      duration?: number;
+    },
+  ): void => {
+    if (typeof errors[0] === "string") {
+      const stringErrors = errors as string[];
 
-				toast.error(message, {
-					duration: options?.duration || 8000,
-					description,
-					action: options?.scrollToFirstError
-						? {
-								label: 'Review errors',
-								onClick: (event: MouseEvent) => {
-									event.preventDefault();
-									options.scrollToFirstError?.();
-								},
-							}
-						: undefined,
-				});
-			}
-		} else {
-			const fieldErrors = errors as { field: string; message: string; displayName?: string }[];
-			const validationErrors = fieldErrors.map((error) => ({
-				fieldName: error.field,
-				displayName: error.displayName || formatFieldName(error.field),
-				errorMessage: error.message,
-			}));
+      if (stringErrors.length === 1) {
+        toast.error(stringErrors[0], {
+          duration: options?.duration || TOAST_CONFIG.WARNING_DURATION,
+          action: options?.scrollToFirstError
+            ? {
+                label: "Review",
+                onClick: (event: MouseEvent) => {
+                  event.preventDefault();
+                  options.scrollToFirstError?.();
+                },
+              }
+            : undefined,
+        });
+      } else {
+        const message = `Please fix ${stringErrors.length} validation errors`;
+        const description = stringErrors
+          .slice(0, options?.maxDisplayErrors || 3)
+          .map((error) => `• ${error}`)
+          .join("\n");
 
-			const maxDisplay = options?.maxDisplayErrors || 3;
-			const displayErrors = validationErrors.slice(0, maxDisplay);
-			const remainingCount = validationErrors.length - maxDisplay;
+        toast.error(message, {
+          duration: options?.duration || 8000,
+          description,
+          action: options?.scrollToFirstError
+            ? {
+                label: "Review errors",
+                onClick: (event: MouseEvent) => {
+                  event.preventDefault();
+                  options.scrollToFirstError?.();
+                },
+              }
+            : undefined,
+        });
+      }
+    } else {
+      const fieldErrors = errors as {
+        field: string;
+        message: string;
+        displayName?: string;
+      }[];
+      const validationErrors = fieldErrors.map((error) => ({
+        fieldName: error.field,
+        displayName: error.displayName || formatFieldName(error.field),
+        errorMessage: error.message,
+      }));
 
-			const message = `Please fix ${validationErrors.length} validation error${validationErrors.length > 1 ? 's' : ''}`;
-			let description = displayErrors
-				.map((error) => `${error.displayName}: ${error.errorMessage}`)
-				.join('\n');
+      const maxDisplay = options?.maxDisplayErrors || 3;
+      const displayErrors = validationErrors.slice(0, maxDisplay);
+      const remainingCount = validationErrors.length - maxDisplay;
 
-			if (remainingCount > 0) {
-				description += `\n...and ${remainingCount} more error${remainingCount > 1 ? 's' : ''}`;
-			}
+      const message = `Please fix ${validationErrors.length} validation error${validationErrors.length > 1 ? "s" : ""}`;
+      let description = displayErrors
+        .map((error) => `${error.displayName}: ${error.errorMessage}`)
+        .join("\n");
 
-			toast.error(message, {
-				duration: options?.duration || 8000,
-				description,
-				action: options?.scrollToFirstError
-					? {
-							label: 'Review errors',
-							onClick: (event: MouseEvent) => {
-								event.preventDefault();
-								options.scrollToFirstError?.();
-							},
-						}
-					: undefined,
-			});
-		}
-	},
+      if (remainingCount > 0) {
+        description += `\n...and ${remainingCount} more error${remainingCount > 1 ? "s" : ""}`;
+      }
 
-	submitError: (
-		error: string,
-		options?: NetworkErrorConfig & {
-			formName?: string;
-			duration?: number;
-		},
-	): void => {
-		const formName = options?.formName ? ` ${options.formName}` : '';
-		const message = `Failed to submit${formName} form: ${error}`;
+      toast.error(message, {
+        duration: options?.duration || 8000,
+        description,
+        action: options?.scrollToFirstError
+          ? {
+              label: "Review errors",
+              onClick: (event: MouseEvent) => {
+                event.preventDefault();
+                options.scrollToFirstError?.();
+              },
+            }
+          : undefined,
+      });
+    }
+  },
 
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
-		};
+  submitError: (
+    error: string,
+    options?: NetworkErrorConfig & {
+      formName?: string;
+      duration?: number;
+    },
+  ): void => {
+    const formName = options?.formName ? ` ${options.formName}` : "";
+    const message = `Failed to submit${formName} form: ${error}`;
 
-		if (options?.isRetryable && options?.retryAction) {
-			const currentRetry = options.currentRetry || 0;
-			const maxRetries = options.maxRetries || RETRY_CONFIG.MAX_FORM_RETRIES;
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
+    };
 
-			if (currentRetry < maxRetries) {
-				toastOptions.description = `Attempt ${currentRetry + 1} of ${maxRetries + 1}`;
-				toastOptions.action = {
-					label: 'Retry',
-					onClick: async (event: MouseEvent) => {
-						event.preventDefault();
-						try {
-							if (options.retryAction) {
-								await options.retryAction();
-							}
-						} catch (retryError) {
-							form.submitError(retryError instanceof Error ? retryError.message : 'Retry failed', {
-								...options,
-								currentRetry: currentRetry + 1,
-							});
-						}
-					},
-				};
-			} else {
-				toastOptions.description = 'Maximum retry attempts reached. Please try again later.';
-			}
-		}
+    if (options?.isRetryable && options?.retryAction) {
+      const currentRetry = options.currentRetry || 0;
+      const maxRetries = options.maxRetries || RETRY_CONFIG.MAX_FORM_RETRIES;
 
-		toast.error(message, toastOptions);
-	},
+      if (currentRetry < maxRetries) {
+        toastOptions.description = `Attempt ${currentRetry + 1} of ${maxRetries + 1}`;
+        toastOptions.action = {
+          label: "Retry",
+          onClick: async (event: MouseEvent) => {
+            event.preventDefault();
+            try {
+              if (options.retryAction) {
+                await options.retryAction();
+              }
+            } catch (retryError) {
+              form.submitError(
+                retryError instanceof Error
+                  ? retryError.message
+                  : "Retry failed",
+                {
+                  ...options,
+                  currentRetry: currentRetry + 1,
+                },
+              );
+            }
+          },
+        };
+      } else {
+        toastOptions.description =
+          "Maximum retry attempts reached. Please try again later.";
+      }
+    }
 
-	emptyFormError: (options?: {
-		formName?: string;
-		requiredFields?: string[];
-		scrollToFirstField?: () => void;
-		duration?: number;
-	}): void => {
-		const formName = options?.formName ? ` ${options.formName}` : '';
-		const message = `Cannot submit empty${formName} form`;
+    toast.error(message, toastOptions);
+  },
 
-		let description: string;
-		if (options?.requiredFields && options.requiredFields.length > 0) {
-			const fieldCount = options.requiredFields.length;
-			if (fieldCount <= 3) {
-				description = `Please fill in: ${options.requiredFields.join(', ')}`;
-			} else {
-				description = `Please fill in ${fieldCount} required fields: ${options.requiredFields.slice(0, 2).join(', ')} and ${fieldCount - 2} more`;
-			}
-		} else {
-			description = 'Please fill in the required fields before submitting';
-		}
+  emptyFormError: (options?: {
+    formName?: string;
+    requiredFields?: string[];
+    scrollToFirstField?: () => void;
+    duration?: number;
+  }): void => {
+    const formName = options?.formName ? ` ${options.formName}` : "";
+    const message = `Cannot submit empty${formName} form`;
 
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
-			description,
-		};
+    let description: string;
+    if (options?.requiredFields && options.requiredFields.length > 0) {
+      const fieldCount = options.requiredFields.length;
+      if (fieldCount <= 3) {
+        description = `Please fill in: ${options.requiredFields.join(", ")}`;
+      } else {
+        description = `Please fill in ${fieldCount} required fields: ${options.requiredFields.slice(0, 2).join(", ")} and ${fieldCount - 2} more`;
+      }
+    } else {
+      description = "Please fill in the required fields before submitting";
+    }
 
-		if (options?.scrollToFirstField) {
-			toastOptions.action = {
-				label: 'Go to form',
-				onClick: (event: MouseEvent) => {
-					event.preventDefault();
-					options.scrollToFirstField?.();
-				},
-			};
-		}
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || TOAST_CONFIG.ERROR_DURATION,
+      description,
+    };
 
-		toast.error(message, toastOptions);
-	},
+    if (options?.scrollToFirstField) {
+      toastOptions.action = {
+        label: "Go to form",
+        onClick: (event: MouseEvent) => {
+          event.preventDefault();
+          options.scrollToFirstField?.();
+        },
+      };
+    }
 
-	promise: <T>(
-		promise: Promise<T>,
-		config?: FormSubmissionConfig & {
-			messages?: Partial<PromiseToastMessages<T>>;
-			onSuccess?: (data: T) => void;
-			onError?: (error: unknown) => void;
-		},
-	): Promise<T> => {
-		const formName = config?.formName ? ` ${config.formName}` : '';
+    toast.error(message, toastOptions);
+  },
 
-		const defaultMessages: PromiseToastMessages<T> = {
-			loading: config?.loadingMessage || `Submitting${formName} form...`,
-			success: config?.successMessage || `${config?.formName || 'Form'} submitted successfully!`,
-			error: config?.errorMessage || `Failed to submit${formName} form`,
-		};
+  promise: <T>(
+    promise: Promise<T>,
+    config?: FormSubmissionConfig & {
+      messages?: Partial<PromiseToastMessages<T>>;
+      onSuccess?: (data: T) => void;
+      onError?: (error: unknown) => void;
+    },
+  ): Promise<T> => {
+    const formName = config?.formName ? ` ${config.formName}` : "";
 
-		const finalMessages = { ...defaultMessages, ...config?.messages };
+    const defaultMessages: PromiseToastMessages<T> = {
+      loading: config?.loadingMessage || `Submitting${formName} form...`,
+      success:
+        config?.successMessage ||
+        `${config?.formName || "Form"} submitted successfully!`,
+      error: config?.errorMessage || `Failed to submit${formName} form`,
+    };
 
-		const enhancedPromise = promise
-			.then((data: T) => {
-				if (config?.onSuccess) {
-					config.onSuccess(data);
-				}
-				return data;
-			})
-			.catch((error: unknown) => {
-				if (config?.onError) {
-					config.onError(error);
-				}
-				throw error;
-			});
+    const finalMessages = { ...defaultMessages, ...config?.messages };
 
-		toast.promise(enhancedPromise, finalMessages);
-		return enhancedPromise;
-	},
+    const enhancedPromise = promise
+      .then((data: T) => {
+        if (config?.onSuccess) {
+          config.onSuccess(data);
+        }
+        return data;
+      })
+      .catch((error: unknown) => {
+        if (config?.onError) {
+          config.onError(error);
+        }
+        throw error;
+      });
 
-	fileUpload: <T>(
-		uploadPromise: Promise<T>,
-		fileConfig: FileUploadConfig,
-		options?: {
-			onSuccess?: (data: T) => void;
-			onError?: (error: unknown) => void;
-			showFileSize?: boolean;
-		},
-	): Promise<T> => {
-		const { fileName, fileSize, fileType, maxSize } = fileConfig;
+    toast.promise(enhancedPromise, finalMessages);
+    return enhancedPromise;
+  },
 
-		if (maxSize && fileSize && fileSize > maxSize) {
-			const maxSizeMB = (maxSize / BYTES.MB).toFixed(1);
-			const fileSizeMB = (fileSize / BYTES.MB).toFixed(1);
+  fileUpload: <T>(
+    uploadPromise: Promise<T>,
+    fileConfig: FileUploadConfig,
+    options?: {
+      onSuccess?: (data: T) => void;
+      onError?: (error: unknown) => void;
+      showFileSize?: boolean;
+    },
+  ): Promise<T> => {
+    const { fileName, fileSize, fileType, maxSize } = fileConfig;
 
-			toast.error(`File too large: ${fileSizeMB}MB`, {
-				description: `Maximum allowed size is ${maxSizeMB}MB`,
-				duration: TOAST_CONFIG.ERROR_DURATION,
-			});
+    if (maxSize && fileSize && fileSize > maxSize) {
+      const maxSizeMB = (maxSize / BYTES.MB).toFixed(1);
+      const fileSizeMB = (fileSize / BYTES.MB).toFixed(1);
 
-			return Promise.reject(new Error('File size exceeds maximum allowed size'));
-		}
+      toast.error(`File too large: ${fileSizeMB}MB`, {
+        description: `Maximum allowed size is ${maxSizeMB}MB`,
+        duration: TOAST_CONFIG.ERROR_DURATION,
+      });
 
-		const fileInfo = formatFileInfo(fileName, fileType);
-		const sizeInfo = options?.showFileSize && fileSize ? ` (${formatFileSize(fileSize)})` : '';
+      return Promise.reject(
+        new Error("File size exceeds maximum allowed size"),
+      );
+    }
 
-		const messages: PromiseToastMessages<T> = {
-			loading: `Uploading ${fileInfo}${sizeInfo}...`,
-			success: (data: T) => {
-				if (options?.onSuccess) {
-					options.onSuccess(data);
-				}
-				return `${fileInfo} uploaded successfully`;
-			},
-			error: `Failed to upload ${fileInfo}`,
-		};
+    const fileInfo = formatFileInfo(fileName, fileType);
+    const sizeInfo =
+      options?.showFileSize && fileSize ? ` (${formatFileSize(fileSize)})` : "";
 
-		const enhancedPromise = uploadPromise.catch((error: unknown) => {
-			if (options?.onError) {
-				options.onError(error);
-			}
-			throw error;
-		});
+    const messages: PromiseToastMessages<T> = {
+      loading: `Uploading ${fileInfo}${sizeInfo}...`,
+      success: (data: T) => {
+        if (options?.onSuccess) {
+          options.onSuccess(data);
+        }
+        return `${fileInfo} uploaded successfully`;
+      },
+      error: `Failed to upload ${fileInfo}`,
+    };
 
-		toast.promise(enhancedPromise, messages);
-		return enhancedPromise;
-	},
+    const enhancedPromise = uploadPromise.catch((error: unknown) => {
+      if (options?.onError) {
+        options.onError(error);
+      }
+      throw error;
+    });
 
-	multipleFileUpload: <T>(
-		uploadPromises: Promise<T>[],
-		fileNames: string[],
-		options?: {
-			onProgress?: (completed: number, total: number) => void;
-			onAllComplete?: (results: T[]) => void;
-			onError?: (error: unknown, fileName: string) => void;
-		},
-	): Promise<T[]> => {
-		const totalFiles = uploadPromises.length;
-		const fileList =
-			fileNames.length <= 3
-				? fileNames.join(', ')
-				: `${fileNames.slice(0, 2).join(', ')} and ${totalFiles - 2} more files`;
+    toast.promise(enhancedPromise, messages);
+    return enhancedPromise;
+  },
 
-		const batchPromise = Promise.allSettled(uploadPromises).then((results) => {
-			const successful: T[] = [];
-			const failed: string[] = [];
+  multipleFileUpload: <T>(
+    uploadPromises: Promise<T>[],
+    fileNames: string[],
+    options?: {
+      onProgress?: (completed: number, total: number) => void;
+      onAllComplete?: (results: T[]) => void;
+      onError?: (error: unknown, fileName: string) => void;
+    },
+  ): Promise<T[]> => {
+    const totalFiles = uploadPromises.length;
+    const fileList =
+      fileNames.length <= 3
+        ? fileNames.join(", ")
+        : `${fileNames.slice(0, 2).join(", ")} and ${totalFiles - 2} more files`;
 
-			results.forEach((result, index) => {
-				if (result.status === 'fulfilled') {
-					successful.push(result.value);
-				} else {
-					failed.push(fileNames[index] || `File ${index + 1}`);
-					if (options?.onError) {
-						options.onError(result.reason, fileNames[index] || `File ${index + 1}`);
-					}
-				}
-			});
+    const batchPromise = Promise.allSettled(uploadPromises).then((results) => {
+      const successful: T[] = [];
+      const failed: string[] = [];
 
-			if (options?.onProgress) {
-				options.onProgress(successful.length, totalFiles);
-			}
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          successful.push(result.value);
+        } else {
+          failed.push(fileNames[index] || `File ${index + 1}`);
+          if (options?.onError) {
+            options.onError(
+              result.reason,
+              fileNames[index] || `File ${index + 1}`,
+            );
+          }
+        }
+      });
 
-			if (failed.length > 0) {
-				const failedList =
-					failed.length <= 3
-						? failed.join(', ')
-						: `${failed.slice(0, 2).join(', ')} and ${failed.length - 2} more`;
+      if (options?.onProgress) {
+        options.onProgress(successful.length, totalFiles);
+      }
 
-				throw new Error(`Failed to upload: ${failedList}`);
-			}
+      if (failed.length > 0) {
+        const failedList =
+          failed.length <= 3
+            ? failed.join(", ")
+            : `${failed.slice(0, 2).join(", ")} and ${failed.length - 2} more`;
 
-			if (options?.onAllComplete) {
-				options.onAllComplete(successful);
-			}
+        throw new Error(`Failed to upload: ${failedList}`);
+      }
 
-			return successful;
-		});
+      if (options?.onAllComplete) {
+        options.onAllComplete(successful);
+      }
 
-		const messages: PromiseToastMessages<T[]> = {
-			loading: `Uploading ${totalFiles} files...`,
-			success: `Successfully uploaded ${fileList}`,
-			error: `Some files failed to upload`,
-		};
+      return successful;
+    });
 
-		toast.promise(batchPromise, messages);
-		return batchPromise;
-	},
+    const messages: PromiseToastMessages<T[]> = {
+      loading: `Uploading ${totalFiles} files...`,
+      success: `Successfully uploaded ${fileList}`,
+      error: `Some files failed to upload`,
+    };
 
-	networkError: (
-		error: string,
-		options?: NetworkErrorConfig & {
-			checkConnection?: () => Promise<boolean>;
-			duration?: number;
-		},
-	): void => {
-		const message = `Network error: ${error}`;
+    toast.promise(batchPromise, messages);
+    return batchPromise;
+  },
 
-		const toastOptions: SonnerToastOptions = {
-			duration: options?.duration || 8000,
-			description: 'Please check your internet connection and try again',
-		};
+  networkError: (
+    error: string,
+    options?: NetworkErrorConfig & {
+      checkConnection?: () => Promise<boolean>;
+      duration?: number;
+    },
+  ): void => {
+    const message = `Network error: ${error}`;
 
-		if (options?.retryAction) {
-			toastOptions.action = {
-				label: 'Retry',
-				onClick: async (event: MouseEvent) => {
-					event.preventDefault();
+    const toastOptions: SonnerToastOptions = {
+      duration: options?.duration || 8000,
+      description: "Please check your internet connection and try again",
+    };
 
-					if (options.checkConnection) {
-						try {
-							const isConnected = await options.checkConnection();
-							if (!isConnected) {
-								toast.error('No internet connection detected', {
-									description: 'Please check your connection and try again',
-								});
-								return;
-							}
-						} catch {
-							toast.error('Unable to verify connection');
-							return;
-						}
-					}
+    if (options?.retryAction) {
+      toastOptions.action = {
+        label: "Retry",
+        onClick: async (event: MouseEvent) => {
+          event.preventDefault();
 
-					try {
-						if (options.retryAction) {
-							await options.retryAction();
-						}
-					} catch (retryError) {
-						form.networkError(retryError instanceof Error ? retryError.message : 'Retry failed', {
-							...options,
-							currentRetry: (options.currentRetry || 0) + 1,
-						});
-					}
-				},
-			};
-		}
+          if (options.checkConnection) {
+            try {
+              const isConnected = await options.checkConnection();
+              if (!isConnected) {
+                toast.error("No internet connection detected", {
+                  description: "Please check your connection and try again",
+                });
+                return;
+              }
+            } catch {
+              toast.error("Unable to verify connection");
+              return;
+            }
+          }
 
-		toast.error(message, toastOptions);
-	},
+          try {
+            if (options.retryAction) {
+              await options.retryAction();
+            }
+          } catch (retryError) {
+            form.networkError(
+              retryError instanceof Error ? retryError.message : "Retry failed",
+              {
+                ...options,
+                currentRetry: (options.currentRetry || 0) + 1,
+              },
+            );
+          }
+        },
+      };
+    }
+
+    toast.error(message, toastOptions);
+  },
 };
 
 // ============================================================================
@@ -871,273 +936,344 @@ export const form = {
 // ============================================================================
 
 export const auth = {
-	success: {
-		login: () => toast.success(AUTH_MESSAGES.success.login),
-		register: () => toast.success(AUTH_MESSAGES.success.register),
-		logout: () => toast.success(AUTH_MESSAGES.success.logout),
-		passwordResetRequest: () => toast.info(AUTH_MESSAGES.success.passwordResetRequest),
-		passwordResetSuccess: () => toast.success(AUTH_MESSAGES.success.passwordResetSuccess),
-		passwordChangeSuccess: () => toast.success(AUTH_MESSAGES.success.passwordChangeSuccess),
-		emailVerification: () => toast.success(AUTH_MESSAGES.success.emailVerification),
-		profileUpdate: () => toast.success(AUTH_MESSAGES.success.profileUpdate),
-		invitationSent: () => toast.success(AUTH_MESSAGES.success.invitationSent),
-		invitationAccepted: () => toast.success(AUTH_MESSAGES.success.invitationAccepted),
-		invitationRejected: () => toast.info(AUTH_MESSAGES.success.invitationRejected),
-		memberRemoved: () => toast.success(AUTH_MESSAGES.success.memberRemoved),
-		workspaceLeft: () => toast.success(AUTH_MESSAGES.success.workspaceLeft),
-	},
-	error: {
-		// Authentication errors
-		invalidCredentials: () => toast.error(AUTH_MESSAGES.error.invalidCredentials),
-		emailNotConfirmed: () => toast.error(AUTH_MESSAGES.error.emailNotConfirmed),
-		tooManyRequests: () => toast.error(AUTH_MESSAGES.error.tooManyRequests),
-		userNotFound: () => toast.error(AUTH_MESSAGES.error.userNotFound),
-		emailAlreadyExists: () => toast.error(AUTH_MESSAGES.error.emailAlreadyExists),
-		weakPassword: () => toast.error(AUTH_MESSAGES.error.weakPassword),
-		invalidEmail: () => toast.error(AUTH_MESSAGES.error.invalidEmail),
-		
-		// Password management errors
-		passwordResetFailed: () => toast.error(AUTH_MESSAGES.error.passwordResetFailed),
-		invalidResetToken: () => toast.error(AUTH_MESSAGES.error.invalidResetToken),
-		passwordUpdateFailed: () => toast.error(AUTH_MESSAGES.error.passwordUpdateFailed),
-		passwordMismatch: () => toast.error(AUTH_MESSAGES.error.passwordMismatch),
-		incorrectPassword: () => toast.error(AUTH_MESSAGES.error.incorrectPassword),
-		
-		// Session errors
-		networkError: () => toast.error(AUTH_MESSAGES.error.networkError),
-		serverError: () => toast.error(AUTH_MESSAGES.error.serverError),
-		validationError: () => toast.error(AUTH_MESSAGES.error.validationError),
-		unexpectedError: () => toast.error(AUTH_MESSAGES.error.unexpectedError),
-		sessionExpired: () => toast.warning(AUTH_MESSAGES.error.sessionExpired),
-		unauthorized: () => toast.error(AUTH_MESSAGES.error.unauthorized),
-		
-		// Organization/Workspace errors
-		organizationNotFound: () => toast.error(AUTH_MESSAGES.error.organizationNotFound),
-		invitationFailed: () => toast.error(AUTH_MESSAGES.error.invitationFailed),
-		invitationNotFound: () => toast.error(AUTH_MESSAGES.error.invitationNotFound),
-		alreadyMember: () => toast.error(AUTH_MESSAGES.error.alreadyMember),
-		cannotRemoveSelf: () => toast.error(AUTH_MESSAGES.error.cannotRemoveSelf),
-		cannotRemoveLastOwner: () => toast.error(AUTH_MESSAGES.error.cannotRemoveLastOwner),
-		
-		// Generic errors
-		databaseError: () => toast.error(AUTH_MESSAGES.error.databaseError),
-		configurationError: () => toast.error(AUTH_MESSAGES.error.configurationError),
-	},
-	warning: {
-		sessionExpiring: () => toast.warning(AUTH_MESSAGES.warning.sessionExpiring),
-		emailNotVerified: () => toast.warning(AUTH_MESSAGES.warning.emailNotVerified),
-		pendingInvitation: () => toast.info(AUTH_MESSAGES.warning.pendingInvitation),
-	},
+  success: {
+    login: () => toast.success(AUTH_MESSAGES.success.login),
+    register: () => toast.success(AUTH_MESSAGES.success.register),
+    logout: () => toast.success(AUTH_MESSAGES.success.logout),
+    passwordResetRequest: () =>
+      toast.info(AUTH_MESSAGES.success.passwordResetRequest),
+    passwordResetSuccess: () =>
+      toast.success(AUTH_MESSAGES.success.passwordResetSuccess),
+    passwordChangeSuccess: () =>
+      toast.success(AUTH_MESSAGES.success.passwordChangeSuccess),
+    emailVerification: () =>
+      toast.success(AUTH_MESSAGES.success.emailVerification),
+    profileUpdate: () => toast.success(AUTH_MESSAGES.success.profileUpdate),
+    invitationSent: () => toast.success(AUTH_MESSAGES.success.invitationSent),
+    invitationAccepted: () =>
+      toast.success(AUTH_MESSAGES.success.invitationAccepted),
+    invitationRejected: () =>
+      toast.info(AUTH_MESSAGES.success.invitationRejected),
+    memberRemoved: () => toast.success(AUTH_MESSAGES.success.memberRemoved),
+    workspaceLeft: () => toast.success(AUTH_MESSAGES.success.workspaceLeft),
+  },
+  error: {
+    // Authentication errors
+    invalidCredentials: () =>
+      toast.error(AUTH_MESSAGES.error.invalidCredentials),
+    emailNotConfirmed: () => toast.error(AUTH_MESSAGES.error.emailNotConfirmed),
+    tooManyRequests: () => toast.error(AUTH_MESSAGES.error.tooManyRequests),
+    userNotFound: () => toast.error(AUTH_MESSAGES.error.userNotFound),
+    emailAlreadyExists: () =>
+      toast.error(AUTH_MESSAGES.error.emailAlreadyExists),
+    weakPassword: () => toast.error(AUTH_MESSAGES.error.weakPassword),
+    invalidEmail: () => toast.error(AUTH_MESSAGES.error.invalidEmail),
+
+    // Password management errors
+    passwordResetFailed: () =>
+      toast.error(AUTH_MESSAGES.error.passwordResetFailed),
+    invalidResetToken: () => toast.error(AUTH_MESSAGES.error.invalidResetToken),
+    passwordUpdateFailed: () =>
+      toast.error(AUTH_MESSAGES.error.passwordUpdateFailed),
+    passwordMismatch: () => toast.error(AUTH_MESSAGES.error.passwordMismatch),
+    incorrectPassword: () => toast.error(AUTH_MESSAGES.error.incorrectPassword),
+
+    // Session errors
+    networkError: () => toast.error(AUTH_MESSAGES.error.networkError),
+    serverError: () => toast.error(AUTH_MESSAGES.error.serverError),
+    validationError: () => toast.error(AUTH_MESSAGES.error.validationError),
+    unexpectedError: () => toast.error(AUTH_MESSAGES.error.unexpectedError),
+    sessionExpired: () => toast.warning(AUTH_MESSAGES.error.sessionExpired),
+    unauthorized: () => toast.error(AUTH_MESSAGES.error.unauthorized),
+
+    // Organization/Workspace errors
+    organizationNotFound: () =>
+      toast.error(AUTH_MESSAGES.error.organizationNotFound),
+    invitationFailed: () => toast.error(AUTH_MESSAGES.error.invitationFailed),
+    invitationNotFound: () =>
+      toast.error(AUTH_MESSAGES.error.invitationNotFound),
+    alreadyMember: () => toast.error(AUTH_MESSAGES.error.alreadyMember),
+    cannotRemoveSelf: () => toast.error(AUTH_MESSAGES.error.cannotRemoveSelf),
+    cannotRemoveLastOwner: () =>
+      toast.error(AUTH_MESSAGES.error.cannotRemoveLastOwner),
+
+    // Generic errors
+    databaseError: () => toast.error(AUTH_MESSAGES.error.databaseError),
+    configurationError: () =>
+      toast.error(AUTH_MESSAGES.error.configurationError),
+  },
+  warning: {
+    sessionExpiring: () => toast.warning(AUTH_MESSAGES.warning.sessionExpiring),
+    emailNotVerified: () =>
+      toast.warning(AUTH_MESSAGES.warning.emailNotVerified),
+    pendingInvitation: () =>
+      toast.info(AUTH_MESSAGES.warning.pendingInvitation),
+  },
 };
 
 const ERROR_CODE_TO_TOAST_MAP: Record<string, () => void> = {
-	// Authentication errors
-	INVALID_CREDENTIALS: auth.error.invalidCredentials,
-	EMAIL_NOT_VERIFIED: auth.error.emailNotConfirmed,
-	RATE_LIMIT_EXCEEDED: auth.error.tooManyRequests,
-	USER_NOT_FOUND: auth.error.userNotFound,
-	EMAIL_ALREADY_EXISTS: auth.error.emailAlreadyExists,
-	WEAK_PASSWORD: auth.error.weakPassword,
-	INVALID_EMAIL: auth.error.invalidEmail,
-	
-	// Password errors
-	PASSWORD_RESET_FAILED: auth.error.passwordResetFailed,
-	INVALID_TOKEN: auth.error.invalidResetToken,
-	PASSWORD_UPDATE_FAILED: auth.error.passwordUpdateFailed,
-	PASSWORD_MISMATCH: auth.error.passwordMismatch,
-	INCORRECT_PASSWORD: auth.error.incorrectPassword,
-	
-	// Session errors
-	NETWORK_ERROR: auth.error.networkError,
-	SERVER_ERROR: auth.error.serverError,
-	SESSION_EXPIRED: auth.error.sessionExpired,
-	UNAUTHORIZED: auth.error.unauthorized,
-	
-	// Organization errors
-	ORGANIZATION_NOT_FOUND: auth.error.organizationNotFound,
-	INVITATION_FAILED: auth.error.invitationFailed,
-	INVITATION_NOT_FOUND: auth.error.invitationNotFound,
-	ALREADY_MEMBER: auth.error.alreadyMember,
-	CANNOT_REMOVE_SELF: auth.error.cannotRemoveSelf,
-	CANNOT_REMOVE_LAST_OWNER: auth.error.cannotRemoveLastOwner,
-	
-	// Generic errors
-	DATABASE_ERROR: auth.error.databaseError,
-	CONFIGURATION_ERROR: auth.error.configurationError,
-	VALIDATION_ERROR: auth.error.validationError,
+  // Authentication errors
+  INVALID_CREDENTIALS: auth.error.invalidCredentials,
+  EMAIL_NOT_VERIFIED: auth.error.emailNotConfirmed,
+  RATE_LIMIT_EXCEEDED: auth.error.tooManyRequests,
+  USER_NOT_FOUND: auth.error.userNotFound,
+  EMAIL_ALREADY_EXISTS: auth.error.emailAlreadyExists,
+  WEAK_PASSWORD: auth.error.weakPassword,
+  INVALID_EMAIL: auth.error.invalidEmail,
+
+  // Password errors
+  PASSWORD_RESET_FAILED: auth.error.passwordResetFailed,
+  INVALID_TOKEN: auth.error.invalidResetToken,
+  PASSWORD_UPDATE_FAILED: auth.error.passwordUpdateFailed,
+  PASSWORD_MISMATCH: auth.error.passwordMismatch,
+  INCORRECT_PASSWORD: auth.error.incorrectPassword,
+
+  // Session errors
+  NETWORK_ERROR: auth.error.networkError,
+  SERVER_ERROR: auth.error.serverError,
+  SESSION_EXPIRED: auth.error.sessionExpired,
+  UNAUTHORIZED: auth.error.unauthorized,
+
+  // Organization errors
+  ORGANIZATION_NOT_FOUND: auth.error.organizationNotFound,
+  INVITATION_FAILED: auth.error.invitationFailed,
+  INVITATION_NOT_FOUND: auth.error.invitationNotFound,
+  ALREADY_MEMBER: auth.error.alreadyMember,
+  CANNOT_REMOVE_SELF: auth.error.cannotRemoveSelf,
+  CANNOT_REMOVE_LAST_OWNER: auth.error.cannotRemoveLastOwner,
+
+  // Generic errors
+  DATABASE_ERROR: auth.error.databaseError,
+  CONFIGURATION_ERROR: auth.error.configurationError,
+  VALIDATION_ERROR: auth.error.validationError,
 };
 
-export function handleAuthError(error: { 
-	message: string; 
-	status?: number; 
-	code?: BetterAuthErrorCode | string;
+export function handleAuthError(error: {
+  message: string;
+  status?: number;
+  code?: BetterAuthErrorCode | string;
 }): void {
-	// Try to use error code first
-	if (error.code) {
-		const toastHandler = ERROR_CODE_TO_TOAST_MAP[error.code];
-		if (toastHandler) {
-			toastHandler();
-			return;
-		}
-	}
+  // Try to use error code first
+  if (error.code) {
+    const toastHandler = ERROR_CODE_TO_TOAST_MAP[error.code];
+    if (toastHandler) {
+      toastHandler();
+      return;
+    }
+  }
 
-	// Fall back to message pattern matching for Better Auth errors
-	const message = error.message.toLowerCase();
-	
-	// Authentication errors
-	if (message.includes('invalid') && (message.includes('credentials') || message.includes('password'))) {
-		auth.error.invalidCredentials();
-	} else if (message.includes('not verified') || message.includes('email not confirmed')) {
-		auth.error.emailNotConfirmed();
-	} else if (message.includes('too many') || message.includes('rate limit')) {
-		auth.error.tooManyRequests();
-	} else if (message.includes('user not found') || message.includes('no account')) {
-		auth.error.userNotFound();
-	} else if (message.includes('already exists') || message.includes('already registered')) {
-		auth.error.emailAlreadyExists();
-	} else if (message.includes('weak password') || message.includes('password strength')) {
-		auth.error.weakPassword();
-	} else if (message.includes('invalid email')) {
-		auth.error.invalidEmail();
-	}
-	// Password errors
-	else if (message.includes('password') && message.includes('mismatch')) {
-		auth.error.passwordMismatch();
-	} else if (message.includes('incorrect password') || message.includes('wrong password')) {
-		auth.error.incorrectPassword();
-	} else if (message.includes('invalid token') || message.includes('expired token')) {
-		auth.error.invalidResetToken();
-	}
-	// Session errors
-	else if (message.includes('session expired') || message.includes('session invalid')) {
-		auth.error.sessionExpired();
-	} else if (message.includes('unauthorized') || message.includes('not authorized')) {
-		auth.error.unauthorized();
-	} else if (message.includes('network') || message.includes('connection')) {
-		auth.error.networkError();
-	}
-	// Organization errors
-	else if (message.includes('organization not found') || message.includes('workspace not found')) {
-		auth.error.organizationNotFound();
-	} else if (message.includes('already a member') || message.includes('already member')) {
-		auth.error.alreadyMember();
-	} else if (message.includes('invitation not found') || message.includes('invitation expired')) {
-		auth.error.invitationNotFound();
-	} else if (message.includes('cannot remove') && message.includes('owner')) {
-		auth.error.cannotRemoveLastOwner();
-	}
-	// Database errors
-	else if (message.includes('database')) {
-		auth.error.databaseError();
-	} else if (message.includes('configuration')) {
-		auth.error.configurationError();
-	}
-	// Generic fallback
-	else if (error.status && error.status >= 500) {
-		auth.error.serverError();
-	} else {
-		auth.error.unexpectedError();
-	}
+  // Fall back to message pattern matching for Better Auth errors
+  const message = error.message.toLowerCase();
+
+  // Authentication errors
+  if (
+    message.includes("invalid") &&
+    (message.includes("credentials") || message.includes("password"))
+  ) {
+    auth.error.invalidCredentials();
+  } else if (
+    message.includes("not verified") ||
+    message.includes("email not confirmed")
+  ) {
+    auth.error.emailNotConfirmed();
+  } else if (message.includes("too many") || message.includes("rate limit")) {
+    auth.error.tooManyRequests();
+  } else if (
+    message.includes("user not found") ||
+    message.includes("no account")
+  ) {
+    auth.error.userNotFound();
+  } else if (
+    message.includes("already exists") ||
+    message.includes("already registered")
+  ) {
+    auth.error.emailAlreadyExists();
+  } else if (
+    message.includes("weak password") ||
+    message.includes("password strength")
+  ) {
+    auth.error.weakPassword();
+  } else if (message.includes("invalid email")) {
+    auth.error.invalidEmail();
+  }
+  // Password errors
+  else if (message.includes("password") && message.includes("mismatch")) {
+    auth.error.passwordMismatch();
+  } else if (
+    message.includes("incorrect password") ||
+    message.includes("wrong password")
+  ) {
+    auth.error.incorrectPassword();
+  } else if (
+    message.includes("invalid token") ||
+    message.includes("expired token")
+  ) {
+    auth.error.invalidResetToken();
+  }
+  // Session errors
+  else if (
+    message.includes("session expired") ||
+    message.includes("session invalid")
+  ) {
+    auth.error.sessionExpired();
+  } else if (
+    message.includes("unauthorized") ||
+    message.includes("not authorized")
+  ) {
+    auth.error.unauthorized();
+  } else if (message.includes("network") || message.includes("connection")) {
+    auth.error.networkError();
+  }
+  // Organization errors
+  else if (
+    message.includes("organization not found") ||
+    message.includes("workspace not found")
+  ) {
+    auth.error.organizationNotFound();
+  } else if (
+    message.includes("already a member") ||
+    message.includes("already member")
+  ) {
+    auth.error.alreadyMember();
+  } else if (
+    message.includes("invitation not found") ||
+    message.includes("invitation expired")
+  ) {
+    auth.error.invitationNotFound();
+  } else if (message.includes("cannot remove") && message.includes("owner")) {
+    auth.error.cannotRemoveLastOwner();
+  }
+  // Database errors
+  else if (message.includes("database")) {
+    auth.error.databaseError();
+  } else if (message.includes("configuration")) {
+    auth.error.configurationError();
+  }
+  // Generic fallback
+  else if (error.status && error.status >= 500) {
+    auth.error.serverError();
+  } else {
+    auth.error.unexpectedError();
+  }
 }
 
 export function handleFormValidationError(): void {
-	auth.error.validationError();
+  auth.error.validationError();
 }
 
 export function handleFormSuccess(
-	type: keyof typeof auth.success, 
-	customMessage?: string
+  type: keyof typeof auth.success,
+  customMessage?: string,
 ): void {
-	if (customMessage) {
-		toast.success(customMessage);
-	} else {
-		auth.success[type]();
-	}
+  if (customMessage) {
+    toast.success(customMessage);
+  } else {
+    auth.success[type]();
+  }
 }
 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
-function getDefaultMessage(operation: CrudOperation, type: 'success' | 'error'): string {
-	const operationMap = {
-		create: { success: 'Item created successfully', error: 'Failed to create item' },
-		update: { success: 'Item updated successfully', error: 'Failed to update item' },
-		delete: { success: 'Item deleted successfully', error: 'Failed to delete item' },
-		fetch: { success: 'Data loaded successfully', error: 'Failed to load data' },
-	};
+function getDefaultMessage(
+  operation: CrudOperation,
+  type: "success" | "error",
+): string {
+  const operationMap = {
+    create: {
+      success: "Item created successfully",
+      error: "Failed to create item",
+    },
+    update: {
+      success: "Item updated successfully",
+      error: "Failed to update item",
+    },
+    delete: {
+      success: "Item deleted successfully",
+      error: "Failed to delete item",
+    },
+    fetch: {
+      success: "Data loaded successfully",
+      error: "Failed to load data",
+    },
+  };
 
-	return operationMap[operation][type];
+  return operationMap[operation][type];
 }
 
-function getLoadingMessage(operation: CrudOperation, config?: EntityConfig | null): string {
-	const verb = getOperationVerb(operation);
-	const entityName = config?.displayName.toLowerCase() || 'item';
-	return `${capitalizeFirst(verb)} ${entityName}...`;
+function getLoadingMessage(
+  operation: CrudOperation,
+  config?: EntityConfig | null,
+): string {
+  const verb = getOperationVerb(operation);
+  const entityName = config?.displayName.toLowerCase() || "item";
+  return `${capitalizeFirst(verb)} ${entityName}...`;
 }
 
 function getOperationVerb(operation: CrudOperation): string {
-	const verbMap = {
-		create: 'creating',
-		update: 'updating',
-		delete: 'deleting',
-		fetch: 'loading',
-	};
-	return verbMap[operation];
+  const verbMap = {
+    create: "creating",
+    update: "updating",
+    delete: "deleting",
+    fetch: "loading",
+  };
+  return verbMap[operation];
 }
 
 function getOperationPastTense(operation: CrudOperation): string {
-	const verbMap = {
-		create: 'created',
-		update: 'updated',
-		delete: 'deleted',
-		fetch: 'loaded',
-	};
-	return verbMap[operation];
+  const verbMap = {
+    create: "created",
+    update: "updated",
+    delete: "deleted",
+    fetch: "loaded",
+  };
+  return verbMap[operation];
 }
 
 function capitalizeFirst(str: string): string {
-	return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function pluralize(word: string): string {
-	if (word.endsWith('y')) {
-		return word.slice(0, -1) + 'ies';
-	}
-	if (
-		word.endsWith('s') ||
-		word.endsWith('sh') ||
-		word.endsWith('ch') ||
-		word.endsWith('x') ||
-		word.endsWith('z')
-	) {
-		return word + 'es';
-	}
-	return word + 's';
+  if (word.endsWith("y")) {
+    return word.slice(0, -1) + "ies";
+  }
+  if (
+    word.endsWith("s") ||
+    word.endsWith("sh") ||
+    word.endsWith("ch") ||
+    word.endsWith("x") ||
+    word.endsWith("z")
+  ) {
+    return word + "es";
+  }
+  return word + "s";
 }
 
 function formatFieldName(fieldName: string): string {
-	return fieldName
-		.replace(/([A-Z])/g, ' $1')
-		.replace(/_/g, ' ')
-		.replace(/\b\w/g, (l) => l.toUpperCase())
-		.trim();
+  return fieldName
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase())
+    .trim();
 }
 
 function formatFileInfo(fileName: string, fileType?: string): string {
-	const name = fileName.length > 30 ? `${fileName.substring(0, 27)}...` : fileName;
-	const typeInfo = fileType ? ` (${fileType})` : '';
-	return `${name}${typeInfo}`;
+  const name =
+    fileName.length > 30 ? `${fileName.substring(0, 27)}...` : fileName;
+  const typeInfo = fileType ? ` (${fileType})` : "";
+  return `${name}${typeInfo}`;
 }
 
 function formatFileSize(bytes: number): string {
-	if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
 
-	const k = 1024;
-	const sizes = ['B', 'KB', 'MB', 'GB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 // ============================================================================
@@ -1146,176 +1282,189 @@ function formatFileSize(bytes: number): string {
 
 // CRUD convenience functions
 export const showCreateSuccess = (
-	entity: string,
-	itemName?: string,
-	undoAction?: () => void | Promise<void>,
-): void => crud.success('create', entity, { itemName, undoAction });
+  entity: string,
+  itemName?: string,
+  undoAction?: () => void | Promise<void>,
+): void => crud.success("create", entity, { itemName, undoAction });
 
 export const showUpdateSuccess = (entity: string, itemName?: string): void =>
-	crud.success('update', entity, { itemName });
+  crud.success("update", entity, { itemName });
 
 export const showDeleteSuccess = (
-	entity: string,
-	itemName?: string,
-	undoAction?: () => void | Promise<void>,
-): void => crud.success('delete', entity, { itemName, undoAction });
+  entity: string,
+  itemName?: string,
+  undoAction?: () => void | Promise<void>,
+): void => crud.success("delete", entity, { itemName, undoAction });
 
 export const showOperationError = (
-	operation: CrudOperation,
-	entity: string,
-	error: string,
-	retryAction?: () => void | Promise<void>,
-	isNetworkError = false,
-): void => crud.error(operation, error, entity, { retryAction, isNetworkError });
+  operation: CrudOperation,
+  entity: string,
+  error: string,
+  retryAction?: () => void | Promise<void>,
+  isNetworkError = false,
+): void =>
+  crud.error(operation, error, entity, { retryAction, isNetworkError });
 
 export const executeWithToast = <T>(
-	promise: Promise<T>,
-	operation: CrudOperation,
-	entity: string,
-	options?: {
-		itemName?: string;
-		customMessages?: Partial<PromiseToastMessages<T>>;
-	},
-): Promise<T> => crud.promise(promise, operation, entity, { messages: options?.customMessages, itemName: options?.itemName });
+  promise: Promise<T>,
+  operation: CrudOperation,
+  entity: string,
+  options?: {
+    itemName?: string;
+    customMessages?: Partial<PromiseToastMessages<T>>;
+  },
+): Promise<T> =>
+  crud.promise(promise, operation, entity, {
+    messages: options?.customMessages,
+    itemName: options?.itemName,
+  });
 
 export const executeBatchWithToast = <T>(
-	promises: Promise<T>[],
-	operation: CrudOperation,
-	entity: string,
-	options?: {
-		successMessage?: string;
-		errorMessage?: string;
-	},
+  promises: Promise<T>[],
+  operation: CrudOperation,
+  entity: string,
+  options?: {
+    successMessage?: string;
+    errorMessage?: string;
+  },
 ): Promise<T[]> => crud.batch(promises, operation, entity, options);
 
 // Form convenience functions
 export const submitFormWithToast = <T>(
-	submitPromise: Promise<T>,
-	config?: FormSubmissionConfig & {
-		onSuccess?: (data: T) => void;
-		onValidationError?: (errors: unknown) => void;
-		onNetworkError?: (error: unknown) => void;
-	},
+  submitPromise: Promise<T>,
+  config?: FormSubmissionConfig & {
+    onSuccess?: (data: T) => void;
+    onValidationError?: (errors: unknown) => void;
+    onNetworkError?: (error: unknown) => void;
+  },
 ): Promise<T> => form.promise(submitPromise, config);
 
 export const uploadFileWithToast = <T>(
-	uploadPromise: Promise<T>,
-	fileName: string,
-	options?: {
-		fileSize?: number;
-		fileType?: string;
-		maxSize?: number;
-		onSuccess?: (data: T) => void;
-		onError?: (error: unknown) => void;
-		showFileSize?: boolean;
-	},
-): Promise<T> => form.fileUpload(uploadPromise, { fileName, ...options }, options);
+  uploadPromise: Promise<T>,
+  fileName: string,
+  options?: {
+    fileSize?: number;
+    fileType?: string;
+    maxSize?: number;
+    onSuccess?: (data: T) => void;
+    onError?: (error: unknown) => void;
+    showFileSize?: boolean;
+  },
+): Promise<T> =>
+  form.fileUpload(uploadPromise, { fileName, ...options }, options);
 
 export const uploadMultipleFilesWithToast = <T>(
-	uploadPromises: Promise<T>[],
-	fileNames: string[],
-	options?: {
-		onProgress?: (completed: number, total: number) => void;
-		onAllComplete?: (results: T[]) => void;
-		onError?: (error: unknown, fileName: string) => void;
-	},
+  uploadPromises: Promise<T>[],
+  fileNames: string[],
+  options?: {
+    onProgress?: (completed: number, total: number) => void;
+    onAllComplete?: (results: T[]) => void;
+    onError?: (error: unknown, fileName: string) => void;
+  },
 ): Promise<T[]> => form.multipleFileUpload(uploadPromises, fileNames, options);
 
 export const showFormValidationErrors = (
-	errors: { field: string; message: string; displayName?: string }[],
-	options?: {
-		scrollToFirstError?: () => void;
-		maxDisplayErrors?: number;
-	},
+  errors: { field: string; message: string; displayName?: string }[],
+  options?: {
+    scrollToFirstError?: () => void;
+    maxDisplayErrors?: number;
+  },
 ): void => form.validationError(errors, options);
 
 export const showFormSuccess = (
-	message?: string,
-	options?: {
-		description?: string;
-		redirectAction?: () => void;
-		undoAction?: () => void | Promise<void>;
-	},
+  message?: string,
+  options?: {
+    description?: string;
+    redirectAction?: () => void;
+    undoAction?: () => void | Promise<void>;
+  },
 ): void => form.success(message, options);
 
 export const handleNetworkError = (
-	error: string,
-	retryAction?: () => void | Promise<void>,
-	options?: {
-		checkConnection?: () => Promise<boolean>;
-		maxRetries?: number;
-		currentRetry?: number;
-	},
-): void => form.networkError(error, { retryAction, ...options, isRetryable: !!retryAction });
+  error: string,
+  retryAction?: () => void | Promise<void>,
+  options?: {
+    checkConnection?: () => Promise<boolean>;
+    maxRetries?: number;
+    currentRetry?: number;
+  },
+): void =>
+  form.networkError(error, {
+    retryAction,
+    ...options,
+    isRetryable: !!retryAction,
+  });
 
 export const showEmptyFormError = (options?: {
-	formName?: string;
-	requiredFields?: string[];
-	scrollToFirstField?: () => void;
+  formName?: string;
+  requiredFields?: string[];
+  scrollToFirstField?: () => void;
 }): void => form.emptyFormError(options);
 
 export const validateFormNotEmpty = (
-	formData: Record<string, unknown>,
-	requiredFields: string[],
-	options?: {
-		formName?: string;
-		scrollToFirstField?: () => void;
-		fieldDisplayNames?: Record<string, string>;
-	},
+  formData: Record<string, unknown>,
+  requiredFields: string[],
+  options?: {
+    formName?: string;
+    scrollToFirstField?: () => void;
+    fieldDisplayNames?: Record<string, string>;
+  },
 ): boolean => {
-	const emptyFields: string[] = [];
+  const emptyFields: string[] = [];
 
-	for (const field of requiredFields) {
-		const value = formData[field];
-		if (
-			value === undefined ||
-			value === null ||
-			value === '' ||
-			(Array.isArray(value) && value.length === 0) ||
-			(typeof value === 'object' && Object.keys(value).length === 0)
-		) {
-			const displayName = options?.fieldDisplayNames?.[field] || formatFieldName(field);
-			emptyFields.push(displayName);
-		}
-	}
+  for (const field of requiredFields) {
+    const value = formData[field];
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      (Array.isArray(value) && value.length === 0) ||
+      (typeof value === "object" && Object.keys(value).length === 0)
+    ) {
+      const displayName =
+        options?.fieldDisplayNames?.[field] || formatFieldName(field);
+      emptyFields.push(displayName);
+    }
+  }
 
-	if (emptyFields.length > 0) {
-		form.emptyFormError({
-			formName: options?.formName,
-			requiredFields: emptyFields,
-			scrollToFirstField: options?.scrollToFirstField,
-		});
-		return false;
-	}
+  if (emptyFields.length > 0) {
+    form.emptyFormError({
+      formName: options?.formName,
+      requiredFields: emptyFields,
+      scrollToFirstField: options?.scrollToFirstField,
+    });
+    return false;
+  }
 
-	return true;
+  return true;
 };
 
 // Legacy class exports for backward compatibility
 export class CrudToasts {
-	static success = crud.success;
-	static error = crud.error;
-	static promise = crud.promise;
-	static batchPromise = crud.batch;
+  static success = crud.success;
+  static error = crud.error;
+  static promise = crud.promise;
+  static batchPromise = crud.batch;
 }
 
 export class FormToasts {
-	static success = form.success;
-	static validationError = form.validationError;
-	static submitError = form.submitError;
-	static emptyFormError = form.emptyFormError;
-	static promise = form.promise;
-	static fileUpload = form.fileUpload;
-	static multipleFileUpload = form.multipleFileUpload;
-	static networkError = form.networkError;
+  static success = form.success;
+  static error = form.error;
+  static validationError = form.validationError;
+  static submitError = form.submitError;
+  static emptyFormError = form.emptyFormError;
+  static promise = form.promise;
+  static fileUpload = form.fileUpload;
+  static multipleFileUpload = form.multipleFileUpload;
+  static networkError = form.networkError;
 }
 
 export const authToasts = auth;
 
 // Default export for unified service
 export default {
-	...toasts,
-	crud,
-	form,
-	auth,
+  ...toasts,
+  crud,
+  form,
+  auth,
 };

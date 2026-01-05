@@ -3,6 +3,8 @@
   import { valibot } from "sveltekit-superforms/adapters";
   import { useQueryClient } from "@tanstack/svelte-query";
 
+  import type { DocumentCategory } from "$lib/server/db/schema/enums";
+
   import { Button } from "$lib/components/ui/button/index";
   import {
     DialogContent,
@@ -44,14 +46,16 @@
   } from "$lib/validation/planner";
 
   let {
-    data,
     document,
+    data,
+    onUpdate,
     open = $bindable(),
-  }: {
-    data: { documentForm: unknown };
+  } = $props<{
     document: Document;
-    open: boolean;
-  } = $props();
+    data: any;
+    onUpdate?: (taskId: string, updatedData: any) => Promise<void>;
+    open?: boolean;
+  }>();
 
   const updateDocumentMutation = useUpdateDocument();
   const queryClient = useQueryClient();
@@ -74,7 +78,7 @@
         CrudToasts.error(
           "update",
           "An error occurred while updating the document",
-          "document"
+          "document",
         );
       }
     },
@@ -83,12 +87,13 @@
 
   const files = filesProxy(form, "file");
 
-  const isLoading = $derived(updateDocumentMutation.isPending.value);
+  const isLoading = $derived(updateDocumentMutation.isPending);
 
   $effect(() => {
     if (document && open) {
       $formData.documentName = document.documentName;
-      $formData.documentCategory = document.documentCategory;
+      $formData.documentCategory =
+        document.documentCategory as DocumentCategory;
       $formData.documentDate = document.documentDate;
     }
   });
@@ -97,7 +102,7 @@
     $formData.documentCategory
       ? documentCategoryEnum.find((c) => c.value === $formData.documentCategory)
           ?.label
-      : "Choose category"
+      : "Choose category",
   );
 
   const onUpload: FileDropZoneProps["onUpload"] = async (uploadedFiles) => {
@@ -133,7 +138,7 @@
       }
     }}
   >
-    <input type="hidden" name="id" value={document.id}>
+    <input type="hidden" name="id" value={document.id} />
     <FormField {form} name="documentName">
       <FormControl>
         {#snippet children({ props })}
@@ -141,7 +146,7 @@
           <Input {...props} type="text" bind:value={$formData.documentName} />
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
     <FormField {form} name="documentCategory">
       <FormControl>
@@ -165,7 +170,7 @@
           </Select>
         {/snippet}
       </FormControl>
-      <FormFieldErrors/>
+      <FormFieldErrors />
     </FormField>
     <FormField {form} name="documentDate">
       <FormControl>
@@ -174,7 +179,7 @@
           <Input {...props} type="date" bind:value={$formData.documentDate} />
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
 
     {#if document.fileName && $files.length === 0}
@@ -210,9 +215,13 @@
           >
             <div class="flex flex-col gap-2 w-full items-center justify-center">
               <div class="i-lucide:upload h-12 w-12 bg-neutral-500"></div>
-              <div class="flex flex-col w-full gap-0 items-center justify-center">
+              <div
+                class="flex flex-col w-full gap-0 items-center justify-center"
+              >
                 <h2 class="text-base font-bold text-neutral-500">
-                  {$files.length > 0 ? "Replace file" : "Upload new file (optional)"}
+                  {$files.length > 0
+                    ? "Replace file"
+                    : "Upload new file (optional)"}
                 </h2>
                 <span class="text-sm text-neutral-500"
                   >You can upload PDF, JPEG, or PNG files up to 10 MB</span
@@ -230,7 +239,7 @@
                     >{displaySize(file.size)}</span
                   >
                 </div>
-                <button
+                <Button
                   type="button"
                   class="i-lucide:x h-4 w-4 text-muted-foreground hover:text-foreground"
                   onclick={() => {
@@ -239,18 +248,20 @@
                       ...Array.from($files).slice(i + 1),
                     ]);
                   }}
-                ></button>
+                >
+                  <div class="i-tabler:x"></div>
+                </Button>
               </div>
             {/each}
           </div>
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
 
     <DialogFooter>
-      <FormButton disabled={isLoading}>
-        {isLoading ? "Updating..." : "Update Document"}
+      <FormButton disabled={isLoading.valueOf()}>
+        {isLoading.valueOf() ? "Updating..." : "Update Document"}
       </FormButton>
     </DialogFooter>
   </form>

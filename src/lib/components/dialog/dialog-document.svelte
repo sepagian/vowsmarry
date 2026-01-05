@@ -3,6 +3,7 @@
   import { valibot } from "sveltekit-superforms/adapters";
   import { useQueryClient } from "@tanstack/svelte-query";
 
+  import { Button } from "$lib/components/ui/button";
   import {
     DialogContent,
     DialogDescription,
@@ -65,7 +66,7 @@
         CrudToasts.error(
           "create",
           "An error occurred while saving the document",
-          "document"
+          "document",
         );
       }
     },
@@ -74,13 +75,13 @@
 
   const files = filesProxy(form, "file");
 
-  const isLoading = $derived(createDocumentMutation.isPending.value);
+  const isLoading = $derived(createDocumentMutation.isPending);
 
   const selectedCategory = $derived(
     $formData.documentCategory
       ? documentCategoryEnum.find((c) => c.value === $formData.documentCategory)
           ?.label
-      : "Choose category"
+      : "Choose category",
   );
 
   const onUpload: FileDropZoneProps["onUpload"] = async (uploadedFiles) => {
@@ -129,7 +130,7 @@
           <Input {...props} type="text" bind:value={$formData.documentName} />
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
     <FormField {form} name="documentCategory">
       <FormControl>
@@ -153,7 +154,7 @@
           </Select>
         {/snippet}
       </FormControl>
-      <FormFieldErrors/>
+      <FormFieldErrors />
     </FormField>
     <FormField {form} name="documentDate">
       <FormControl>
@@ -162,7 +163,7 @@
           <Input {...props} type="date" bind:value={$formData.documentDate} />
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
 
     <FormField {form} name="file">
@@ -179,7 +180,9 @@
           >
             <div class="flex flex-col gap-2 w-full items-center justify-center">
               <div class="i-lucide:upload h-12 w-12 bg-neutral-500"></div>
-              <div class="flex flex-col w-full gap-0 items-center justify-center">
+              <div
+                class="flex flex-col w-full gap-0 items-center justify-center"
+              >
                 <h2 class="text-base font-bold text-neutral-500">
                   Drag 'n' drop files here, or click to select files
                 </h2>
@@ -199,7 +202,7 @@
                     >{displaySize(file.size)}</span
                   >
                 </div>
-                <button
+                <Button
                   type="button"
                   class="i-lucide:x h-4 w-4 text-muted-foreground hover:text-foreground"
                   onclick={() => {
@@ -208,18 +211,18 @@
                       ...Array.from($files).slice(i + 1),
                     ]);
                   }}
-                ></button>
+                ></Button>
               </div>
             {/each}
           </div>
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
 
     <DialogFooter>
-      <FormButton disabled={isLoading}>
-        {isLoading ? "Uploading..." : "Add Document"}
+      <FormButton disabled={isLoading.valueOf()}>
+        {isLoading.valueOf() ? "Uploading..." : "Add Document"}
       </FormButton>
     </DialogFooter>
   </form>

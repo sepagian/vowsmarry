@@ -12,21 +12,14 @@
   const tasksQuery = useTasks();
   const expensesQuery = useExpenses();
 
-  let totalSchedules = $derived(
-    schedulesQuery.data.value?.schedules.length ?? 0,
-  );
-  let totalTasks = $derived(tasksQuery.data.value?.tasks.length ?? 0);
+  let totalSchedules = $derived(schedulesQuery.data?.schedules.length ?? 0);
+  let totalTasks = $derived(tasksQuery.data?.tasks.length ?? 0);
   let overdueTasks = $derived(
-    tasksQuery.data.value?.tasks.filter(
+    tasksQuery.data?.tasks.filter(
       (t: { taskStatus?: string }) => t.taskStatus === "overdue",
     ).length ?? 0,
   );
-  let totalExpenses = $derived(expensesQuery.data.value?.expenses.length ?? 0);
-  let overdueExpenses = $derived(
-    expensesQuery.data.value?.expenses.filter(
-      (e: { paymentStatus?: string }) => e.paymentStatus === "overdue",
-    ).length ?? 0,
-  );
+  let totalExpenses = $derived(expensesQuery.data?.expenses.length ?? 0);
 
   let allFiltersDisabled = $derived(
     !calendarFiltersState.filters.showSchedules &&
@@ -90,11 +83,6 @@
           <span class="i-lucide:dollar-sign w-4 h-4"></span>
           <span>
             Expenses ({totalExpenses})
-            {#if overdueExpenses > 0}
-              <span class="text-red-500 font-semibold"
-                >- {overdueExpenses}overdue</span
-              >
-            {/if}
           </span>
         </Label>
         <Switch

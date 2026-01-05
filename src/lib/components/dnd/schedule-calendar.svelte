@@ -18,19 +18,18 @@
   import { Card } from "$lib/components/ui/card";
   import { Skeleton } from "$lib/components/ui/skeleton";
 
-  import { useSchedules } from "$lib/query/schedule";
-  import { useTasks } from "$lib/query/task";
-  import { useExpenses } from "$lib/query/expense";
+  import { calendarFiltersState } from "$lib/stores/calendar.svelte";
   import {
+    transformExpenses,
     transformSchedules,
     transformTasks,
-    transformExpenses,
     type UnifiedCalendarEvent,
   } from "$lib/utils/calendar-transform";
-  import { calendarFiltersState } from "$lib/stores/calendar.svelte";
   import toastService from "$lib/utils/toasts";
 
-  import type { CalendarEvent as CalendarEventType } from "$lib/types";
+  import { useExpenses } from "$lib/query/expense";
+  import { useSchedules } from "$lib/query/schedule";
+  import { useTasks } from "$lib/query/task";
 
   import { calendars } from "./calendar";
   import CalendarEventDetail from "./calendar-event-detail.svelte";
@@ -46,16 +45,16 @@
   let calendarApp = $state<ReturnType<typeof createCalendar>>();
 
   let isLoading = $derived(
-    schedulesQuery.isPending || tasksQuery.isPending || expensesQuery.isPending
+    schedulesQuery.isPending || tasksQuery.isPending || expensesQuery.isPending,
   );
 
   let hasError = $derived(
-    schedulesQuery.isError || tasksQuery.isError || expensesQuery.isError
+    schedulesQuery.isError || tasksQuery.isError || expensesQuery.isError,
   );
 
-  let schedules = $derived(schedulesQuery.data.value?.schedules ?? []);
-  let tasks = $derived(tasksQuery.data.value?.tasks ?? []);
-  let expenses = $derived(expensesQuery.data.value?.expenses ?? []);
+  let schedules = $derived(schedulesQuery.data?.schedules ?? []);
+  let tasks = $derived(tasksQuery.data?.tasks ?? []);
+  let expenses = $derived(expensesQuery.data?.expenses ?? []);
 
   let unifiedEvents = $derived.by(() => {
     const events: UnifiedCalendarEvent[] = [];
@@ -97,13 +96,13 @@
   let hasEvents = $derived(unifiedEvents.length > 0);
 
   function transformToCalendarEvents(
-    events: UnifiedCalendarEvent[]
+    events: UnifiedCalendarEvent[],
   ): CalendarEvent[] {
     try {
       if (!Array.isArray(events)) {
         console.error(
           "transformToCalendarEvents: Expected array, received:",
-          typeof events
+          typeof events,
         );
         return [];
       }
@@ -128,7 +127,7 @@
             console.error(
               "Error transforming individual event:",
               event.id,
-              error
+              error,
             );
             return null;
           }
@@ -203,29 +202,29 @@
 
 <!-- Calendar Filters -->
 {#if !isLoading}
-  <CalendarFilters/>
+  <CalendarFilters />
 {/if}
 
 <!-- Loading State -->
 {#if isLoading}
   <div class="px-4 space-y-4">
     <Card class="p-4">
-      <Skeleton class="h-6 w-48 mb-4"/>
+      <Skeleton class="h-6 w-48 mb-4" />
       <div class="space-y-3">
-        <Skeleton class="h-10 w-full"/>
-        <Skeleton class="h-10 w-full"/>
-        <Skeleton class="h-10 w-full"/>
-        <Skeleton class="h-10 w-full"/>
+        <Skeleton class="h-10 w-full" />
+        <Skeleton class="h-10 w-full" />
+        <Skeleton class="h-10 w-full" />
+        <Skeleton class="h-10 w-full" />
       </div>
     </Card>
 
     <Card class="p-4">
-      <Skeleton class="h-12 w-full mb-4"/>
+      <Skeleton class="h-12 w-full mb-4" />
       <div class="space-y-2">
-        <Skeleton class="h-20 w-full"/>
-        <Skeleton class="h-20 w-full"/>
-        <Skeleton class="h-20 w-full"/>
-        <Skeleton class="h-20 w-full"/>
+        <Skeleton class="h-20 w-full" />
+        <Skeleton class="h-20 w-full" />
+        <Skeleton class="h-20 w-full" />
+        <Skeleton class="h-20 w-full" />
       </div>
     </Card>
   </div>
@@ -250,10 +249,10 @@
         <button
           class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
           onclick={() => {
-						schedulesQuery.refetch();
-						tasksQuery.refetch();
-						expensesQuery.refetch();
-					}}
+            schedulesQuery.refetch();
+            tasksQuery.refetch();
+            expensesQuery.refetch();
+          }}
         >
           <span class="i-lucide:refresh-cw w-4 h-4 inline-block mr-2"></span>
           Retry
@@ -311,7 +310,7 @@
 <!-- Calendar -->
 {#if !isLoading && !hasError && hasEvents && calendarApp}
   <div class="px-4 mt-4">
-    <ScheduleXCalendar {calendarApp}/>
+    <ScheduleXCalendar {calendarApp} />
   </div>
 {/if}
 
