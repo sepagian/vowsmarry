@@ -25,7 +25,7 @@ export function useCreateDocument() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as { message: string };
         throw new Error(error.message || "Failed to create document");
       }
 
@@ -69,7 +69,7 @@ export function useUpdateDocument() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as { message: string };
         throw new Error(error.message || "Failed to update document");
       }
 
@@ -93,7 +93,7 @@ export function useDeleteDocument() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = (await response.json()) as { message: string };
         throw new Error(error.message || "Failed to delete document");
       }
 
