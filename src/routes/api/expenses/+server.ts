@@ -6,13 +6,21 @@ import type { Expense, ExpenseStatus } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ locals, plannerDb }) => {
-  const { activeWorkspaceId, activeWorkspace } = locals;
+  const { activeWorkspaceId } = locals;
 
   if (!activeWorkspaceId) {
     return json({ error: "No workspace" }, { status: 400 });
   }
 
-  const plannedBudget = Number(activeWorkspace?.weddingBudget ?? 0);
+  const plannedBudget = Number(
+    (
+      await plannerDb
+        .selectFrom("organization")
+        .select("weddingBudget")
+        .where("id", "=", activeWorkspaceId)
+        .executeTakeFirst()
+    )?.weddingBudget ?? 0
+  );
 
   const [budgetSpent, totalSavings, planned, spent, expenses] =
     await Promise.all([
