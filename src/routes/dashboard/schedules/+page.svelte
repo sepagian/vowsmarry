@@ -4,6 +4,7 @@
   import ScheduleDialog from "$lib/components/schedule/schedule-dialog.svelte";
   import SectionCards from "$lib/components/section/section-cards.svelte";
 
+  import { useSchedules } from "$lib/query/schedule";
   import type { Schedule } from "$lib/types";
 
   let { data } = $props();
@@ -13,6 +14,8 @@
   let showDeleteDialog = $state(false);
   let selectedSchedule = $state<Schedule | null>(null);
 
+  const schedulesQuery = useSchedules();
+
   const weddingDate = data.workspace?.weddingDate
     ? new Date(data.workspace.weddingDate)
     : null;
@@ -20,12 +23,21 @@
     ? Math.ceil((weddingDate.getTime() - Date.now()) / 86_400_000)
     : 0;
 
+  let stats = $derived(
+    schedulesQuery.data?.stats ?? {
+      totalEvents: 0,
+      completedEvents: 0,
+      remainingEvents: 0,
+      nextEvent: null,
+    },
+  );
+
   let overviewCards = $derived.by(() => {
-    const nextEventTitle = data.stats.nextEvent
-      ? data.stats.nextEvent.startTime
+    const nextEventTitle = stats.nextEvent
+      ? stats.nextEvent.startTime
       : "No events";
-    const nextEventFooter = data.stats.nextEvent
-      ? data.stats.nextEvent.name
+    const nextEventFooter = stats.nextEvent
+      ? stats.nextEvent.name
       : "All events completed";
 
     return [
@@ -37,7 +49,7 @@
         footer: "Until your big day",
       },
       {
-        title: data.stats.completedEvents.toString(),
+        title: stats.completedEvents.toString(),
         description: "Completed Events",
         actionClass: "i-lucide:sparkles",
         actionColor: "bg-purple-500 text-white",
@@ -51,7 +63,7 @@
         footer: nextEventFooter,
       },
       {
-        title: data.stats.remainingEvents.toString(),
+        title: stats.remainingEvents.toString(),
         description: "Remaining Events",
         actionClass: "i-lucide:list-checks",
         actionColor: "bg-green-500 text-white",
@@ -62,44 +74,34 @@
 
   const overviewTitle = "Schedule Overview";
 
-  function handleOpenCreate() {
-    selectedSchedule = null;
-    showCreateDialog = true;
-  }
-
-  function handleOpenEdit(schedule: Schedule) {
-    selectedSchedule = schedule;
-    showEditDialog = true;
-  }
-
-  function handleOpenDelete(schedule: Schedule) {
-    selectedSchedule = schedule;
-    showDeleteDialog = true;
-  }
-
   function handleDialogClose() {
     selectedSchedule = null;
   }
 
   function handleSuccess() {
-    window.location.reload();
+    selectedSchedule = null;
+    showCreateDialog = false;
+    showEditDialog = false;
+    schedulesQuery.refetch();
   }
 
   function handleDeleteSuccess() {
     selectedSchedule = null;
-    window.location.reload();
+    showDeleteDialog = false;
+    schedulesQuery.refetch();
   }
 </script>
 
 <div
   class="flex flex-1 flex-col gap-4 py-4 max-w-screen-xl mx-auto w-full px-4"
 >
-  <SectionCards {overviewCards} {overviewTitle}/>
-  <ScheduleCalendar/>
+  <SectionCards {overviewCards} {overviewTitle} />
+  <ScheduleCalendar />
 </div>
 
 <!-- Create Schedule Dialog -->
 <ScheduleDialog
+  data={selectedSchedule}
   bind:open={showCreateDialog}
   schedule={null}
   onOpenChange={(open) => {
@@ -113,6 +115,7 @@
 
 <!-- Edit Schedule Dialog -->
 <ScheduleDialog
+  data={selectedSchedule}
   bind:open={showEditDialog}
   schedule={selectedSchedule}
   onOpenChange={(open) => {
