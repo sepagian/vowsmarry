@@ -58,31 +58,31 @@
         CrudToasts.error(
           "create",
           "An error occurred while saving the vendor",
-          "vendor"
+          "vendor",
         );
       }
     },
   });
   const { form: formData, enhance } = form;
 
-  const isLoading = $derived(createVendorMutation.isPending.value);
+  const isLoading = $derived(createVendorMutation.isPending);
 
   const selectedCategory = $derived(
     $formData.vendorCategory
       ? categoryEnum.find((c) => c.value === $formData.vendorCategory)?.label
-      : "Choose category"
+      : "Choose category",
   );
 
   const selectedStatus = $derived(
     $formData.vendorStatus
       ? vendorStatusEnum.find((s) => s.value === $formData.vendorStatus)?.label
-      : "Select progress status"
+      : "Select progress status",
   );
 
   const selectedRating = $derived(
     $formData.vendorRating
       ? vendorRatingEnum.find((r) => r.value === $formData.vendorRating)?.label
-      : "Select vendor rating"
+      : "Select vendor rating",
   );
 </script>
 
@@ -111,7 +111,7 @@
           <Input {...props} type="text" bind:value={$formData.vendorName} />
         {/snippet}
       </FormControl>
-      <FormFieldErrors class="text-xs text-red-500"/>
+      <FormFieldErrors class="text-xs text-red-500" />
     </FormField>
     <div class="flex w-full gap-4">
       <FormField {form} name="vendorCategory" class="flex flex-col w-full">
@@ -136,16 +136,20 @@
             </Select>
           {/snippet}
         </FormControl>
-        <FormFieldErrors class="text-xs"/>
+        <FormFieldErrors class="text-xs" />
       </FormField>
       <FormField {form} name="vendorInstagram" class="flex flex-col w-full">
         <FormControl>
           {#snippet children({ props })}
             <FormLabel>Instagram</FormLabel>
-            <Input {...props} type="text" bind:value={$formData.vendorInstagram} />
+            <Input
+              {...props}
+              type="text"
+              bind:value={$formData.vendorInstagram}
+            />
           {/snippet}
         </FormControl>
-        <FormFieldErrors class="text-xs text-red-500"/>
+        <FormFieldErrors class="text-xs text-red-500" />
       </FormField>
     </div>
     <div class="flex w-full gap-4">
@@ -171,7 +175,7 @@
             </Select>
           {/snippet}
         </FormControl>
-        <FormFieldErrors class="text-xs"/>
+        <FormFieldErrors class="text-xs" />
       </FormField>
       <FormField {form} name="vendorRating" class="flex flex-col w-full">
         <FormControl>
@@ -195,12 +199,12 @@
             </Select>
           {/snippet}
         </FormControl>
-        <FormFieldErrors class="text-xs"/>
+        <FormFieldErrors class="text-xs" />
       </FormField>
     </div>
     <DialogFooter>
-      <FormButton disabled={isLoading}>
-        {isLoading ? "Creating..." : "Add New Vendor"}
+      <FormButton disabled={isLoading.valueOf()}>
+        {isLoading.valueOf() ? "Creating..." : "Add New Vendor"}
       </FormButton>
     </DialogFooter>
   </form>
